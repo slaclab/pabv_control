@@ -1,4 +1,6 @@
 
+#include <Wire.h>
+
 const unsigned int RelayCount     = 2;
 const unsigned int RelayPins[2]   = {2,3};
 const unsigned int AnalogCount    = 4;
@@ -6,6 +8,7 @@ const unsigned int AnalogPins[4]  = {2,3,4,5};
 const unsigned int AnalogMillis   = 10;
 const unsigned int DefRelayPeriod = 3000;
 const unsigned int DefRelayOn     = 1000;
+const unsigned int I2cAddr        = 0x28;
 
 unsigned int relayPeriod;
 unsigned int relayOn;
@@ -17,7 +20,10 @@ unsigned int relayTime;
 unsigned int rxCount;
 unsigned int scanPeriod;
 unsigned int scanOn;
-unsigned int cycleStart;
+unsigned int cycleCount;
+unsigned int i2cValue;
+unsigned int i2cLow;
+unsigned int i2cHigh;
 
 char txBuffer[100];
 char rxBuffer[50];
@@ -34,19 +40,19 @@ void setup() {
 
    analogTime = millis();
    relayTime  = millis();
+   cycleCount = 0;
    rxCount    = 0;
 
    relayPeriod = DefRelayPeriod;
    relayOn     = DefRelayOn;
 
    Serial.begin(9600);
+   Wire.begin();
 }
 
 void (* resetFunc)(void) = 0;
 
 void loop() {
-
-   cycleStart = 0;
 
    for (x=0; x < AnalogCount; x++)
       analogValues[x] = analogRead(AnalogPins[x]);
@@ -64,13 +70,19 @@ void loop() {
       digitalWrite(RelayPins[0], LOW);
       digitalWrite(RelayPins[1], HIGH);
       relayTime = currTime;
-      cycleStart = 1;
+      cycleCount++;
    }
 
    if ((currTime - analogTime) > AnalogMillis ) {
-      sprintf(txBuffer,"ANALOG %i %i %i %i %i\n", cycleStart,
+
+      Wire.requestFrom(I2cAddr, byte(2));
+      i2cHigh = Wire.read();
+      i2cLow = Wire.read();
+      i2cValue = (i2cHigh << 8) + i2cLow;
+
+      sprintf(txBuffer,"ANALOG %i %i %i %i %i %i\n", cycleCount,
                        analogValues[0], analogValues[1],
-                       analogValues[2], analogValues[3]);
+                       analogValues[2], analogValues[3], i2cValue);
 
       Serial.write(txBuffer);
       analogTime = currTime;
@@ -93,6 +105,9 @@ void loop() {
 
       // Check for reset
       if ( ret > 0 && strcmp(mark,"RESET") == 0 ) resetFunc();
+
+      // Check for Count Reset
+      if ( ret > 0 && strcmp(mark,"CNTRST") == 0 ) cycleCount = 0;
 
       // Check marker
       else if ( ret == 3 && strcmp(mark,"PERIOD") == 0 ) {

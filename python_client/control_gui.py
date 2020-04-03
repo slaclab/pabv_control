@@ -22,6 +22,8 @@ class MplCanvas(FigureCanvasQTAgg):
 
 class ControlGui(QWidget):
 
+    updateCount = pyqtSignal(str)
+
     def __init__(self, *, ambu, parent=None):
         super(ControlGui, self).__init__(parent)
 
@@ -58,8 +60,18 @@ class ControlGui(QWidget):
         self.relayOn.setText("1000")
         fl.addRow('Relay On:',self.relayOn)
 
+        self.cycles = QLineEdit()
+        self.cycles.setText("0")
+        self.cycles.setReadOnly(True)
+        self.updateCount.connect(self.cycles.setText)
+        fl.addRow('Cycles:',self.cycles)
+
         pb = QPushButton('Set Period')
         pb.clicked.connect(self.setPeriod)
+        vl.addWidget(pb)
+
+        pb = QPushButton('Clear Count')
+        pb.clicked.connect(self.clrCount)
         vl.addWidget(pb)
 
         # Log File
@@ -93,6 +105,9 @@ class ControlGui(QWidget):
 
         self.ambu.setPeriod(period,on)
 
+    def clrCount(self):
+        self.ambu.clearCount()
+
     #@pyqtSlot
     def openPressed(self):
         f = self.logFile.text()
@@ -102,7 +117,9 @@ class ControlGui(QWidget):
     def closePressed(self):
         self.ambu.closeLog()
 
-    def plotData(self,data):
+    def plotData(self,data,count):
+        self.updateCount.emit(str(count))
+
         sTime = data['time'][0]
 
         xAxis = np.array([data['time'][i] - sTime for i in range(len(data['time']))])
@@ -110,8 +127,9 @@ class ControlGui(QWidget):
         data1 = np.array(data['chan1'])
         data2 = np.array(data['chan2'])
         data3 = np.array(data['chan3'])
+        data4 = np.array(data['chan4'])
 
         self.plot.axes.cla()
-        self.plot.axes.plot(xAxis,data0,xAxis,data1,xAxis,data2,xAxis,data3)
+        self.plot.axes.plot(xAxis,data0,xAxis,data1,xAxis,data2,xAxis,data3,xAxis,data4)
         self.plot.draw()
 
