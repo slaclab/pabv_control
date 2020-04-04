@@ -22,8 +22,8 @@ unsigned int scanPeriod;
 unsigned int scanOn;
 unsigned int cycleCount;
 unsigned int i2cValue;
-unsigned int i2cLow;
-unsigned int i2cHigh;
+byte i2cLow;
+byte i2cHigh;
 
 char txBuffer[100];
 char rxBuffer[50];
@@ -76,9 +76,9 @@ void loop() {
    if ((currTime - analogTime) > AnalogMillis ) {
 
       Wire.requestFrom(I2cAddr, byte(2));
-      i2cHigh = Wire.read();
+      i2cHigh = Wire.read() & 0x3F;
       i2cLow = Wire.read();
-      i2cValue = (i2cHigh << 8) + i2cLow;
+      i2cValue = (i2cHigh << 8) | i2cLow;
 
       sprintf(txBuffer,"ANALOG %i %i %i %i %i %i\n", cycleCount,
                        analogValues[0], analogValues[1],
