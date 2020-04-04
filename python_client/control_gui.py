@@ -130,6 +130,7 @@ class ControlGui(QWidget):
         data4 = np.array(data['chan4'])
 
         self.plot.axes.cla()
-        self.plot.axes.plot(xAxis,data0,xAxis,data1,xAxis,data2,xAxis,data3,xAxis,data4)
+        #self.plot.axes.plot(xAxis,data0,xAxis,data1,xAxis,data2,xAxis,data3,xAxis,data4)
+        self.plot.axes.plot(xAxis,data4)
         self.plot.draw()
 
