@@ -8,7 +8,8 @@ from PyQt5.QtGui     import *
 from control_gui import ControlGui
 from ambu_control import AmbuControl
 
-ambu = AmbuControl("/dev/ttyACM0")
+#ambu = AmbuControl("/dev/ttyACM0")
+ambu = AmbuControl("COM1")
 
 appTop = QApplication(sys.argv)
 
