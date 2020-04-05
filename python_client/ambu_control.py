@@ -12,7 +12,7 @@ def convertNpa700B02WD(val):
     if val >= 2**(14-1):
         val -= 2**14
 
-    press = float(val) * ( 4960.0  / float((2**14)-1))
+    press = float(val) * ( 50.62101 / float((2**14)-1))
 
     return press
 
