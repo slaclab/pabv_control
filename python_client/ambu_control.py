@@ -17,11 +17,16 @@ def convertNpa700B02WD(val):
     return press
 
 
+def convertRaw(val):
+    return float(val)
+
+
 Conversion = [ convertArduinoAdcToVolts,
                convertArduinoAdcToVolts,
                convertArduinoAdcToVolts,
                convertArduinoAdcToVolts,
-               convertNpa700B02WD ]
+               convertRaw ]
+               #convertNpa700B02WD ]
 
 
 class AmbuControl(object):
