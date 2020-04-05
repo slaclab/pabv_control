@@ -126,5 +126,6 @@ class ControlGui(QWidget):
 
         self.plot.axes.cla()
         self.plot.axes.plot(xAxis,data['data'][4])
+        self.plot.axes.ylim((-10,50))
         self.plot.draw()
 
