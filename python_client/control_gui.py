@@ -17,8 +17,6 @@ class MplCanvas(FigureCanvasQTAgg):
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
 
-        #self.axes.xlabel('Time')
-        #self.axes.ylabel('Volts')
 
 class ControlGui(QWidget):
 
@@ -74,6 +72,31 @@ class ControlGui(QWidget):
         pb.clicked.connect(self.clrCount)
         vl.addWidget(pb)
 
+        # Period Control
+        gb = QGroupBox('GUI Control')
+        hl.addWidget(gb)
+
+        vl = QVBoxLayout()
+        gb.setLayout(vl)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        vl.addLayout(fl)
+
+        self.minValue = QLineEdit()
+        self.minValue.setText("-10")
+        fl.addRow('Min Value:',self.minValue)
+
+        self.maxValue = QLineEdit()
+        self.maxValue.setText("50")
+        fl.addRow('Max Value:',self.maxValue)
+
+        self.plotCycles = QLineEdit()
+        self.plotCycles.setText("10")
+        fl.addRow('Plot Cycles:',self.plotCycles)
+
         # Log File
         gb = QGroupBox('Log File')
         hl.addWidget(gb)
@@ -98,6 +121,9 @@ class ControlGui(QWidget):
         pb.clicked.connect(self.closePressed)
         vl.addWidget(pb)
 
+        self.plotData = []
+
+
     #@pyqtSlot
     def setPeriod(self):
         period = int(self.relayPeriod.text())
@@ -118,15 +144,38 @@ class ControlGui(QWidget):
         self.ambu.closeLog()
 
     def plotData(self,data,count):
+        self.plotData.append(data)
+
+        pc = int(self.plotCycles.text())
+
+        if len(self.plotData) > pc:
+            self.plotData = self.plotData[-1 * pc:]
+
         self.updateCount.emit(str(count))
 
-        sTime = data['time'][0]
+        cnt = len(data['data'])
+        xAxis = []
+        data = []
 
-        xAxis = np.array([data['time'][i] - sTime for i in range(len(data['time']))])
+        for j in range(cnt):
+            data.append([])
+
+        for i in range(len(self.plotData)):
+            xAxis.extend(self.plotData[i]['time'])
+
+            for j in range(cnt):
+                data[j].extend(self.plotData[i]['data'][j])
 
         self.plot.axes.cla()
-        self.plot.axes.plot(xAxis,data['data'][4])
-        #self.plot.axes.set_ylim([-10,60])
-        self.plot.axes.set_ylim([0,17000])
+        xa = np.array(xAxis)
+
+        for j in range(cnt):
+            self.plot.axes.plot(xa,np.array(data[j]))
+
+        self.plot.axes.set_ylim([float(self.minValue.text()),float(self.maxValue.text())])
         self.plot.draw()
+
+        #self.axes.xlabel('Time')
+        #self.axes.ylabel('Volts')
+
 

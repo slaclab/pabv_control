@@ -9,7 +9,7 @@ def convertArduinoAdcToVolts(val):
 
 
 def convertNpa700B02WD(val):
-    press = float(val-8191) * ( 50.7492 / 8191.0 )
+    press = float(val-8191) * ( 5.07492 / 8191.0 )
 
     return press
 
@@ -18,27 +18,32 @@ def convertRaw(val):
     return float(val)
 
 
-Conversion = [ convertArduinoAdcToVolts,
-               convertArduinoAdcToVolts,
-               convertArduinoAdcToVolts,
-               convertArduinoAdcToVolts,
-               convertNpa700B02WD ]
+def convertZero(val):
+    return 0.0
 
 
 class AmbuControl(object):
 
-    def __init__(self, dev):
+    def __init__(self, dev, convert=[]):
 
         self._ser = serial.Serial(dev ,9600, timeout=1.0)
 
-        self._data = {'time': [], 'data': [[], [], [], [], []]}
-
+        self._convert = convert
         self._runEn = True
         self._callBack = self._debugCallBack
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
         self._file = None
         self._last = None
+
+        self._initData()
+
+    def _initData(self):
+        self._data = {'time': [], 'data': []}
+
+        for i in range(len(self._convert)):
+            if self._convert[i] is not None:
+                self._data['data'].append([])
 
     def openLog(self, fName):
         self._file = open(fName,'a')
@@ -80,10 +85,13 @@ class AmbuControl(object):
             if data[0] == 'PERIOD':
                 print(f"Got period feedback: {line}")
 
-            if data[0] == 'ANALOG' and len(data) == 7:
+            if data[0] == 'ANALOG' and len(data) >= (len(self._convert)+2):
                 count = int(data[1])
+                values = []
 
-                values = [Conversion[i](int(data[i+2])) for i in range(5)]
+                for i in range(len(self._convert)):
+                    if self._convert[i] is not None:
+                        values.append(self._convert[i](int(data[i+2])))
 
                 if self._file is not None:
                     self._file.write(f'{ts}, {count}, ' + ', '.join(map(str,values)))
@@ -98,10 +106,11 @@ class AmbuControl(object):
                     except Exception as e:
                         print("Got error {}".format(e))
 
-                    self._data = {'time': [], 'data': [[], [], [], [], []]}
+                    self._initData()
 
                 self._data['time'].append(ts)
-                for i in range(5):
+
+                for i in range(len(values)):
                     self._data['data'][i].append(values[i])
 
         print("Stopping thread")
