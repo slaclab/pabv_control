@@ -9,7 +9,7 @@ def convertArduinoAdcToVolts(val):
 
 
 def convertNpa700B02WD(val):
-    press = float(val-8191) * ( 50.62101 / 8191.0 )
+    press = float(val-8191) * ( 50.7492 / 8191.0 )
 
     return press
 
@@ -22,8 +22,7 @@ Conversion = [ convertArduinoAdcToVolts,
                convertArduinoAdcToVolts,
                convertArduinoAdcToVolts,
                convertArduinoAdcToVolts,
-               convertRaw ]
-               #convertNpa700B02WD ]
+               convertNpa700B02WD ]
 
 
 class AmbuControl(object):
