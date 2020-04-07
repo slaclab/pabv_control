@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
+import time
 
 class MplCanvas(FigureCanvasQTAgg):
 
@@ -122,6 +123,7 @@ class ControlGui(QWidget):
         vl.addWidget(pb)
 
         self.plotData = []
+        self.rTime = time.time()
 
 
     #@pyqtSlot
@@ -143,8 +145,9 @@ class ControlGui(QWidget):
     def closePressed(self):
         self.ambu.closeLog()
 
-    def plotData(self,data,count):
-        self.plotData.append(data)
+    def plotData(self,inData,count):
+        self.plotData.append(inData)
+        vals = len(inData['data'])
 
         pc = int(self.plotCycles.text())
 
@@ -153,24 +156,23 @@ class ControlGui(QWidget):
 
         self.updateCount.emit(str(count))
 
-        cnt = len(data['data'])
         xAxis = []
         data = []
 
-        for j in range(cnt):
+        for _ in range(vals):
             data.append([])
 
-        for i in range(len(self.plotData)):
-            xAxis.extend(self.plotData[i]['time'])
+        for pd in self.plotData:
+            xAxis.extend([val - self.rTime for val in pd['time']])
 
-            for j in range(cnt):
-                data[j].extend(self.plotData[i]['data'][j])
+            for i,d in enumerate(data):
+                d.extend(pd['data'][i])
 
         self.plot.axes.cla()
         xa = np.array(xAxis)
 
-        for j in range(cnt):
-            self.plot.axes.plot(xa,np.array(data[j]))
+        for d in data:
+            self.plot.axes.plot(xa,np.array(d))
 
         self.plot.axes.set_ylim([float(self.minValue.text()),float(self.maxValue.text())])
         self.plot.draw()

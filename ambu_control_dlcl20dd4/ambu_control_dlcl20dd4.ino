@@ -8,7 +8,9 @@ const unsigned int AnalogPins[4]  = {2,3,4,5};
 const unsigned int AnalogMillis   = 10;
 const unsigned int DefRelayPeriod = 3000;
 const unsigned int DefRelayOn     = 1000;
-const unsigned int I2cAddr        = 0x28;
+
+const byte I2cAddr = 41;
+const byte I2cCmd  = 0xAC; // 2 cycle average = 8ms
 
 unsigned int relayPeriod;
 unsigned int relayOn;
@@ -21,9 +23,7 @@ unsigned int rxCount;
 unsigned int scanPeriod;
 unsigned int scanOn;
 unsigned int cycleCount;
-unsigned int i2cValue;
-byte i2cLow;
-byte i2cHigh;
+byte i2cRaw[4];
 
 char txBuffer[100];
 char rxBuffer[50];
@@ -75,14 +75,18 @@ void loop() {
 
    if ((currTime - analogTime) > AnalogMillis ) {
 
-      Wire.requestFrom(I2cAddr, byte(2));
-      i2cHigh = Wire.read() & 0x3F;
-      i2cLow = Wire.read();
-      i2cValue = (i2cHigh << 8) | i2cLow;
+      // Read last cycles values
+      Wire.requestFrom(I2cAddr, byte(4));
+      for (x=0; x < 4; x++) i2cRaw[x] = Wire.read();
 
-      sprintf(txBuffer,"ANALOG %i %i %i %i %i %i\n", cycleCount,
+      // Start new cycle
+      Wire.beginTransmission(I2cAddr);
+      Wire.write(I2cCmd);
+      Wire.endTransmission();
+
+      sprintf(txBuffer,"ANALOG %i %i %i %i %i 0x%.2x%.2x%.2x\n", cycleCount,
                        analogValues[0], analogValues[1],
-                       analogValues[2], analogValues[3], i2cValue);
+                       analogValues[2], analogValues[3], i2cRaw[1], i2cRaw[2], i2cRaw[3]);
 
       Serial.write(txBuffer);
       analogTime = currTime;

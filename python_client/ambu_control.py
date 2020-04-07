@@ -46,8 +46,8 @@ class AmbuControl(object):
     def _initData(self):
         self._data = {'time': [], 'data': []}
 
-        for i in range(len(self._convert)):
-            if self._convert[i] is not None:
+        for cf in self._convert:
+            if cf is not None:
                 self._data['data'].append([])
 
     def openLog(self, fName):
@@ -94,9 +94,9 @@ class AmbuControl(object):
                 count = int(data[1])
                 values = []
 
-                for i in range(len(self._convert)):
-                    if self._convert[i] is not None:
-                        values.append(self._convert[i](int(data[i+2])))
+                for i,cf in enumerate(self._convert):
+                    if cf is not None:
+                        values.append(cf(int(data[i+2],0)))
 
                 if self._file is not None:
                     self._file.write(f'{ts}, {count}, ' + ', '.join(map(str,values)))
@@ -115,8 +115,8 @@ class AmbuControl(object):
 
                 self._data['time'].append(ts)
 
-                for i in range(len(values)):
-                    self._data['data'][i].append(values[i])
+                for i,val in enumerate(values):
+                    self._data['data'][i].append(val)
 
         print("Stopping thread")
 
