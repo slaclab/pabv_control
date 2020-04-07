@@ -9,7 +9,7 @@ import control_gui
 import ambu_control
 
 convert = [None]*5
-convert[4] = ambu_control.convertNpa700B02WD
+convert[4] = ambu_control.convertDlcL20dD4
 
 
 if sys.platform == 'linux':
