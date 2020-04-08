@@ -100,6 +100,7 @@ class AmbuControl(object):
 
                 if self._file is not None:
                     self._file.write(f'{ts}, {count}, ' + ', '.join(map(str,values)))
+                    self._file.write('\n')
 
                 if self._last is None:
                     self._last = count
