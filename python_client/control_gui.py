@@ -15,7 +15,7 @@ class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
+        self.axes = [fig.add_subplot(211), fig.add_subplot(212)]
         super(MplCanvas, self).__init__(fig)
 
 
@@ -86,13 +86,21 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         vl.addLayout(fl)
 
-        self.minValue = QLineEdit()
-        self.minValue.setText("-10")
-        fl.addRow('Min Value:',self.minValue)
+        self.pMinValue = QLineEdit()
+        self.pMinValue.setText("-10")
+        fl.addRow('Pres Min Value:',self.pMinValue)
 
-        self.maxValue = QLineEdit()
-        self.maxValue.setText("50")
-        fl.addRow('Max Value:',self.maxValue)
+        self.pMaxValue = QLineEdit()
+        self.pMaxValue.setText("50")
+        fl.addRow('Pres Max Value:',self.pMaxValue)
+
+        self.fMinValue = QLineEdit()
+        self.fMinValue.setText("-10")
+        fl.addRow('Flow Min Value:',self.fMinValue)
+
+        self.fMaxValue = QLineEdit()
+        self.fMaxValue.setText("50")
+        fl.addRow('Flow Max Value:',self.fMaxValue)
 
         self.plotCycles = QLineEdit()
         self.plotCycles.setText("10")
@@ -168,16 +176,23 @@ class ControlGui(QWidget):
             for i,d in enumerate(data):
                 d.extend(pd['data'][i])
 
-        self.plot.axes.cla()
+        self.plot.axes[0].cla()
+        self.plot.axes[1].cla()
         xa = np.array(xAxis)
 
-        for d in data:
-            self.plot.axes.plot(xa,np.array(d))
+        for i,d in enumerate(data):
+            if i < len(self.plot.axes):
+                self.plot.axes[i].plot(xa,np.array(d))
 
-        self.plot.axes.set_ylim([float(self.minValue.text()),float(self.maxValue.text())])
+        self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
+        self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
+
+        self.plot.axes[0].set_xlabel('Time')
+        self.plot.axes[0].set_ylabel('cmH20')
+
+        self.plot.axes[1].set_xlabel('Time')
+        self.plot.axes[1].set_ylabel('cmH20')
+
         self.plot.draw()
-
-        #self.axes.xlabel('Time')
-        #self.axes.ylabel('Volts')
 
 
