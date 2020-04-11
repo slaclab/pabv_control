@@ -90,13 +90,12 @@ void loop() {
       Wire.requestFrom(I2cAddr, byte(2));
       i2cHigh = Wire.read() & 0x3F;
       i2cLow = Wire.read();
-      i2cValue = (i2cHigh << 8) | i2cLow;
 
       sprintf(txBuffer,"ANALOG %i %i %i %i %i 0x%.2x%.2x%.2x 0x%.2x%.2x\n", cycleCount,
                        analogValues[0], analogValues[1],
                        analogValues[2], analogValues[3],
                        i2cRaw[1], i2cRaw[2], i2cRaw[3],
-                       i2High, i2cLow);
+                       i2cHigh, i2cLow);
 
       Serial.write(txBuffer);
       analogTime = currTime;
