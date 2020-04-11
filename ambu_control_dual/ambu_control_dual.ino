@@ -9,7 +9,8 @@ const unsigned int AnalogMillis   = 10;
 const unsigned int DefRelayPeriod = 3000;
 const unsigned int DefRelayOn     = 1000;
 
-const byte I2cAddr = 41;
+const byte I2cAddrDlc = 41;
+const byte I2cAddrNpa = 0x28;
 const byte I2cCmd  = 0xAC; // 2 cycle average = 8ms
 
 unsigned int relayPeriod;
@@ -78,16 +79,16 @@ void loop() {
    if ((currTime - analogTime) > AnalogMillis ) {
 
       // Read last cycles values for dlc
-      Wire.requestFrom(I2cAddr, byte(4));
+      Wire.requestFrom(I2cAddrDlc, byte(4));
       for (x=0; x < 4; x++) i2cRaw[x] = Wire.read();
 
       // Start new cycle for dlc
-      Wire.beginTransmission(I2cAddr);
+      Wire.beginTransmission(I2cAddrDlc);
       Wire.write(I2cCmd);
       Wire.endTransmission();
 
       // Read npa sensor
-      Wire.requestFrom(I2cAddr, byte(2));
+      Wire.requestFrom(I2cAddrNpa, byte(2));
       i2cHigh = Wire.read() & 0x3F;
       i2cLow = Wire.read();
 
