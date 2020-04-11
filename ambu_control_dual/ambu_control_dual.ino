@@ -10,8 +10,8 @@ const unsigned int DefRelayPeriod = 3000;
 const unsigned int DefRelayOn     = 1000;
 
 const byte I2cAddrDlc = 41;
-const byte I2cAddrNpa = 0x28;
-const byte I2cCmd  = 0xAC; // 2 cycle average = 8ms
+const byte I2cAddrNpa = 40;
+const byte I2cCmdDlc  = 0xAC; // 2 cycle average = 8ms
 
 unsigned int relayPeriod;
 unsigned int relayOn;
@@ -84,7 +84,7 @@ void loop() {
 
       // Start new cycle for dlc
       Wire.beginTransmission(I2cAddrDlc);
-      Wire.write(I2cCmd);
+      Wire.write(I2cCmdDlc);
       Wire.endTransmission();
 
       // Read npa sensor
