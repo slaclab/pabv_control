@@ -15,7 +15,7 @@ def convertNpa700B02WD(val):
 
 
 def convertDlcL20dD4(val):
-    press = 1.25 * ((float(val) - float(2**12)) / float(2**24)) * 20.0 * 2.54
+    press = 1.25 * ((float(val) - (0.5 * float(2**24))) / float(2**24)) * 20.0 * 2.54
     return press
 
 
