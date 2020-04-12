@@ -10,7 +10,7 @@ import ambu_control
 
 convert = [None]*6
 convert[4] = ambu_control.convertDlcL20dD4
-convert[5] = ambu_control.convertNpa700B02WD
+convert[5] = ambu_control.convertNpa700B02WDFlow
 
 if sys.platform == 'linux':
     ambu = ambu_control.AmbuControl("/dev/ttyACM0",convert=convert)
