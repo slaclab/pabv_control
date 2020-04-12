@@ -190,6 +190,7 @@ class ControlGui(QWidget):
                 intSum += ((v[1]-off) * durr) * 1000.0
 
             inData['data'][2].append(intSum)
+            inData['data'][1][i] = v[1]-off
 
         pc = int(self.plotCycles.text())
 
