@@ -96,11 +96,11 @@ class ControlGui(QWidget):
         fl.addRow('Pres Max Value:',self.pMaxValue)
 
         self.fMinValue = QLineEdit()
-        self.fMinValue.setText("0")
+        self.fMinValue.setText("-5")
         fl.addRow('Flow Min Value:',self.fMinValue)
 
         self.fMaxValue = QLineEdit()
-        self.fMaxValue.setText("5")
+        self.fMaxValue.setText("10")
         fl.addRow('Flow Max Value:',self.fMaxValue)
 
         self.vMinValue = QLineEdit()
@@ -114,6 +114,10 @@ class ControlGui(QWidget):
         self.plotCycles = QLineEdit()
         self.plotCycles.setText("10")
         fl.addRow('Plot Breaths:',self.plotCycles)
+
+        self.fOffset = QLineEdit()
+        self.fOffset.setText("0.0")
+        fl.addRow('Flow Offset:',self.fOffset)
 
         # Log File
         gb = QGroupBox('Log File')
@@ -174,6 +178,7 @@ class ControlGui(QWidget):
         # Add third data = volume
         inData['data'].append([])
 
+        off = float(self.fOffset.text())
         refT = inData['time'][0]
         intSum = 0
 
@@ -182,7 +187,7 @@ class ControlGui(QWidget):
             refT = v[0]
 
             if durr > 0:
-                intSum += (v[1] * durr) * 1000.0
+                intSum += ((v[1]-off) * durr) * 1000.0
 
             inData['data'][2].append(intSum)
 
@@ -229,5 +234,6 @@ class ControlGui(QWidget):
 
         self.plot.draw()
 
+# -3 offset
 # Add Run/Stop
 
