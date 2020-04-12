@@ -207,6 +207,7 @@ class ControlGui(QWidget):
 
         self.plot.axes[0].cla()
         self.plot.axes[1].cla()
+        self.plot.axes[2].cla()
         xa = np.array(xAxis)
 
         self.plot.axes[0].plot(xa,np.array(data[0]),color="yellow")
