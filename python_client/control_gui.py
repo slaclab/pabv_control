@@ -57,8 +57,8 @@ class ControlGui(QWidget):
         fl.addRow('RR (Breaths/Min):',self.relayPeriod)
 
         self.relayOn = QLineEdit()
-        self.relayOn.setText("0.33")
-        fl.addRow('Inhalation Fraction:',self.relayOn)
+        self.relayOn.setText("1")
+        fl.addRow('Inhalation Time (S):',self.relayOn)
 
         self.cycles = QLineEdit()
         self.cycles.setText("0")
@@ -152,7 +152,7 @@ class ControlGui(QWidget):
         rate = float(self.relayPeriod.text())
         period = (1.0 / rate) * 1000.0 * 60.0
 
-        on = period * float(self.relayOn.text())
+        on = float(self.relayOn.text()) * 1000.0
 
         self.ambu.setPeriod(int(period),int(on))
 
