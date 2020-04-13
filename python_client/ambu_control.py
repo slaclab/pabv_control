@@ -9,7 +9,7 @@ def convertArduinoAdcToVolts(val):
 
 
 def convertNpa700B02WD(val):
-    press = float(val-8191) * ( 5.07492 / 8191.0 )
+    press = float(val-8192) * ( 5.07492 / 8191.0 )
 
     return press
 
@@ -19,7 +19,7 @@ def convertNpa700B02WDFlow(val):
 
 
 def convertDlcL20dD4(val):
-    press = -1.25 * ((float(val) - (0.5 * float(2**24))) / float(2**24)) * 20.0 * 2.54
+    press = -1.25 * ((float(val) - (0.5 * float(2**24))) / (0.5 * float(2**24))) * 20.0 * 2.54
     return press
 
 
