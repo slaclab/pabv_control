@@ -23,6 +23,11 @@ def convertDlcL20dD4(val):
     return press
 
 
+def convertDlcL20dD4Reverse(press):
+    adc = ((press / (-1.25 * 20.0 * 2.54)) * (0.5 * float(2**24))) + (0.5 * float(2**24))
+    return int(adc)
+
+
 def convertRaw(val):
     return float(val)
 
