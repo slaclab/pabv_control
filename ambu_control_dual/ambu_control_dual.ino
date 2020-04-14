@@ -5,7 +5,7 @@ const unsigned int RelayCount     = 2;
 const unsigned int RelayPins[2]   = {2,3};
 const unsigned int AnalogCount    = 4;
 const unsigned int AnalogPins[4]  = {2,3,4,5};
-const unsigned int AnalogMillis   = 10;
+const unsigned int AnalogMillis   = 9;
 const unsigned int DefRelayPeriod = 3000;
 const unsigned int DefRelayOn     = 1000;
 const unsigned int DefStartThold  = 0xFFFF;
@@ -56,7 +56,7 @@ void setup() {
    startThold  = DefStartThold;
    inhalation  = 0;
 
-   Serial.begin(9600);
+   Serial.begin(57600);
    Wire.begin();
 }
 
@@ -73,13 +73,13 @@ void loop() {
       Wire.requestFrom(I2cAddrDlc, byte(4));
       for (x=0; x < 4; x++) i2cRaw[x] = Wire.read();
 
-      compValue = (i2cRaw[1] << 8) | i2cRaw[2];
-      if ( compValue > startThold ) autoStart = 1;
-
       // Start new cycle for dlc
       Wire.beginTransmission(I2cAddrDlc);
       Wire.write(I2cCmdDlc);
       Wire.endTransmission();
+
+      compValue = (i2cRaw[1] << 8) | i2cRaw[2];
+      if ( compValue > startThold ) autoStart = 1;
 
       // Read npa sensor
       Wire.requestFrom(I2cAddrNpa, byte(2));

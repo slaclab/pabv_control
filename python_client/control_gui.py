@@ -24,6 +24,7 @@ class MplCanvas(FigureCanvasQTAgg):
 class ControlGui(QWidget):
 
     updateCount = pyqtSignal(str)
+    updateRate  = pyqtSignal(str)
 
     def __init__(self, *, ambu, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -70,6 +71,12 @@ class ControlGui(QWidget):
         self.cycles.setReadOnly(True)
         self.updateCount.connect(self.cycles.setText)
         fl.addRow('Breaths:',self.cycles)
+
+        self.sampRate = QLineEdit()
+        self.sampRate.setText("0")
+        self.sampRate.setReadOnly(True)
+        self.updateRate.connect(self.sampRate.setText)
+        fl.addRow('Sample Rate:',self.sampRate)
 
         pb = QPushButton('Update Settings')
         pb.clicked.connect(self.setPeriod)
@@ -210,6 +217,9 @@ class ControlGui(QWidget):
             self.plotData = self.plotData[-1 * pc:]
 
         self.updateCount.emit(str(count))
+
+        rate = len(inData['time']) / (inData['time'][-1] - inData['time'][0])
+        self.updateRate.emit(str(rate))
 
         xAxis = []
         data = []

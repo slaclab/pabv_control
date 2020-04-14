@@ -40,7 +40,7 @@ class AmbuControl(object):
 
     def __init__(self, dev, convert=[]):
 
-        self._ser = serial.Serial(dev ,9600, timeout=1.0)
+        self._ser = serial.Serial(dev, 57600, timeout=1.0)
 
         self._convert = convert
         self._runEn = True
