@@ -18,7 +18,6 @@ unsigned int startThold;
 unsigned int relayPeriod;
 unsigned int relayOn;
 unsigned int x;
-unsigned int analogValues[4];
 unsigned int analogTime;
 unsigned int currTime;
 unsigned int relayTime;
@@ -63,9 +62,6 @@ void (* resetFunc)(void) = 0;
 void loop() {
    autoStart = 0;
 
-   //for (x=0; x < AnalogCount; x++)
-   //   analogValues[x] = analogRead(AnalogPins[x]);
-
    currTime = millis();
 
    if ((currTime - analogTime) > AnalogMillis ) {
@@ -86,9 +82,7 @@ void loop() {
       i2cHigh = Wire.read() & 0x3F;
       i2cLow = Wire.read();
 
-      sprintf(txBuffer,"ANALOG %i %i %i %i %i 0x%.2x%.2x%.2x 0x%.2x%.2x\n", cycleCount,
-                       analogValues[0], analogValues[1],
-                       analogValues[2], analogValues[3],
+      sprintf(txBuffer,"ANALOG %i 0x%.2x%.2x%.2x 0x%.2x%.2x\n", cycleCount,
                        i2cRaw[1], i2cRaw[2], i2cRaw[3],
                        i2cHigh, i2cLow);
 
