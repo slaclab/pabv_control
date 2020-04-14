@@ -8,9 +8,9 @@ from PyQt5.QtGui     import *
 import control_gui
 import ambu_control
 
-convert = [None]*6
-convert[4] = ambu_control.convertDlcL20dD4
-convert[5] = ambu_control.convertNpa700B02WDFlow
+convert = [None]*2
+convert[0] = ambu_control.convertDlcL20dD4
+convert[1] = ambu_control.convertNpa700B02WDFlow
 
 if sys.platform == 'linux':
     ambu = ambu_control.AmbuControl("/dev/ttyACM0",convert=convert)

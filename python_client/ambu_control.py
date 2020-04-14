@@ -73,8 +73,8 @@ class AmbuControl(object):
     def setCallBack(self, callBack):
         self._callBack = callBack
 
-    def setPeriod(self, period, on):
-        self._ser.write(f"PERIOD {period} {on}\n".encode('UTF-8'))
+    def setPeriod(self, period, on, thold):
+        self._ser.write(f"PERIOD {period} {on} {thold}\n".encode('UTF-8'))
 
     def clearCount(self):
         self._ser.write(f"CNTRST\n".encode('UTF-8'))
@@ -90,43 +90,44 @@ class AmbuControl(object):
             try:
                 raw = self._ser.readline()
                 line = raw.decode('UTF-8')
+
+                data = line.rstrip().split(' ')
+                ts = time.time()
+
+                if data[0] == 'PERIOD':
+                    print(f"Got period feedback: {line}")
+
+                if data[0] == 'ANALOG' and len(data) >= (len(self._convert)+2):
+                    count = int(data[1])
+                    values = []
+
+                    for i,cf in enumerate(self._convert):
+                        if cf is not None:
+                            values.append(cf(int(data[i+2],0)))
+
+                    if self._file is not None:
+                        self._file.write(f'{ts}, {count}, ' + ', '.join(map(str,values)))
+                        self._file.write('\n')
+
+                    if self._last is None:
+                        self._last = count
+                    elif self._last != count:
+                        self._last = count
+
+                        try:
+                            self._callBack(self._data,count)
+                        except Exception as e:
+                            print("Got error {}".format(e))
+
+                        self._initData()
+
+                    self._data['time'].append(ts)
+
+                    for i,val in enumerate(values):
+                        self._data['data'][i].append(val)
+
             except:
-                line = ''
-
-            data = line.rstrip().split(' ')
-            ts = time.time()
-
-            if data[0] == 'PERIOD':
-                print(f"Got period feedback: {line}")
-
-            if data[0] == 'ANALOG' and len(data) >= (len(self._convert)+2):
-                count = int(data[1])
-                values = []
-
-                for i,cf in enumerate(self._convert):
-                    if cf is not None:
-                        values.append(cf(int(data[i+2],0)))
-
-                if self._file is not None:
-                    self._file.write(f'{ts}, {count}, ' + ', '.join(map(str,values)))
-                    self._file.write('\n')
-
-                if self._last is None:
-                    self._last = count
-                elif self._last != count:
-                    self._last = count
-
-                    try:
-                        self._callBack(self._data,count)
-                    except Exception as e:
-                        print("Got error {}".format(e))
-
-                    self._initData()
-
-                self._data['time'].append(ts)
-
-                for i,val in enumerate(values):
-                    self._data['data'][i].append(val)
+                pass
 
         print("Stopping thread")
 

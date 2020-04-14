@@ -8,7 +8,7 @@ const unsigned int AnalogPins[4]  = {2,3,4,5};
 const unsigned int AnalogMillis   = 10;
 const unsigned int DefRelayPeriod = 3000;
 const unsigned int DefRelayOn     = 1000;
-const unsigned int DefStartThold  = 7000;
+const unsigned int DefStartThold  = 0xFFFF;
 
 const byte I2cAddrDlc = 41;
 const byte I2cAddrNpa = 40;
@@ -27,6 +27,8 @@ unsigned int scanOn;
 unsigned int scanThold;
 unsigned int cycleCount;
 unsigned int autoStart;
+unsigned int compValue;
+unsigned int inhalation;
 byte i2cRaw[4];
 byte i2cLow;
 byte i2cHigh;
@@ -52,6 +54,7 @@ void setup() {
    relayPeriod = DefRelayPeriod;
    relayOn     = DefRelayOn;
    startThold  = DefStartThold;
+   inhalation  = 0;
 
    Serial.begin(9600);
    Wire.begin();
@@ -70,7 +73,8 @@ void loop() {
       Wire.requestFrom(I2cAddrDlc, byte(4));
       for (x=0; x < 4; x++) i2cRaw[x] = Wire.read();
 
-      if ( (unsigned int)((i2cRaw[1] << 8) | i2cRaw[2]) < startThold ) autoStart = 1;
+      compValue = (i2cRaw[1] << 8) | i2cRaw[2];
+      if ( compValue > startThold ) autoStart = 1;
 
       // Start new cycle for dlc
       Wire.beginTransmission(I2cAddrDlc);
@@ -94,13 +98,15 @@ void loop() {
    if ((currTime - relayTime) > relayOn ) {
       digitalWrite(RelayPins[0], HIGH);
       digitalWrite(RelayPins[1], LOW);
+      inhalation  = 0;
    }
 
    // End of cycle, turn on
-   if ( autoStart || ((currTime - relayTime) > relayPeriod )) {
+   if ( (inhalation == 0) && ((autoStart == 1) || ((currTime - relayTime) > relayPeriod ))) {
       digitalWrite(RelayPins[0], LOW);
       digitalWrite(RelayPins[1], HIGH);
       relayTime = currTime;
+      inhalation  = 1;
       cycleCount++;
    }
 
@@ -117,7 +123,7 @@ void loop() {
    if ( rxCount > 6 && rxBuffer[rxCount-1] == '\n') {
 
       // Parse string
-      ret = sscanf(rxBuffer,"%s %i %i %i", mark, &scanPeriod, &scanOn, &scanThold);
+      ret = sscanf(rxBuffer,"%s %u %u %u", mark, &scanPeriod, &scanOn, &scanThold);
 
       // Check for reset
       if ( ret > 0 && strcmp(mark,"RESET") == 0 ) resetFunc();
@@ -126,12 +132,12 @@ void loop() {
       if ( ret > 0 && strcmp(mark,"CNTRST") == 0 ) cycleCount = 0;
 
       // Check marker
-      else if ( ret == 3 && strcmp(mark,"PERIOD") == 0 ) {
+      else if ( ret == 4 && strcmp(mark,"PERIOD") == 0 ) {
          relayPeriod = scanPeriod;
          relayOn     = scanOn;
          startThold  = scanThold;
 
-         sprintf(txBuffer,"PERIOD %i %i %i\n",scanPeriod,scanOn,scanThold);
+         sprintf(txBuffer,"PERIOD %u %u %u\n",relayPeriod,relayOn,startThold);
          Serial.write(txBuffer);
       }
       rxCount = 0;

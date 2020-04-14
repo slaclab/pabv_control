@@ -8,9 +8,9 @@ from PyQt5.QtGui     import *
 import control_gui
 import ambu_control
 
-convert = [None]*6
-convert[4] = ambu_control.convertRaw
-convert[5] = ambu_control.convertRaw
+convert = [None]*2
+convert[0] = ambu_control.convertRaw
+convert[1] = ambu_control.convertRaw
 
 
 if sys.platform == 'linux':

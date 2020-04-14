@@ -5,6 +5,7 @@ from PyQt5.QtGui     import *
 
 import numpy as np
 import matplotlib.pyplot as plt
+import ambu_control
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -59,6 +60,10 @@ class ControlGui(QWidget):
         self.relayOn = QLineEdit()
         self.relayOn.setText("1")
         fl.addRow('Inhalation Time (S):',self.relayOn)
+
+        self.startThold = QLineEdit()
+        self.startThold.setText("-5")
+        fl.addRow('Start Thold (cmH20):',self.startThold)
 
         self.cycles = QLineEdit()
         self.cycles.setText("0")
@@ -154,7 +159,14 @@ class ControlGui(QWidget):
 
         on = float(self.relayOn.text()) * 1000.0
 
-        self.ambu.setPeriod(int(period),int(on))
+        thold = ambu_control.convertDlcL20dD4Reverse(float(self.startThold.text())) / 256
+
+        if ( thold > 0xFFFF):
+            thold = 0xFFFF
+        elif (thold < 0 ):
+            thold = 0
+
+        self.ambu.setPeriod(int(period),int(on), int(thold))
 
     def clrCount(self):
         self.ambu.clearCount()
