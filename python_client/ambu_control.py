@@ -2,6 +2,7 @@
 import serial
 import time
 import threading
+import math
 
 
 def convertArduinoAdcToVolts(val):
@@ -15,7 +16,13 @@ def convertNpa700B02WD(val):
 
 
 def convertNpa700B02WDFlow(val):
-    return convertNpa700B02WD(val) * 12.0
+    #return convertNpa700B02WD(val) * 12.0
+
+    press = float(val-8192) * ( 2.0 / 8191.0 )
+
+    B = 100.0
+
+    return B * math.sqrt(press)
 
 
 def convertDlcL20dD4(val):
