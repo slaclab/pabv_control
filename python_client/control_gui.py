@@ -104,7 +104,7 @@ class ControlGui(QWidget):
         fl.addRow('Pres Min Value:',self.pMinValue)
 
         self.pMaxValue = QLineEdit()
-        self.pMaxValue.setText("20")
+        self.pMaxValue.setText("40")
         fl.addRow('Pres Max Value:',self.pMaxValue)
 
         self.fMinValue = QLineEdit()
@@ -112,23 +112,23 @@ class ControlGui(QWidget):
         fl.addRow('Flow Min Value:',self.fMinValue)
 
         self.fMaxValue = QLineEdit()
-        self.fMaxValue.setText("10")
+        self.fMaxValue.setText("250")
         fl.addRow('Flow Max Value:',self.fMaxValue)
 
         self.vMinValue = QLineEdit()
-        self.vMinValue.setText("0")
+        self.vMinValue.setText("-5")
         fl.addRow('Vol Min Value:',self.vMinValue)
 
         self.vMaxValue = QLineEdit()
-        self.vMaxValue.setText("5")
+        self.vMaxValue.setText("500")
         fl.addRow('Vol Max Value:',self.vMaxValue)
 
         self.plotCycles = QLineEdit()
-        self.plotCycles.setText("10")
+        self.plotCycles.setText("0")
         fl.addRow('Plot Breaths:',self.plotCycles)
 
         self.fOffset = QLineEdit()
-        self.fOffset.setText("0.0")
+        self.fOffset.setText("-33.0")
         fl.addRow('Flow Offset:',self.fOffset)
 
         # Log File
