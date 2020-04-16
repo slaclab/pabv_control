@@ -133,8 +133,8 @@ class AmbuControl(object):
                     for i,val in enumerate(values):
                         self._data['data'][i].append(val)
 
-            except:
-                pass
+            except Exception as e:
+                print(f"Got error {e}")
 
         print("Stopping thread")
 
