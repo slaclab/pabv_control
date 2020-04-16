@@ -219,7 +219,7 @@ class ControlGui(QWidget):
         self.updateCount.emit(str(count))
 
         rate = len(inData['time']) / (inData['time'][-1] - inData['time'][0])
-        self.updateRate.emit(f"{rate:.0f}")
+        self.updateRate.emit(f"{rate:.1f}")
 
         xAxis = []
         data = []
