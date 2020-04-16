@@ -124,7 +124,7 @@ class ControlGui(QWidget):
         fl.addRow('Vol Max Value:',self.vMaxValue)
 
         self.plotCycles = QLineEdit()
-        self.plotCycles.setText("0")
+        self.plotCycles.setText("10")
         fl.addRow('Plot Breaths:',self.plotCycles)
 
         self.fOffset = QLineEdit()
