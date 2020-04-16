@@ -24,7 +24,7 @@ def convertNpa700B02WDFlow(val):
 
     if press < 0:
         sign = -1
-        pres = abs(pres)
+        press = abs(press)
     else:
         sign = 1
 
