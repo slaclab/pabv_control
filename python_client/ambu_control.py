@@ -22,7 +22,13 @@ def convertNpa700B02WDFlow(val):
 
     B = 100.0
 
-    return B * math.sqrt(press)
+    if press < 0:
+        sign = -1
+        pres = abs(pres)
+    else:
+        sign = 1
+
+    return sign * B * math.sqrt(abs(press))
 
 
 def convertDlcL20dD4(val):
