@@ -26,7 +26,7 @@ class ControlGui(QWidget):
     updateCount = pyqtSignal(str)
     updateRate  = pyqtSignal(str)
 
-    def __init__(self, *, ambu, parent=None):
+    def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
 
         self.ambu = ambu
@@ -101,11 +101,19 @@ class ControlGui(QWidget):
 
         self.pMinValue = QLineEdit()
         self.pMinValue.setText("-5")
-        fl.addRow('Pres Min Value:',self.pMinValue)
+
+        if refPlot:
+            fl.addRow('Ref Flow Min Value:',self.pMinValue)
+        else:
+            fl.addRow('Pres Min Value:',self.pMinValue)
 
         self.pMaxValue = QLineEdit()
         self.pMaxValue.setText("40")
-        fl.addRow('Pres Max Value:',self.pMaxValue)
+
+        if refPlot:
+            fl.addRow('Ref Flow Max Value:',self.pMaxValue)
+        else:
+            fl.addRow('Pres Max Value:',self.pMaxValue)
 
         self.fMinValue = QLineEdit()
         self.fMinValue.setText("-5")
@@ -247,7 +255,11 @@ class ControlGui(QWidget):
         self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
 
         self.plot.axes[0].set_xlabel('Time')
-        self.plot.axes[0].set_ylabel('Press cmH20')
+
+        if refPlot:
+            self.plot.axes[0].set_ylabel('Ref Flow SL/Min')
+        else:
+            self.plot.axes[0].set_ylabel('Press cmH20')
 
         self.plot.axes[1].set_xlabel('Time')
         self.plot.axes[1].set_ylabel('Flow L/Min')

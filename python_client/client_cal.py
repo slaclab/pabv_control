@@ -17,7 +17,7 @@ if sys.platform == 'linux':
 else:
     ambu = ambu_control.AmbuControl("COM3",convert=convert)
 
-appTop = QApplication(sys.argv)
+appTop = QApplication(sys.argv,refPlot=True)
 
 guiTop = control_gui.ControlGui(ambu=ambu)
 guiTop.setWindowTitle("PABV Control")
