@@ -5,6 +5,13 @@ import threading
 import math
 
 
+def convertArduinoHaf(val):
+
+    flow = 50.0 * (((float(val) / 16384.0) - 0.1) / 0.8)
+
+    return flow
+
+
 def convertArduinoAdcToVolts(val):
     return float(val) * (5.0 / 1023.0)
 
@@ -111,6 +118,7 @@ class AmbuControl(object):
                     print(f"Got period feedback: {line}")
 
                 if data[0] == 'ANALOG' and len(data) >= (len(self._convert)+2):
+                    #print(f"Got analog: {line}")
                     count = int(data[1])
                     values = []
 

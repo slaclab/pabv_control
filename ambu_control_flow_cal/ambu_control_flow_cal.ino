@@ -10,7 +10,7 @@ const unsigned int DefRelayPeriod = 3000;
 const unsigned int DefRelayOn     = 1000;
 const unsigned int DefStartThold  = 0xFFFF;
 
-const byte I2cAddrHw  = 41;
+const byte I2cAddrHw  = 73;
 const byte I2cAddrNpa = 40;
 
 unsigned int startThold;
@@ -77,7 +77,7 @@ void loop() {
       Wire.requestFrom(I2cAddrHw, byte(2));
       for (x=0; x < 2; x++) i2cRaw[x] = Wire.read();
 
-      sprintf(txBuffer,"ANALOG %i 0x%.2x%.2x 0x%.2x%.2x\n", cycleCount,
+      sprintf(txBuffer,"ANALOG %i 0x%.2x%.2x 0x%.2x%.2x\n", (cycleCount / 100),
                        i2cRaw[0], i2cRaw[1],
                        i2cHigh, i2cLow);
 
