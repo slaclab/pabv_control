@@ -242,9 +242,9 @@ class ControlGui(QWidget):
         self.plot.axes[2].cla()
         xa = np.array(xAxis)
 
-        self.plot.axes[0].plot(xa,np.array(data[0]),color="yellow")
-        self.plot.axes[1].plot(xa,np.array(data[1]),color="green")
-        self.plot.axes[2].plot(xa,np.array(data[2]),color="blue")
+        self.plot.axes[0].plot(xa,np.array(data[0]),color="yellow",linewidth=10.0)
+        self.plot.axes[1].plot(xa,np.array(data[1]),color="green",linewidth=10.0)
+        self.plot.axes[2].plot(xa,np.array(data[2]),color="blue",linewidth=10.0)
 
         self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
         self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
