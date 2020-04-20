@@ -29,6 +29,8 @@ class ControlGui(QWidget):
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
 
+        self.refPlot = refPlot
+
         self.ambu = ambu
         self.ambu.setCallBack(self.plotData)
 
@@ -102,7 +104,7 @@ class ControlGui(QWidget):
         self.pMinValue = QLineEdit()
         self.pMinValue.setText("-5")
 
-        if refPlot:
+        if self.refPlot:
             fl.addRow('Ref Flow Min Value:',self.pMinValue)
         else:
             fl.addRow('Pres Min Value:',self.pMinValue)
@@ -110,7 +112,7 @@ class ControlGui(QWidget):
         self.pMaxValue = QLineEdit()
         self.pMaxValue.setText("40")
 
-        if refPlot:
+        if self.refPlot:
             fl.addRow('Ref Flow Max Value:',self.pMaxValue)
         else:
             fl.addRow('Pres Max Value:',self.pMaxValue)
@@ -134,10 +136,6 @@ class ControlGui(QWidget):
         self.plotCycles = QLineEdit()
         self.plotCycles.setText("10")
         fl.addRow('Plot Breaths:',self.plotCycles)
-
-        self.fOffset = QLineEdit()
-        self.fOffset.setText("-33.0")
-        fl.addRow('Flow Offset:',self.fOffset)
 
         # Log File
         gb = QGroupBox('Log File')
@@ -205,7 +203,6 @@ class ControlGui(QWidget):
         # Add third data = volume
         inData['data'].append([])
 
-        off = float(self.fOffset.text())
         refT = inData['time'][0]
         intSum = 0
 
@@ -214,10 +211,9 @@ class ControlGui(QWidget):
             refT = v[0]
 
             if durr > 0:
-                intSum += ((v[1]-off) * durr) * 1000.0
+                intSum += (v[1] * durr) * 1000.0
 
             inData['data'][2].append(intSum)
-            inData['data'][1][i] = v[1]-off
 
         pc = int(self.plotCycles.text())
 
@@ -256,7 +252,7 @@ class ControlGui(QWidget):
 
         self.plot.axes[0].set_xlabel('Time')
 
-        if refPlot:
+        if self.refPlot:
             self.plot.axes[0].set_ylabel('Ref Flow SL/Min')
         else:
             self.plot.axes[0].set_ylabel('Press cmH20')

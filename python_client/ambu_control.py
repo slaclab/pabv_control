@@ -3,6 +3,7 @@ import serial
 import time
 import threading
 import math
+import sys
 
 
 def convertArduinoHaf(val):
@@ -58,7 +59,7 @@ def convertZero(val):
 
 class AmbuControl(object):
 
-    def __init__(self, dev, convert=[]):
+    def __init__(self, dev, convert=[], adjust=[]):
 
         self._ser = serial.Serial(dev, 57600, timeout=1.0)
 
@@ -69,15 +70,21 @@ class AmbuControl(object):
         self._thread.start()
         self._file = None
         self._last = None
+        self._adjust = adjust
+
+        if len(convert) != len(adjust):
+            raise Exception("Convert and adjust mismatch")
+            sys.exit(1)
 
         self._initData()
 
     def _initData(self):
-        self._data = {'time': [], 'data': []}
+        self._data = {'time': [], 'data': [], 'raw': []}
 
         for cf in self._convert:
             if cf is not None:
                 self._data['data'].append([])
+                self._data['raw'].append([])
 
     def openLog(self, fName):
         self._file = open(fName,'a')
@@ -120,14 +127,17 @@ class AmbuControl(object):
                 if data[0] == 'ANALOG' and len(data) >= (len(self._convert)+2):
                     #print(f"Got analog: {line}")
                     count = int(data[1])
-                    values = []
+                    convValues = []
+                    rawValues = []
 
                     for i,cf in enumerate(self._convert):
                         if cf is not None:
-                            values.append(cf(int(data[i+2],0)))
+                            val = int(data[i+2],0)
+                            convValues.append(cf(val + self._adjust[i]))
+                            rawValues.append(val)
 
                     if self._file is not None:
-                        self._file.write(f'{ts}, {count}, ' + ', '.join(map(str,values)))
+                        self._file.write(f'{ts}, {count}, ' + ', '.join(map(str,convValues)))
                         self._file.write('\n')
 
                     if self._last is None:
@@ -137,6 +147,9 @@ class AmbuControl(object):
 
                         try:
                             self._callBack(self._data,count)
+                            avgs = [int(sum(lst) / len(lst)) for lst in self._data['raw']]
+
+                            print('Averages: ' + ' '.join(map(str,avgs)))
                         except Exception as e:
                             print("Got error {}".format(e))
 
@@ -144,8 +157,9 @@ class AmbuControl(object):
 
                     self._data['time'].append(ts)
 
-                    for i,val in enumerate(values):
-                        self._data['data'][i].append(val)
+                    for i,dat in enumerate(zip(convValues,rawValues)):
+                        self._data['data'][i].append(dat[0])
+                        self._data['raw'][i].append(dat[1])
 
             except Exception as e:
                 print(f"Got error {e}")
