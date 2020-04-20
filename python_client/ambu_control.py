@@ -28,7 +28,7 @@ def convertNpa700B02WDFlow(val):
 
     press = float(val-8192) * ( 2.0 / 8191.0 )
 
-    B = 100.0
+    B = 62.0
 
     if press < 0:
         sign = -1
