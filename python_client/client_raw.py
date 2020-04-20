@@ -12,11 +12,12 @@ convert = [None]*2
 convert[0] = ambu_control.convertRaw
 convert[1] = ambu_control.convertRaw
 
+adjust = [0] *2
 
 if sys.platform == 'linux':
-    ambu = ambu_control.AmbuControl("/dev/ttyACM0",convert=convert)
+    ambu = ambu_control.AmbuControl("/dev/ttyACM0",convert=convert,adjust=adjust)
 else:
-    ambu = ambu_control.AmbuControl("COM3",convert=convert)
+    ambu = ambu_control.AmbuControl("COM3",convert=convert,adjust=adjust)
 
 appTop = QApplication(sys.argv)
 
