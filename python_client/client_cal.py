@@ -13,12 +13,12 @@ convert[0] = ambu_control.convertArduinoHaf
 convert[1] = ambu_control.convertNpa700B02WDFlow
 
 adjust = [0] *2
-adjust[1] = (8192-8020)
+adjust[1] = (8192-8098)
 
 if sys.platform == 'linux':
     ambu = ambu_control.AmbuControl("/dev/ttyACM0",convert=convert,adjust=adjust)
 else:
-    ambu = ambu_control.AmbuControl("COM3",convert=convert,adjust=adjust)
+    ambu = ambu_control.AmbuControl("COM4",convert=convert,adjust=adjust)
 
 appTop = QApplication(sys.argv)
 
