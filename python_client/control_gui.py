@@ -56,33 +56,40 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         vl.addLayout(fl)
 
-        self.relayPeriod = QLineEdit()
-        self.relayPeriod.setText("20")
-        fl.addRow('RR (Breaths/Min):',self.relayPeriod)
+        self.rp = QLineEdit()
+        self.rp.setText("{:0.1f}".format(self.ambu.cycleRate))
+        self.rp.returnPressed.connect(self.setRate)
+        fl.addRow('RR (Breaths/Min):',self.rp)
 
-        self.relayOn = QLineEdit()
-        self.relayOn.setText("1")
-        fl.addRow('Inhalation Time (S):',self.relayOn)
+        self.ro = QLineEdit()
+        self.ro.setText("{:0.1f}".format(self.ambu.onTime))
+        self.ro.returnPressed.connect(self.setOnTime)
+        fl.addRow('Inhalation Time (S):',self.ro)
 
-        self.startThold = QLineEdit()
-        self.startThold.setText("-5")
-        fl.addRow('Start Thold (cmH20):',self.startThold)
+        self.st = QLineEdit()
+        self.st.setText("{:0.1f}".format(self.ambu.startThold))
+        self.st.returnPressed.connect(self.setThold)
+        fl.addRow('Start Thold (cmH20):',self.st)
 
-        self.cycles = QLineEdit()
-        self.cycles.setText("0")
-        self.cycles.setReadOnly(True)
-        self.updateCount.connect(self.cycles.setText)
-        fl.addRow('Breaths:',self.cycles)
+        rs = QComboBox()
+        rs.addItem("Relay Off")
+        rs.addItem("Relay On")
+        rs.addItem("Relay Cycle")
+        rs.setCurrentIndex(self.ambu.state)
+        rs.currentIndexChanged.connect(self.setState)
+        fl.addRow('State:',rs)
 
-        self.sampRate = QLineEdit()
-        self.sampRate.setText("0")
-        self.sampRate.setReadOnly(True)
-        self.updateRate.connect(self.sampRate.setText)
-        fl.addRow('Sample Rate:',self.sampRate)
+        cycles = QLineEdit()
+        cycles.setText("0")
+        cycles.setReadOnly(True)
+        self.updateCount.connect(cycles.setText)
+        fl.addRow('Breaths:',cycles)
 
-        pb = QPushButton('Update Settings')
-        pb.clicked.connect(self.setPeriod)
-        vl.addWidget(pb)
+        sampRate = QLineEdit()
+        sampRate.setText("0")
+        sampRate.setReadOnly(True)
+        self.updateRate.connect(sampRate.setText)
+        fl.addRow('Sample Rate:',sampRate)
 
         pb = QPushButton('Clear Count')
         pb.clicked.connect(self.clrCount)
@@ -165,31 +172,44 @@ class ControlGui(QWidget):
         self.rTime = time.time()
 
 
-    #@pyqtSlot
-    def setPeriod(self):
-        rate = float(self.relayPeriod.text())
-        period = (1.0 / rate) * 1000.0 * 60.0
+    @pyqtSlot()
+    def setRate(self):
+        try:
+            self.ambu.cycleRate = float(self.rp.text())
+        except Exception as e:
+            print(f"Got GUI value error {e}")
 
-        on = float(self.relayOn.text()) * 1000.0
+    @pyqtSlot()
+    def setOnTime(self):
+        try:
+            self.ambu.onTime = float(self.ro.text())
+        except Exception as e:
+            print(f"Got GUI value error {e}")
 
-        thold = ambu_control.convertDlcL20dD4Reverse(float(self.startThold.text())) / 256
+    @pyqtSlot()
+    def setThold(self):
+        try:
+            self.ambu.startThold = float(self.st.text())
+        except Exception as e:
+            print(f"Got GUI value error {e}")
 
-        if ( thold > 0xFFFF):
-            thold = 0xFFFF
-        elif (thold < 0 ):
-            thold = 0
-
-        self.ambu.setPeriod(int(period),int(on), int(thold))
+    @pyqtSlot(int)
+    def setState(self, value):
+        print(f"set state value = {value}")
+        try:
+            self.ambu.state = value
+        except Exception as e:
+            print(f"Got GUI value error {e}")
 
     def clrCount(self):
         self.ambu.clearCount()
 
-    #@pyqtSlot
+    @pyqtSlot()
     def openPressed(self):
         f = self.logFile.text()
         self.ambu.openLog(f)
 
-    #@pyqtSlot
+    @pyqtSlot()
     def closePressed(self):
         self.ambu.closeLog()
 
@@ -237,33 +257,36 @@ class ControlGui(QWidget):
             for i,d in enumerate(data):
                 d.extend(pd['data'][i])
 
-        self.plot.axes[0].cla()
-        self.plot.axes[1].cla()
-        self.plot.axes[2].cla()
-        xa = np.array(xAxis)
+        try:
+            self.plot.axes[0].cla()
+            self.plot.axes[1].cla()
+            self.plot.axes[2].cla()
+            xa = np.array(xAxis)
 
-        self.plot.axes[0].plot(xa,np.array(data[0]),color="yellow",linewidth=2.0)
-        self.plot.axes[1].plot(xa,np.array(data[1]),color="green",linewidth=2.0)
-        self.plot.axes[2].plot(xa,np.array(data[2]),color="blue",linewidth=2.0)
+            self.plot.axes[0].plot(xa,np.array(data[0]),color="yellow",linewidth=2.0)
+            self.plot.axes[1].plot(xa,np.array(data[1]),color="green",linewidth=2.0)
+            self.plot.axes[2].plot(xa,np.array(data[2]),color="blue",linewidth=2.0)
 
-        self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
-        self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
-        self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
+            self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
+            self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
+            self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
 
-        self.plot.axes[0].set_xlabel('Time')
+            self.plot.axes[0].set_xlabel('Time')
 
-        if self.refPlot:
-            self.plot.axes[0].set_ylabel('Ref Flow SL/Min')
-        else:
-            self.plot.axes[0].set_ylabel('Press cmH20')
+            if self.refPlot:
+                self.plot.axes[0].set_ylabel('Ref Flow SL/Min')
+            else:
+                self.plot.axes[0].set_ylabel('Press cmH20')
 
-        self.plot.axes[1].set_xlabel('Time')
-        self.plot.axes[1].set_ylabel('Flow L/Min')
+            self.plot.axes[1].set_xlabel('Time')
+            self.plot.axes[1].set_ylabel('Flow L/Min')
 
-        self.plot.axes[2].set_xlabel('Time')
-        self.plot.axes[2].set_ylabel('Volume mL')
+            self.plot.axes[2].set_xlabel('Time')
+            self.plot.axes[2].set_ylabel('Volume mL')
 
-        self.plot.draw()
+            self.plot.draw()
+        except Exception as e:
+            print(f"Got plotting exception {e}")
 
 # -3 offset
 # Add Run/Stop
