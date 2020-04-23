@@ -4,7 +4,7 @@ import time
 import threading
 import math
 import sys
-
+import traceback
 
 def convertArduinoHaf(val):
 
@@ -212,6 +212,7 @@ class AmbuControl(object):
                             #print(f"Got status: {line}")
                             print('Averages: ' + ' '.join(map(str,avgs)))
                         except Exception as e:
+                            traceback.print_exc()
                             print("Got error {}".format(e))
 
                         self._initData()
@@ -225,6 +226,7 @@ class AmbuControl(object):
                     self._first = True
 
             except Exception as e:
+                traceback.print_exc()
                 print(f"Got error {e}")
 
         print("Stopping thread")

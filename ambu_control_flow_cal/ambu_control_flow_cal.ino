@@ -81,7 +81,7 @@ void loop() {
       Wire.requestFrom(I2cAddrHw, byte(2));
       for (x=0; x < 2; x++) i2cRaw[x] = Wire.read();
 
-      sprintf(txBuffer,"STATUS %i %i %i 0x%x %i 0x%.2x%.2x 0x%.2x%.2x\n", cycleCount,
+      sprintf(txBuffer,"STATUS %i %i %i 0x%x %i 0x%.2x%.2x 0x%.2x%.2x\n", (cycleCount/100),
                        relayPeriod, relayOn, startThold, runState,
                        i2cRaw[0], i2cRaw[1],
                        i2cHigh, i2cLow);
