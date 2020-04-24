@@ -85,9 +85,11 @@ class AmbuControl(object):
         self._thread.start()
 
         print("Waiting for first message...")
-        while not self._first:
+        while not self._first and self._runEn:
             time.sleep(0.1)
-        print("Got first message!")
+
+        if self._first:
+            print("Got first message!")
 
     def _initData(self):
         self._data = {'time': [], 'data': [], 'raw': []}
@@ -171,6 +173,9 @@ class AmbuControl(object):
             try:
                 raw = self._ser.readline()
                 line = raw.decode('UTF-8')
+
+                if not self._first:
+                    print(f"Got: {line}")
 
                 data = line.rstrip().split(' ')
                 ts = time.time()
