@@ -84,9 +84,9 @@ class AmbuControl(object):
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
 
-        print("Waiting for first message...")
         while not self._first and self._runEn:
-            time.sleep(0.1)
+            print("Waiting for first message...")
+            time.sleep(1.0)
 
         if self._first:
             print("Got first message!")
@@ -174,7 +174,7 @@ class AmbuControl(object):
                 raw = self._ser.readline()
                 line = raw.decode('UTF-8')
 
-                if not self._first:
+                if not self._first and len(line) > 2:
                     print(f"Got: {line}")
 
                 data = line.rstrip().split(' ')
