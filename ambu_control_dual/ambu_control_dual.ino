@@ -1,8 +1,7 @@
 
 #include <Wire.h>
 
-const unsigned int RelayCount     = 2;
-const unsigned int RelayPins[2]   = {2,3};
+const unsigned int RelayPin       = 2;
 const unsigned int AnalogCount    = 4;
 const unsigned int AnalogPins[4]  = {2,3,4,5};
 const unsigned int AnalogMillis   = 9;
@@ -44,10 +43,8 @@ int  ret;
 
 void setup() {
 
-   pinMode(RelayPins[0], OUTPUT);
-   pinMode(RelayPins[1], OUTPUT);
-   digitalWrite(RelayPins[0], LOW);
-   digitalWrite(RelayPins[1], HIGH);
+   pinMode(RelayPin, OUTPUT);
+   digitalWrite(RelayPin, LOW);
 
    analogTime = millis();
    relayTime  = millis();
@@ -110,11 +107,11 @@ void loop() {
    }
 
    // override relay
-   if ( runState == 0 ) digitalWrite(RelayPins[0], HIGH);
-   else if ( runState == 1 ) digitalWrite(RelayPins[0], LOW);
+   if ( runState == 0 ) digitalWrite(RelayPin, LOW);
+   else if ( runState == 1 ) digitalWrite(RelayPin, HIGH);
    else if ( runState == 2 ) {
-      if ( inhalation == 1 ) digitalWrite(RelayPins[0], LOW);
-      else digitalWrite(RelayPins[0], HIGH);
+      if ( inhalation == 1 ) digitalWrite(RelayPin, HIGH);
+      else digitalWrite(RelayPin, LOW);
    }
 
    // Get serial data
