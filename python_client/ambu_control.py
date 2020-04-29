@@ -39,6 +39,20 @@ def convertNpa700B02WDFlow(val):
     return sign * B * math.sqrt(abs(press))
 
 
+def convertSp110Sm02Flow(val):
+    press = float(val-32768) * ( 2.0 / (0.9 * 32768.0) )
+
+    B = 62.0
+
+    if press < 0:
+        sign = -1
+        press = abs(press)
+    else:
+        sign = 1
+
+    return sign * B * math.sqrt(abs(press))
+
+
 def convertDlcL20dD4(val):
     press = -1.25 * ((float(val) - (0.5 * float(2**24))) / (0.5 * float(2**24))) * 20.0 * 2.54
     return press

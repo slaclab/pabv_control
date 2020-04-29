@@ -10,13 +10,14 @@ import ambu_control
 
 convert = [None]*2
 convert[0] = ambu_control.convertDlcL20dD4
-convert[1] = ambu_control.convertNpa700B02WDFlow
+#convert[1] = ambu_control.convertNpa700B02WDFlow
+convert[1] = ambu_control.convertSp110Sm02Flow
 
 # Marty with dual = 8090
 # Marty with cal = 8099
 
 adjust = [0] *2
-adjust[1] = (8192-8112)
+adjust[1] = (8192-8105)
 #adjust[1] = (8192-7616)
 #adjust[1] = (8192-8022)
 #adjust[1] = (8192-7612)
