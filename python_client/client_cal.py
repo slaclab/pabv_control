@@ -14,6 +14,7 @@ convert[0] = ambu_control.convertArduinoHaf
 convert[1] = ambu_control.convertSp110Sm02Flow
 
 adjust = [0] *2
+adjust[1] = (32768-32778)
 #adjust[1] = (8192-8098)
 
 if sys.platform == 'linux':
