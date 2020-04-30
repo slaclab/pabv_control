@@ -17,7 +17,7 @@ convert[1] = ambu_control.convertSp110Sm02Flow
 # Marty with cal = 8099
 
 adjust = [0] *2
-#adjust[1] = (8192-8105)
+adjust[1] = (32768-32778)
 #adjust[1] = (8192-7616)
 #adjust[1] = (8192-8022)
 #adjust[1] = (8192-7612)
