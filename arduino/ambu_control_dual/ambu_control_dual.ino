@@ -3,17 +3,17 @@
 #include <AmbuConfig.h>
 #include <RelayControl.h>
 #include <SensorDlcL20D4.h>
-#include <SensorSp110Sm02.h>
+#include <SensorNpa700B02WD.h>
 
 #define RELAY_PIN 2
-#define ANALOG_MILLIS 9
+#define SENSOR_PERIOD_MILLIS 9
 
-AmbuConfig      * conf  = new AmbuConfig();
-SensorDlcL20D4  * press = new SensorDlcL20D4();
-SensorSp110Sm02 * flow  = new SensorSp110Sm02();
-RelayControl    * relay = new RelayControl(conf,flow,RELAY_PIN);
+AmbuConfig        * conf  = new AmbuConfig();
+SensorDlcL20D4    * press = new SensorDlcL20D4();
+SensorNpa700B02WD * flow  = new SensorNpa700B02WD();
+RelayControl      * relay = new RelayControl(conf,flow,RELAY_PIN);
 
-unsigned int analogTime;
+unsigned int sensorTime;
 unsigned int currTime;
 
 void setup() {
@@ -26,14 +26,14 @@ void setup() {
    flow->setup();
    relay->setup();
 
-   analogTime = millis();
+   sensorTime = millis();
 }
 
 void loop() {
 
    currTime = millis();
 
-   if ((currTime - analogTime) > ANALOG_MILLIS ) {
+   if ((currTime - sensorTime) > SENSOR_PERIOD_MILLIS ) {
 
       press->update(currTime);
       flow->update(currTime);
@@ -45,7 +45,7 @@ void loop() {
       press->sendString();
       flow->sendString();
       Serial.write("\n");
-      analogTime = currTime;
+      sensorTime = currTime;
    }
 
    relay->update(currTime);

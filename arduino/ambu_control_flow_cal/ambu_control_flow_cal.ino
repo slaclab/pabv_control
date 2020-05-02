@@ -3,16 +3,16 @@
 #include <SensorHaf50Slpm.h>
 #include <SensorSp110Sm02.h>
 
-#define ANALOG_MILLIS 9
+#define SENSOR_PERIOD_MILLIS 9
 
 SensorHaf50Slpm * ref  = new SensorHaf50Slpm();
 SensorSp110Sm02 * flow = new SensorSp110Sm02();
 
-unsigned int analogTime;
+unsigned int sensorTime;
 unsigned int currTime;
 unsigned int cycleCount;
 
-char txBuffer[20];
+char txBuffer[100];
 
 void setup() {
 
@@ -22,7 +22,7 @@ void setup() {
    ref->setup();
    flow->setup();
 
-   analogTime = millis();
+   sensorTime = millis();
    cycleCount = 0;
 }
 
@@ -30,7 +30,7 @@ void loop() {
 
    currTime = millis();
 
-   if ((currTime - analogTime) > ANALOG_MILLIS ) {
+   if ((currTime - sensorTime) > SENSOR_PERIOD_MILLIS ) {
 
       ref->update(currTime);
       flow->update(currTime);
@@ -41,7 +41,7 @@ void loop() {
       ref->sendString();
       flow->sendString();
       Serial.write("\n");
-      analogTime = currTime;
+      sensorTime = currTime;
       cycleCount += 1;
    }
 }
