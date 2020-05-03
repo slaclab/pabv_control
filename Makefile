@@ -1,4 +1,5 @@
-cli=arduino-cli
+cli=tools/bin/arduino-cli
+cli_opts=--config-file etc/arduino-cli.yaml
 libs=ambu_libraries
 sketch_target=arduino:avr:uno
 sketches=\
@@ -12,7 +13,7 @@ targets=$(foreach t,$(sketches),$(t)/$(t).hex)
 default: all
 
 %.hex:
-	$(cli) -b $(sketch_target) --libraries $(libs)  compile $(shell dirname $@)
+	$(cli) $(cli_opts) -b $(sketch_target) --libraries $(libs)  compile $(shell dirname $@)
 
 distro:
 	pyinstaller python_client/client_dual.spec
@@ -21,5 +22,3 @@ clean.distro:
 	rm -rf build dist
 
 all: 	$(targets)
-
-
