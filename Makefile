@@ -9,6 +9,7 @@ sketches=\
 targets=$(foreach t,$(sketches),$(t)/$(t).hex)
 
 
+default: all
 
 %.hex:
 	$(cli) -b $(sketch_target) --libraries $(libs)  compile $(shell dirname $@)
@@ -20,4 +21,5 @@ clean.distro:
 	rm -rf build dist
 
 all: 	$(targets)
+
 
