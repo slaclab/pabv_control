@@ -10,7 +10,7 @@ target=platform.system()+"-"+platform.architecture()[0]
 arduino_url= "https://downloads.arduino.cc/arduino-cli"
 images={
     "Windows-64bit": "arduino-cli_latest_Windows_64bit.zip",
-    "Windows-32bit": "arduino-cli_latest_Windows_64bit.zip",
+    "Windows-32bit": "arduino-cli_latest_Windows_32bit.zip",
     "Linux-64bit" : "arduino-cli_latest_Linux_64bit.tar.gz"
 }
 
