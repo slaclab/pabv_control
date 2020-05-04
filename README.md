@@ -1,11 +1,11 @@
 # Installation
 ### Getting the Code and dependencies
 1. Install Anaconda and open a Anaconda Prompt
-2. `conda install -y -c conda-forge git`
+2. `conda install -y -c conda-forge git pyinstaller make pyserial`
 3. `git clone https://github.com/slaclab/pabv_control`
 4. `cd pabv_control`
-5. `bootstrap.sh` 
-6. `make`
+5. `bash bootstrap.sh` 
+6. `gnumake`
 
 ### Getting Running
 - In Anaconda Prompt  
