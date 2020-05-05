@@ -1,0 +1,4 @@
+*.hex
+*.elf
+tools/
+arduino/data/

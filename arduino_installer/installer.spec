@@ -1,23 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os
-extra_data=list()
-for root, dirs, files in os.walk("../arduino"):
-    for file in files:
-        filename=os.path.join(root, file)
-        dirname=os.path.relpath(os.path.dirname(filename),"..")+'/'
-        extra_data.append((filename,dirname))
-
-extra_data.append(("../etc/arduino-cli.yaml","etc/"))
-extra_data.append(("../tools/bin/*","tools/bin/"))
-extra_data.append(("../ambu_control_dual/*","ambu_control_dual/"))
-toc=Tree('arduino/data/',prefix='arduino/data/')
+import sys
+sys.setrecursionlimit(30000)
 block_cipher = None
 
 
 a = Analysis(['installer.py'],
              pathex=['.'],
              binaries=[],
-             datas=extra_data,
+             datas=[
+                ("../etc/arduino-cli.yaml","etc/"),
+                ("../tools/bin/*","tools/bin/"),
+                ("../ambu_control_dual/*","ambu_control_dual/")
+             ],
              hiddenimports=['pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],
@@ -33,7 +27,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          toc,
+          Tree('arduino/data/',prefix='arduino/data/'),
           [],
           name='installer',
           debug=False,
