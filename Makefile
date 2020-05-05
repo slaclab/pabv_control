@@ -4,9 +4,17 @@ sketch_target=arduino:avr:uno
 pyinstaller=pyinstaller
 pyi_opts=--clean -y
 
-gitstate=$(shell (git status --porcelain | grep -q .) && echo dirty || echo clean)
+git_state=$(shell (git status --porcelain | grep -q .) && echo "-dirty" || echo "")
+git_tag_raw=$(shell git describe --tags)
+ifeq ($(findstring v,$(git_tag_raw)),v)
+git_tag=$(git_tag_raw)
+else
+git_tag=unknown
+endif
 
-
+$(shell echo "const char *version_string=\""$(git_tag)$(git_state)"\";" >arduino/ambu_libraries/ambu_common/version.h) 
+$(shell echo "client_version=\""$(git_tag)$(git_state)"\"" >python_client/client_version.py)
+$(shell echo "client_version=\""$(git_tag)$(git_state)"\"" >arduino_installer/client_version.py)
 arduino_sketches= \
 	ambu_control_superior \
 	ambu_control_flow_cal \
