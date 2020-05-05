@@ -51,12 +51,17 @@ arduino: $(arduino_sketches)
 
 distro:
 	pyinstaller $(pyi_opts) python_client/client_dual.spec
-	@echo distributable excutable: dist/client_dual
+	@echo Distributable excutable created: $(shell(ls dist/client_dual*)
+installer:
 	pyinstaller $(pyi_opts) arduino_installer/installer.spec
-	@echo distributable excutable: dist/installer	
+	@echo Distributable excutable created: $(shell ls dist/installer*)
+
 
 distro.clean:
-	rm -rf build dist
+	rm -rf build/client_dual dist/client_dual*
+installer.clean:
+	rm -rf build/installer dist.installer*
+
 
 clean: $(arduino_clean)
 

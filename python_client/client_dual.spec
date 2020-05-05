@@ -1,7 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 import sys
+import platform
 sys.path.append("arduino_installer")
 import client_version
+target=platform.system()+"_"+platform.architecture()[0]
 sys.setrecursionlimit(30000)
 block_cipher = None
 
@@ -27,7 +29,7 @@ exe = EXE(pyz,
           a.datas,
           Tree('arduino/data/',prefix='arduino/data/'),
           [],
-          name='client_dual_'+client_version.client_version,
+          name='client_dual_'+target+"_"+client_version.client_version,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
