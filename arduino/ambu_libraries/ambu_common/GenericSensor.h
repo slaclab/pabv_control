@@ -11,7 +11,7 @@ class GenericSensor {
       unsigned int scaled_;
       unsigned int x_;
 
-      char buffer_[20];
+      char buffer_[50];
 
    public:
 

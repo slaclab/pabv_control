@@ -12,8 +12,8 @@ class AmbuConfig {
 
    private:
 
-      char rxBuffer_[50];
-      char txBuffer_[20];
+      char rxBuffer_[100];
+      char txBuffer_[50];
       char mark_[10];
 
       unsigned int rxCount_;
