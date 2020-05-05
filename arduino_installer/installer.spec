@@ -10,7 +10,7 @@ a = Analysis(['installer.py'],
              datas=[
                 ("../etc/arduino-cli.yaml","etc/"),
                 ("../tools/bin/*","tools/bin/"),
-                ("../ambu_control_dual/*","ambu_control_dual/")
+                ("../arduino/ambu_control_dual/*","ambu_control_dual/")
              ],
              hiddenimports=['pkg_resources.py2_warn'],
              hookspath=[],

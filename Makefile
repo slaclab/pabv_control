@@ -4,6 +4,9 @@ sketch_target=arduino:avr:uno
 pyinstaller=pyinstaller
 pyi_opts=--clean -y
 
+gitstate=$(shell (git status --porcelain | grep -q .) && echo dirty || echo clean)
+
+
 arduino_sketches= \
 	ambu_control_superior \
 	ambu_control_flow_cal \
