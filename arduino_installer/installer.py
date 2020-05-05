@@ -13,7 +13,9 @@ timeout=5000
 sketch="ambu_control_dual"
 
 def arduino_upload(port,board,sketch):
-    process = subprocess.Popen(['arduino-cli','upload',
+    process = subprocess.Popen(['tools/bin/arduino-cli',
+                                '--config-file','etc/arduino-cli.yaml',
+                                'upload',
                                 '-p',port,
                                 '-b',board,
                                 sketch
@@ -26,7 +28,9 @@ def arduino_upload(port,board,sketch):
 def arduino_board_list():
     result=None
     try:
-        process = subprocess.Popen(['arduino-cli','board','list','--format','json'],
+        process = subprocess.Popen(['tools/bin/arduino-cli',
+                                    '--config-file','etc/arduino-cli.yaml',
+                                    'board','list','--format','json'],
                     stdout=subprocess.PIPE, 
                     stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
@@ -50,9 +54,7 @@ state_labels= {
 "FAILED" :  "Programming failed"
 }
 
-def check_arduino():
-    for port in serial.tools.list_ports.comports():
-        print(port.vid,port.pid,port.serial_number,port.manufacturer,port)
+
     
 
 class MainWindow(QMainWindow):
@@ -68,18 +70,50 @@ class MainWindow(QMainWindow):
         self.device=None
         self.state="WAIT"
 
+    def arduino_upload(self,port,board,sketch):
+        process = subprocess.Popen(['tools/bin/arduino-cli',
+                                    '--config-file','etc/arduino-cli.yaml',
+                                    'upload',
+                                    '-p',port,
+                                    '-b',board,
+                                    sketch
+                                ],
+                                   stdout=subprocess.PIPE, 
+                                   stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        return(process.returncode==0)
+
+    def arduino_board_list(self):
+        result=None
+        try:
+            process = subprocess.Popen(['tools/bin/arduino-cli',
+                                        '--config-file','etc/arduino-cli.yaml',
+                                        'board','list','--format','json'],
+                                       stdout=subprocess.PIPE, 
+                                       stderr=subprocess.PIPE)
+            stdout, stderr = process.communicate()
+            data = json.loads(stdout)    
+            for d in data:
+                if("boards" in d):
+                    result=dict()
+                    result['board']=d["boards"][0]['FQBN']
+                    result["port"]=d['address']
+                    break
+        except: pass
+        return result
+
     def process(self):        
         if(self.state=="WAIT"):
             for port in serial.tools.list_ports.comports():                   
                 if( (port.vid,port.pid) in vendor_list): 
-                    self.device=arduino_board_list()
+                    self.device=self.arduino_board_list()
                     if(self.device): self.state="CONNECTED"
                     break
         elif(self.state=="CONNECTED"):
             self.state="PROGRAM"
         elif(self.state=="PROGRAM"):
             try:
-                success=arduino_upload(self.device["port"],self.device["board"],sketch)
+                success=self.arduino_upload(self.device["port"],self.device["board"],sketch)
                 if(success): self.state="DONE" 
                 else: self.state="fAILED"
                 self.state="DONE"
