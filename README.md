@@ -4,15 +4,15 @@
 2.   `conda install -y -c conda-forge git pyinstaller make pyserial`
 3. `git clone https://github.com/slaclab/pabv_control`
 4. `cd pabv_control`
-### Downloading arduin-cli
+##### Downloading arduin-cli
 5. `bash bootstrap.sh`
-### gnumake commands should be run in a bash shell
+##### gnumake commands should be run in a bash shell
 6.  `bash`
-### Building arduino targets
+##### Building arduino targets
 7. `gnumake`
-### Building client stand-alone executable
+##### Building client stand-alone executable
 8.  `gnumake distro`
-### Building the arduino software installer
+##### Building the arduino software installer
 9.  `gnumake installer`
 
 ### Test platforms
