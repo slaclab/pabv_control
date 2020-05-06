@@ -1,0 +1,12 @@
+*~
+*.hex
+*.elf
+tools/
+arduino/data/
+build/
+dist/
+__pycache__/
+.cache/
+arduino/ambu_libraries/ambu_common/version.h
+client_version.py
+

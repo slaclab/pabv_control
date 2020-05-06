@@ -241,8 +241,10 @@ class ControlGui(QWidget):
             self.plotData = self.plotData[-1 * pc:]
 
         self.updateCount.emit(str(count))
-
-        rate = len(inData['time']) / (inData['time'][-1] - inData['time'][0])
+        try:
+            rate = len(inData['time']) / (inData['time'][-1] - inData['time'][0])
+        except:
+            rate=0.
         self.updateRate.emit(f"{rate:.1f}")
 
         xAxis = []

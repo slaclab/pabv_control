@@ -4,6 +4,7 @@
 #include <RelayControl.h>
 #include <SensorDlcL20D4.h>
 #include <SensorNpa700B02WD.h>
+#include <version.h>
 
 #define RELAY_PIN 2
 #define SENSOR_PERIOD_MILLIS 9

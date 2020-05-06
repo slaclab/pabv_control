@@ -7,6 +7,7 @@ from PyQt5.QtGui     import *
 
 import control_gui
 import ambu_control
+import client_version
 
 convert = [None]*2
 convert[0] = ambu_control.convertDlcL20dD4
