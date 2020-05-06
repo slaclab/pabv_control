@@ -7,46 +7,18 @@ from PyQt5.QtCore    import *
 from PyQt5.QtGui     import *
 
 vendor_list=[
-(9025,67)
+  (0x2341,0x0043), # Original UNO R3
+  (0x0403,0x6001)
 ]
 timeout=5000
 sketch="ambu_control_dual"
 
-def arduino_upload(port,board,sketch):
-    process = subprocess.Popen(['tools/bin/arduino-cli',
-                                '--config-file','etc/arduino-cli.yaml',
-                                'upload',
-                                '-p',port,
-                                '-b',board,
-                                sketch
-                            ],
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    return(process.returncode==0)
 
-def arduino_board_list():
-    result=None
-    try:
-        process = subprocess.Popen(['tools/bin/arduino-cli',
-                                    '--config-file','etc/arduino-cli.yaml',
-                                    'board','list','--format','json'],
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        data = json.loads(stdout)    
-        for d in data:
-            if("boards" in d):
-                result=dict()
-                result['board']=d["boards"][0]['FQBN']
-                result["port"]=d['address']
-                break
-    except: pass
-    return result
 
 
 
 state_labels= {
+"START" : "Starting Software update",
 "WAIT": "Connect USB cable to unit",
 "CONNECTED": "Device found",
 "PROGRAM": "Programming device",
@@ -60,15 +32,18 @@ state_labels= {
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.setWindowTitle("Arudino Updater")
-        self.label = QLabel("Starting: Update Arudino Software")
+        self.setWindowTitle("Arduino Updater")
+        self.label = QLabel()
+        self.state="START"
+        self.update()
+        self.state="WAIT"
         self.label.setAlignment(Qt.AlignCenter)
         self.setCentralWidget(self.label)
         self.timer = QTimer(self, interval=timeout)
         self.timer.start(timeout)
         self.timer.timeout.connect(self.process) 
         self.device=None
-        self.state="WAIT"
+     
 
     def arduino_upload(self,port,board,sketch):
         process = subprocess.Popen(['tools/bin/arduino-cli',
@@ -76,12 +51,19 @@ class MainWindow(QMainWindow):
                                     'upload',
                                     '-p',port,
                                     '-b',board,
+                                    '-i',sketch+'/'+sketch+'.hex',
                                     sketch
                                 ],
                                    stdout=subprocess.PIPE, 
                                    stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
         return(process.returncode==0)
+
+    def update(self):
+        self.label.setText(state_labels[self.state])
+        font=self.label.font()
+        font.setPointSize(72)
+        self.label.setFont(font)
 
     def arduino_board_list(self):
         result=None
@@ -120,7 +102,7 @@ class MainWindow(QMainWindow):
             except: self.state="FAILED"
         elif(self.state=="DONE"):
             pass
-        self.label.setText(state_labels[self.state])
+        self.update()
 
 app = QApplication(sys.argv)
 window = MainWindow()

@@ -1,6 +1,6 @@
 cli=tools/bin/arduino-cli
 cli_opts=--config-file etc/arduino-cli.yaml
-sketch_target=arduino:avr:uno
+board=arduino:avr:uno
 pyinstaller=pyinstaller
 pyi_opts=--clean -y
 
@@ -33,7 +33,9 @@ default: arduino
 
 
 define make-arduino-target
-$1: $1.hex 
+dep=$(addsuffix .$(board).hex,$1)
+$(info $(dep))
+$1: "$(dep)" 
 $1.clean:
 	rm -f arduino/$1/*.{hex,elf}
 endef
@@ -42,12 +44,8 @@ $(foreach element, $(arduino_sketches), $(eval $(call make-arduino-target,$(elem
 
 arduino: $(arduino_sketches)
 
-
-
-
-%.hex: %.ino
-	$(cli) $(cli_opts) -b $(sketch_target) --libraries $(arduino_libs)  compile $(shell dirname $<) -o  $(shell dirname $<)/$(shell basename $< .ino)
-
+%.$(board).hex: %.ino
+	$(cli) $(cli_opts) -b $(board) --libraries $(arduino_libs)  compile $(shell dirname $<)
 
 distro:
 	pyinstaller $(pyi_opts) python_client/client_dual.spec
