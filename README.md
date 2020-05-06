@@ -27,7 +27,7 @@
 ### Wrapper scripts for arduino CLI
 
 ##### Show connected boards
-- `sh   scripts/board_list.sh`
+- `scripts/board_list.sh`
 
 Example output for an UNO
 
@@ -36,7 +36,7 @@ Example output for an UNO
 `COM3 Serial Port (USB) Arduino Uno arduino:avr:uno arduino:avr`
 
 ##### Upload compiled sketch
-- `sh scripts/board_upload.sh COM3 arduino/ambu_control_dual`
+- `scripts/board_upload.sh COM3 arduino/ambu_control_dual`
 
 Example output:
 

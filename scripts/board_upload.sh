@@ -1,3 +1,7 @@
+if [ "$#" -ne 2 ]; then
+    echo "usage: board_upload.sh PORT SKETCH_DIR"
+    exit 1
+fi
 echo Uploading to port: $1
 file=$2/$(basename $2).hex
 echo Sketch           : $2
