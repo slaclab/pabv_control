@@ -1,10 +1,26 @@
 import sys
+import os
+import os.path as op
 import serial.tools.list_ports
 import subprocess
 import json
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore    import *
 from PyQt5.QtGui     import *
+
+#pyinstaller onefile requires this
+try:
+    this_file = __file__
+except NameError:
+    this_file = sys.argv[0]
+this_file = op.abspath(this_file)
+if getattr(sys, 'frozen', False):
+    application_path = getattr(sys, '_MEIPASS', op.dirname(sys.executable))
+else:
+    application_path = op.dirname(this_file)+'/../'
+
+os.chdir(application_path)
+
 
 vendor_list=[
   (0x2341,0x0043), # Original UNO R3
@@ -46,7 +62,7 @@ class MainWindow(QMainWindow):
      
 
     def arduino_upload(self,port,board,sketch):
-        process = subprocess.Popen(['tools/bin/arduino-cli',
+        process = subprocess.Popen(['./tools/bin/arduino-cli',
                                     '--config-file','etc/arduino-cli.yaml',
                                     'upload',
                                     '-p',port,
@@ -68,13 +84,13 @@ class MainWindow(QMainWindow):
     def arduino_board_list(self):
         result=None
         try:
-            process = subprocess.Popen(['tools/bin/arduino-cli',
+            process = subprocess.Popen(['./tools/bin/arduino-cli',
                                         '--config-file','etc/arduino-cli.yaml',
                                         'board','list','--format','json'],
                                        stdout=subprocess.PIPE, 
                                        stderr=subprocess.PIPE)
             stdout, stderr = process.communicate()
-            data = json.loads(stdout)    
+            data = json.loads(stdout)
             for d in data:
                 if("boards" in d):
                     result=dict()

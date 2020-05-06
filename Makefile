@@ -33,9 +33,7 @@ default: arduino
 
 
 define make-arduino-target
-dep=$(addsuffix .$(board).hex,$1)
-$(info $(dep))
-$1: "$(dep)" 
+$1: $1.hex
 $1.clean:
 	rm -f arduino/$1/*.{hex,elf}
 endef
@@ -44,13 +42,13 @@ $(foreach element, $(arduino_sketches), $(eval $(call make-arduino-target,$(elem
 
 arduino: $(arduino_sketches)
 
-%.$(board).hex: %.ino
-	$(cli) $(cli_opts) -b $(board) --libraries $(arduino_libs)  compile $(shell dirname $<)
+%.hex: %.ino
+	$(cli) $(cli_opts) -b $(board) --libraries $(arduino_libs)  compile $(shell dirname $<) -o  $(shell dirname $<)/$(shell basename $@ .ino)
 
 distro:
 	pyinstaller $(pyi_opts) python_client/client_dual.spec
 	@echo Distributable excutable created: $(shell(ls dist/client_dual*)
-installer:
+installer: ambu_control_dual 
 	pyinstaller $(pyi_opts) arduino_installer/installer.spec
 	@echo Distributable excutable created: $(shell ls dist/installer*)
 
