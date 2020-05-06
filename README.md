@@ -12,7 +12,7 @@
 
     First check if you Anaconda3 installation needs to be fixed by running in bash
    
-    `which git`
+    which git
    
 If git is found the next step can be skipped
 
