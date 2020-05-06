@@ -5,15 +5,17 @@
 3. `git clone https://github.com/slaclab/pabv_control`
 4. `cd pabv_control`
 ##### Downloading arduin-cli
-5. `bash bootstrap.sh`
+5. `bash ./bootstrap.sh`
 ##### gnumake commands should be run in a bash shell
 6.  `bash`
+##### on some Anaconda3 installations it might be necessary to fix the PATH for bash once
+7.   `echo 'export PATH=$CONDA_PREFIX/Library/bin:$PATH' >> ~/.bashrc`
 ##### Building arduino targets
-7. `gnumake`
+9. `gnumake`
 ##### Building client stand-alone executable
-8.  `gnumake distro`
+9.  `gnumake distro`
 ##### Building the arduino software installer
-9.  `gnumake installer`
+10.  `gnumake installer`
 
 ### Test platforms
 1. Windows 10 64-bit
