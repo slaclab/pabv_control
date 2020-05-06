@@ -10,20 +10,18 @@
 6.  `bash`
 ##### on some Anaconda3 installations it might be necessary to fix the PATH for bash once
 
-First check if you Anaconda3 installation needs to be fixed:
-
-   `bash`
+    First check if you Anaconda3 installation needs to be fixed by running in bash
    
-   `which git`
+    `which git`
    
 If git is found the next step can be skipped
 
-7.   `echo 'export PATH=$CONDA_PREFIX/Library/bin:$PATH' >> ~/.bashrc`
+7.  `echo 'export PATH=$CONDA_PREFIX/Library/bin:$PATH' >> ~/.bashrc`
 
-      After modifying .bashrc, exit bash ny typing exit, enter bash again
+    After modifying .bashrc, exit bash ny typing exit, enter bash again
       
 ##### Building arduino targets
-9. `gnumake`
+8. `gnumake`
 ##### Building client stand-alone executable
 9.  `gnumake distro`
 ##### Building the arduino software installer
