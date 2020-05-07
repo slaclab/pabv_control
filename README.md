@@ -1,7 +1,9 @@
 # Installation
 ### Getting the Code and dependencies
-1. Install Anaconda and open a Anaconda Prompt
-2.   `conda install -y -c conda-forge git pyinstaller make pyserial`
+1. Install Anaconda3 (64-bit) for Windows 10 from here:
+   https://www.anaconda.com/products/individual
+and open a Anaconda Prompt
+2. `conda install -y -c conda-forge git pyinstaller make pyserial`
 3. `git clone https://github.com/slaclab/pabv_control`
 4. `cd pabv_control`
 ##### Downloading arduin-cli
@@ -9,9 +11,19 @@
 ##### gnumake commands should be run in a bash shell
 6.  `bash`
 ##### on some Anaconda3 installations it might be necessary to fix the PATH for bash once
-7.   `echo 'export PATH=$CONDA_PREFIX/Library/bin:$PATH' >> ~/.bashrc`
+
+    First check if you Anaconda3 installation needs to be fixed by running in bash
+   
+    which git
+   
+If git is found the next step can be skipped
+
+7.  `echo 'export PATH=$CONDA_PREFIX/Library/bin:$PATH' >> ~/.bashrc`
+
+    After modifying .bashrc, exit bash ny typing exit, enter bash again
+      
 ##### Building arduino targets
-9. `gnumake`
+8. `gnumake`
 ##### Building client stand-alone executable
 9.  `gnumake distro`
 ##### Building the arduino software installer
