@@ -13,5 +13,5 @@ arduino_sketches="ambu_control_superior ambu_control_flow_cal ambu_control_dual"
 
 for x in ${arduino_sketches}
 do
-${CLI} $CLI_OPTS --libraries ${arduino_libs}  compile  -b ${board} -o arudino/${x}/${x}.hex arduino/${x}
+${CLI} $CLI_OPTS --libraries ${arduino_libs}  compile  -b ${board} -o arduino/${x}/${x}.hex arduino/${x}
 done
