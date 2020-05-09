@@ -12,7 +12,7 @@ else
 git_tag=unknown
 endif
 
-$(shell echo "const char *version_string=\""$(git_tag)$(git_state)"\";" >arduino/ambu_libraries/ambu_common/version.h) 
+$(shell echo "const char *version_string=\""$(git_tag)$(git_state)"\";" >arduino/libraries/ambu_common/version.h)
 $(shell echo "client_version=\""$(git_tag)$(git_state)"\"" >python_client/client_version.py)
 $(shell echo "client_version=\""$(git_tag)$(git_state)"\"" >arduino_installer/client_version.py)
 arduino_sketches= \
@@ -20,7 +20,7 @@ arduino_sketches= \
 	ambu_control_flow_cal \
 	ambu_control_dual
 
-arduino_libs=arduino/ambu_libraries
+arduino_libs=arduino/libraries
 
 arduino_dirs=$(addprefix arduino/,$(arduino_sketches))
 arduino_clean=$(addsuffix .clean,$(arduino_sketches))
@@ -48,7 +48,7 @@ arduino: $(arduino_sketches)
 distro:
 	pyinstaller $(pyi_opts) python_client/client_dual.spec
 	@echo Distributable excutable created: $(shell(ls dist/client_dual*)
-installer: ambu_control_dual 
+installer: ambu_control_dual
 	pyinstaller $(pyi_opts) arduino_installer/installer.spec
 	@echo Distributable excutable created: $(shell ls dist/installer*)
 
@@ -60,5 +60,3 @@ installer.clean:
 
 
 clean: $(arduino_clean)
-
-
