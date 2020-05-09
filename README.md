@@ -48,7 +48,7 @@ Example output for an UNO
 `COM3 Serial Port (USB) Arduino Uno arduino:avr:uno arduino:avr`
 
 ##### Upload compiled sketch
-- `scripts/board_upload.sh COM3 arduino/ambu_control_dual`
+- `scripts/board_upload.sh COM3 ambu_control_dual`
 
 Example output:
 
