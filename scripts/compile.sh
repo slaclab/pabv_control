@@ -2,8 +2,7 @@ CLI=tools/bin/arduino-cli
 CLI_OPTS="--config-file etc/arduino-cli.yaml"
 board=arduino:avr:uno
 arduino_libs=arduino/ambu_libraries
-git_state=$((git status --porcelain | grep -q . ) && echo "-dirty" || echo "")
-git_tag_raw=$(git describe --tags)
+git_state=$((${CONDA_PREFIX}/Library/bin/git status --porcelain | /usr/bin/grep -q . ) && echo "-dirty" || echo "")
 
 git_tag=${git_tag_raw}
 echo "const char *version_string=\""${git_tag}${git_state}"\";" >arduino/ambu_libraries/ambu_common/version.h
