@@ -23,6 +23,7 @@ void setup() {
 
    relay->setup();
 
+   // Wait 5 seconds for pressure to settle
    delay(5000);
 
    conf->setup();
