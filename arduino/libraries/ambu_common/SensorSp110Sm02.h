@@ -5,8 +5,8 @@
 #include "GenericSensor.h"
 
 #define SP11_SM02_ADDR  0x28
-#define SP11_SM02_INIT1 0b10011101
-#define SP11_SM02_INIT2 0b10111101
+#define SP11_SM02_INIT1 0b01001001
+#define SP11_SM02_INIT2 0b01101001
 #define SP11_SM02_DELAY 200
 
 class SensorSp110Sm02 : public GenericSensor {
