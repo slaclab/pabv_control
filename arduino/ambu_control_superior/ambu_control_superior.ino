@@ -21,10 +21,13 @@ void setup() {
    Serial.begin(57600);
    Wire.begin();
 
+   relay->setup();
+
+   delay(5000);
+
    conf->setup();
    press->setup();
    flow->setup();
-   relay->setup();
 
    sensorTime = millis();
 }
