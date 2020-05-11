@@ -5,9 +5,9 @@
 
 #include <HardwareSerial.h>
 
-RelayControl::RelayControl (AmbuConfig *conf, GenericSensor *flow, unsigned int relayPin) {
+RelayControl::RelayControl (AmbuConfig *conf, GenericSensor *press, unsigned int relayPin) {
    conf_ = conf;
-   flow_ = flow;
+   press_ = press;
 
    relayPin_ = relayPin;
 
@@ -27,7 +27,7 @@ void RelayControl::setup() {
 void RelayControl::update(unsigned int ctime) {
 
    // First check autostart
-   if ( flow_->scaledValue() > conf_->getThold() ) autoStart_ = 1;
+   if ( press_->scaledValue() > conf_->getThold() ) autoStart_ = 1;
    else autoStart_ = 0;
 
    // Turn off time

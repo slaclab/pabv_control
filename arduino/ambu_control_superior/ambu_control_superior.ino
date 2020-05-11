@@ -11,7 +11,7 @@
 AmbuConfig      * conf  = new AmbuConfig();
 SensorDlcL20D4  * press = new SensorDlcL20D4();
 SensorSp110Sm02 * flow  = new SensorSp110Sm02();
-RelayControl    * relay = new RelayControl(conf,flow,RELAY_PIN);
+RelayControl    * relay = new RelayControl(conf,press,RELAY_PIN);
 
 unsigned int sensorTime;
 unsigned int currTime;
