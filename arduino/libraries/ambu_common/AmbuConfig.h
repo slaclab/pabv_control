@@ -24,12 +24,14 @@ class AmbuConfig {
 
       unsigned int period_;
       unsigned int onTime_;
-      unsigned int thold_;
+      unsigned int startThold_;
+      unsigned int stopThold_;
       unsigned int runState_;
 
       unsigned int scanPeriod_;
       unsigned int scanOn_;
-      unsigned int scanThold_;
+      unsigned int scanStartThold_;
+      unsigned int scanStopThold_;
       unsigned int scanRun_;
 
       void storeConfig();
@@ -48,7 +50,9 @@ class AmbuConfig {
 
       unsigned int getOnTime();
 
-      unsigned int getThold();
+      unsigned int getStartThold();
+
+      unsigned int getStopThold();
 
       unsigned int getRunState();
 

@@ -18,18 +18,22 @@ void AmbuConfig::setup() {
    EEPROM.get(addr_, onTime_);
    addr_ += 4;
 
-   EEPROM.get(addr_, thold_);
+   EEPROM.get(addr_, startThold_);
    addr_ += 4;
 
    EEPROM.get(addr_, runState_);
    addr_ += 4;
 
+   EEPROM.get(addr_, stopThold_);
+   addr_ += 4;
+
    // Just in case the values are bad
    if ( period_ == 0xFFFF ) {
-      period_   = 3000;
-      onTime_   = 1000;
-      thold_    = 0x8a14;
-      runState_ = StateCycle;
+      period_     = 3000;
+      onTime_     = 1000;
+      startThold_ = 0x8a14;
+      stopThold_  = 0xFFFF;
+      runState_   = StateCycle;
       storeConfig();
    }
 }
@@ -46,17 +50,18 @@ void AmbuConfig::update(unsigned int ctime) {
    }
 
    // Check for incoming message
-   if ( rxCount_ > 6 && rxBuffer_[rxCount_-1] == '\n') {
+   if ( rxCount_ > 7 && rxBuffer_[rxCount_-1] == '\n') {
 
       // Parse string
-      ret_ = sscanf(rxBuffer_,"%s %u %u %u %u", mark_, &scanPeriod_, &scanOn_, &scanThold_, &scanRun_);
+      ret_ = sscanf(rxBuffer_,"%s %u %u %u %u %u", mark_, &scanPeriod_, &scanOn_, &scanStartThold_, &scanRun_, &scanStopThold_);
 
       // Check marker
-      if ( ret_ == 5 && strcmp(mark_,"CONFIG") == 0 ) {
-         period_   = scanPeriod_;
-         onTime_   = scanOn_;
-         thold_    = scanThold_;
-         runState_ = scanRun_;
+      if ( ret_ == 6 && strcmp(mark_,"CONFIG") == 0 ) {
+         period_     = scanPeriod_;
+         onTime_     = scanOn_;
+         startThold_ = scanStartThold_;
+         runState_   = scanRun_;
+         stopThold_  = scanStopThold_;
 
          storeConfig();
       }
@@ -65,7 +70,7 @@ void AmbuConfig::update(unsigned int ctime) {
 }
 
 void AmbuConfig::sendString() {
-   sprintf(txBuffer_, " %u %u 0x%x %u", period_, onTime_, thold_, runState_);
+   sprintf(txBuffer_, " %u %u 0x%x %u 0x%x", period_, onTime_, startThold_, runState_, stopThold_);
 
    Serial.write(txBuffer_);
 }
@@ -78,8 +83,12 @@ unsigned int AmbuConfig::getOnTime() {
    return onTime_;
 }
 
-unsigned int AmbuConfig::getThold() {
-   return thold_;
+unsigned int AmbuConfig::getStartThold() {
+   return startThold_;
+}
+
+unsigned int AmbuConfig::getStopThold() {
+   return stopThold_;
 }
 
 unsigned int AmbuConfig::getRunState() {
@@ -95,10 +104,13 @@ void AmbuConfig::storeConfig() {
    EEPROM.put(addr_, onTime_);
    addr_ += 4;
 
-   EEPROM.put(addr_, thold_);
+   EEPROM.put(addr_, startThold_);
    addr_ += 4;
 
    EEPROM.put(addr_, runState_);
+   addr_ += 4;
+
+   EEPROM.put(addr_, stopThold_);
    addr_ += 4;
 }
 
