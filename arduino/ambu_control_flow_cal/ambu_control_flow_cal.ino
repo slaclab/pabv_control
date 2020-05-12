@@ -39,7 +39,7 @@ void loop() {
       flow->update(currTime);
 
       // Generate serial output
-      sprintf(txBuffer, "STATUS %i 3000 1000 0 3",(cycleCount / 100));
+      sprintf(txBuffer, "STATUS %i",(cycleCount / 100));
       Serial.write(txBuffer);
       ref->sendString();
       flow->sendString();

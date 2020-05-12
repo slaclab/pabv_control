@@ -2,6 +2,8 @@
 #ifndef __AMBU_CONFIG_H__
 #define __AMBU_CONFIG_H__
 
+#define CONFIG_MILLIS 1000
+
 class AmbuConfig {
 
    public:
@@ -13,7 +15,7 @@ class AmbuConfig {
    private:
 
       char rxBuffer_[100];
-      char txBuffer_[50];
+      char txBuffer_[100];
       char mark_[10];
 
       unsigned int rxCount_;
@@ -22,6 +24,7 @@ class AmbuConfig {
       int ret_;
       char c_;
 
+      unsigned int confTime_;
       unsigned int period_;
       unsigned int onTime_;
       unsigned int startThold_;
@@ -43,8 +46,6 @@ class AmbuConfig {
       virtual void setup();
 
       virtual void update(unsigned int ctime);
-
-      void sendString();
 
       unsigned int getPeriod();
 

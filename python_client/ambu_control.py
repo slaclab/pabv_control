@@ -54,12 +54,12 @@ def convertSp110Sm02Flow(val):
 
 
 def convertDlcL20dD4(val):
-    press = -1.25 * ((float(val) - (0.5 * float(2**24))) / (0.5 * float(2**24))) * 20.0 * 2.54
+    press = 1.25 * ((float(val) - (0.5 * float(2**24))) / (0.5 * float(2**24))) * 20.0 * 2.54
     return press
 
 
 def convertDlcL20dD4Reverse(press):
-    adc = ((press / (-1.25 * 20.0 * 2.54)) * (0.5 * float(2**24))) + (0.5 * float(2**24))
+    adc = ((press / (1.25 * 20.0 * 2.54)) * (0.5 * float(2**24))) + (0.5 * float(2**24))
     return int(adc)
 
 
@@ -79,15 +79,16 @@ class AmbuControl(object):
 
         self._convert = convert
         self._runEn = True
-        self._callBack = self._debugCallBack
+        self._dataCallBack = self._debugCallBack
+        self._confCallBack = None
         self._file = None
         self._last = None
         self._adjust = adjust
         self._period = 0
         self._onTime = 0
         self._startThold = 0
+        self._stopThold = 0
         self._state = 0
-        self._first = False
 
         if len(convert) != len(adjust):
             raise Exception("Convert and adjust mismatch")
@@ -97,13 +98,6 @@ class AmbuControl(object):
 
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
-
-        while not self._first and self._runEn:
-            print("Waiting for first message...")
-            time.sleep(1.0)
-
-        if self._first:
-            print("Got first message!")
 
     def _initData(self):
         self._data = {'time': [], 'data': [], 'raw': []}
@@ -124,8 +118,11 @@ class AmbuControl(object):
         l = len(self._data['time'])
         print(f"Got data. Len={l} count={count}")
 
-    def setCallBack(self, callBack):
-        self._callBack = callBack
+    def setDataCallBack(self, callBack):
+        self._dataCallBack = callBack
+
+    def setConfCallBack(self, callBack):
+        self._confCallBack = callBack
 
     @property
     def cycleRate(self):
@@ -162,6 +159,22 @@ class AmbuControl(object):
         self._setConfig()
 
     @property
+    def stopThold(self):
+        return convertDlcL20dD4(self._stopThold * 256)
+
+    @stopThold.setter
+    def stopThold(self,value):
+        thold = int(convertDlcL20dD4Reverse(value) / 256)
+
+        if ( thold > 0xFFFF):
+            thold = 0xFFFF
+        elif (thold < 0 ):
+            thold = 0
+
+        self._stopThold = thold
+        self._setConfig()
+
+    @property
     def state(self):
         return self._state
 
@@ -170,15 +183,14 @@ class AmbuControl(object):
         self._state = value
         self._setConfig()
 
-    def clearCount(self):
-        self._ser.write(f"CNTRST\n".encode('UTF-8'))
-
     def stop(self):
         self._runEn = False
         self._thread.join()
 
     def _setConfig(self):
-        self._ser.write(f"CONFIG {self._period} {self._onTime} {self._startThold} {self._state}\n".encode('UTF-8'))
+        msg = f"CONFIG {self._period} {self._onTime} {self._startThold} {self._state} {self._stopThold}\n"
+        self._ser.write(msg.encode('UTF-8'))
+        print(msg)
 
     def _handleSerial(self):
         print("Starting thread")
@@ -188,22 +200,41 @@ class AmbuControl(object):
                 raw = self._ser.readline()
                 line = raw.decode('UTF-8')
 
-                if not self._first and len(line) > 2:
-                    print(f"Got: {line}")
-
                 data = line.rstrip().split(' ')
                 ts = time.time()
 
-                if data[0] == 'PERIOD':
-                    print(f"Got period feedback: {line}")
+                if data[0] == 'DEBUG':
+                    print(f"Got debug: {line}")
 
-                if data[0] == 'STATUS' and len(data) >= (len(self._convert)+6):
+                elif data[0] == 'CONFIG':
+                    #print(f"Got config: {line}")
+                    doNotify = False
+
+                    period     = int(data[1],0)
+                    onTime     = int(data[2],0)
+                    startThold = int(data[3],0)
+                    state      = int(data[4],0)
+                    stopThold  = int(data[5],0)
+
+                    if (self._period != period) or \
+                       (self._onTime != onTime) or \
+                       (self._startThold != startThold) or \
+                       (self._stopThold != stopThold) or \
+                       (self._state != state):
+                       doNotify = True
+
+                    self._period = period
+                    self._onTime = onTime
+                    self._startThold = startThold
+                    self._state = state
+                    self._stopThold = stopThold
+
+                    if doNotify and self._confCallBack is not None:
+                        self._confCallBack()
+
+                elif data[0] == 'STATUS' and len(data) >= (len(self._convert)+2):
                     #print(f"Got status: {line}")
                     count = int(data[1],0)
-                    self._period = int(data[2],0)
-                    self._onTime = int(data[3],0)
-                    self._startThold = int(data[4],0)
-                    self._state = int(data[5],0)
 
                     convValues = []
                     rawValues = []
@@ -211,7 +242,7 @@ class AmbuControl(object):
 
                     for i,cf in enumerate(self._convert):
                         if cf is not None:
-                            val = int(data[i+6],0)
+                            val = int(data[i+2],0)
                             convValues.append(cf(val + self._adjust[i]))
                             rawValues.append(val)
 
@@ -225,7 +256,7 @@ class AmbuControl(object):
                         self._last = count
 
                         try:
-                            self._callBack(self._data,count)
+                            self._dataCallBack(self._data,count)
                             avgs = [int(sum(lst) / len(lst)) for lst in self._data['raw']]
 
                             #print(f"Got status: {line}")
@@ -241,8 +272,6 @@ class AmbuControl(object):
                     for i,dat in enumerate(zip(convValues,rawValues)):
                         self._data['data'][i].append(dat[0])
                         self._data['raw'][i].append(dat[1])
-
-                    self._first = True
 
             except Exception as e:
                 traceback.print_exc()

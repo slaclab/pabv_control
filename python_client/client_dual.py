@@ -7,7 +7,7 @@ from PyQt5.QtGui     import *
 
 import control_gui
 import ambu_control
-import client_version
+#import client_version
 
 convert = [None]*2
 convert[0] = ambu_control.convertDlcL20dD4
@@ -18,13 +18,14 @@ convert[1] = ambu_control.convertSp110Sm02Flow
 # Marty with cal = 8099
 
 adjust = [0] *2
-adjust[1] = (32768-32778)
+#adjust[1] = (32768-32778)
 #adjust[1] = (8192-7616)
 #adjust[1] = (8192-8022)
 #adjust[1] = (8192-7612)
 
 if sys.platform == 'linux':
-    ambu = ambu_control.AmbuControl("/dev/ttyACM0",convert=convert,adjust=adjust)
+    #ambu = ambu_control.AmbuControl("/dev/ttyACM0",convert=convert,adjust=adjust)
+    ambu = ambu_control.AmbuControl("/dev/ttyUSB0",convert=convert,adjust=adjust)
 else:
     ambu = ambu_control.AmbuControl("COM4",convert=convert,adjust=adjust)
 

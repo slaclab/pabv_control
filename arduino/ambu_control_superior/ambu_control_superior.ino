@@ -5,7 +5,8 @@
 #include <SensorDlcL20D4.h>
 #include <SensorSp110Sm02.h>
 
-#define RELAY_PIN 2
+//#define RELAY_PIN 2
+#define RELAY_PIN 4
 #define SENSOR_PERIOD_MILLIS 9
 
 AmbuConfig      * conf  = new AmbuConfig();
@@ -19,11 +20,14 @@ unsigned int currTime;
 void setup() {
 
    Serial.begin(57600);
+   Serial.write("DEBUG Booted\n");
+
    Wire.begin();
 
    relay->setup();
 
    // Wait 5 seconds for pressure to settle
+   Serial.write("DEBUG Wait 5 seconds\n");
    delay(5000);
 
    conf->setup();
@@ -31,6 +35,7 @@ void setup() {
    flow->setup();
 
    sensorTime = millis();
+   Serial.write("DEBUG setup done\n");
 }
 
 void loop() {
@@ -45,7 +50,6 @@ void loop() {
       // Generate serial output
       Serial.write("STATUS");
       relay->sendString();
-      conf->sendString();
       press->sendString();
       flow->sendString();
       Serial.write("\n");
@@ -53,7 +57,6 @@ void loop() {
    }
 
    relay->update(currTime);
-
    conf->update(currTime);
 
 }

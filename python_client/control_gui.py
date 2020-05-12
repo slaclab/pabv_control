@@ -25,6 +25,11 @@ class ControlGui(QWidget):
 
     updateCount = pyqtSignal(str)
     updateRate  = pyqtSignal(str)
+    updateRR    = pyqtSignal(str)
+    updateIT    = pyqtSignal(str)
+    updateStart = pyqtSignal(str)
+    updateStop  = pyqtSignal(str)
+    updateState = pyqtSignal(int)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -32,7 +37,8 @@ class ControlGui(QWidget):
         self.refPlot = refPlot
 
         self.ambu = ambu
-        self.ambu.setCallBack(self.plotData)
+        self.ambu.setDataCallBack(self.plotData)
+        self.ambu.setConfCallBack(self.confUpdated)
 
         top = QVBoxLayout()
         self.setLayout(top)
@@ -57,26 +63,32 @@ class ControlGui(QWidget):
         vl.addLayout(fl)
 
         self.rp = QLineEdit()
-        self.rp.setText("{:0.1f}".format(self.ambu.cycleRate))
         self.rp.returnPressed.connect(self.setRate)
+        self.updateRR.connect(self.rp.setText)
         fl.addRow('RR (Breaths/Min):',self.rp)
 
         self.ro = QLineEdit()
-        self.ro.setText("{:0.1f}".format(self.ambu.onTime))
         self.ro.returnPressed.connect(self.setOnTime)
+        self.updateIT.connect(self.ro.setText)
         fl.addRow('Inhalation Time (S):',self.ro)
 
         self.st = QLineEdit()
-        self.st.setText("{:0.1f}".format(self.ambu.startThold))
-        self.st.returnPressed.connect(self.setThold)
+        self.st.returnPressed.connect(self.setStartThold)
+        self.updateStart.connect(self.st.setText)
         fl.addRow('Start Thold (cmH20):',self.st)
+
+        self.sp = QLineEdit()
+        self.sp.returnPressed.connect(self.setStopThold)
+        self.updateStop.connect(self.sp.setText)
+        fl.addRow('Stop Thold (cmH20):',self.sp)
 
         rs = QComboBox()
         rs.addItem("Relay Off")
         rs.addItem("Relay On")
         rs.addItem("Relay Cycle")
-        rs.setCurrentIndex(self.ambu.state)
+        rs.setCurrentIndex(0)
         rs.currentIndexChanged.connect(self.setState)
+        self.updateState.connect(rs.setCurrentIndex)
         fl.addRow('State:',rs)
 
         cycles = QLineEdit()
@@ -90,10 +102,6 @@ class ControlGui(QWidget):
         sampRate.setReadOnly(True)
         self.updateRate.connect(sampRate.setText)
         fl.addRow('Sample Rate:',sampRate)
-
-        pb = QPushButton('Clear Count')
-        pb.clicked.connect(self.clrCount)
-        vl.addWidget(pb)
 
         # Period Control
         gb = QGroupBox('GUI Control')
@@ -187,9 +195,16 @@ class ControlGui(QWidget):
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
-    def setThold(self):
+    def setStartThold(self):
         try:
             self.ambu.startThold = float(self.st.text())
+        except Exception as e:
+            print(f"Got GUI value error {e}")
+
+    @pyqtSlot()
+    def setStopThold(self):
+        try:
+            self.ambu.stopThold = float(self.sp.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
@@ -201,9 +216,6 @@ class ControlGui(QWidget):
         except Exception as e:
             print(f"Got GUI value error {e}")
 
-    def clrCount(self):
-        self.ambu.clearCount()
-
     @pyqtSlot()
     def openPressed(self):
         f = self.logFile.text()
@@ -212,6 +224,13 @@ class ControlGui(QWidget):
     @pyqtSlot()
     def closePressed(self):
         self.ambu.closeLog()
+
+    def confUpdated(self):
+        self.updateRR.emit("{:0.1f}".format(self.ambu.cycleRate))
+        self.updateIT.emit("{:0.1f}".format(self.ambu.onTime))
+        self.updateStart.emit("{:0.1f}".format(self.ambu.startThold))
+        self.updateStop.emit("{:0.1f}".format(self.ambu.stopThold))
+        self.updateState.emit(self.ambu.state)
 
     def plotData(self,inData,count):
         self.plotData.append(inData)

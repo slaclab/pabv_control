@@ -86,6 +86,7 @@ void RelayControl::update(unsigned int ctime) {
          digitalWrite(relayPin_, RELAY_ON);
          stateTime_ = millis();
          state_ = StateCycleOn;
+         cycleCount_++;
       }
 
       // Off timer has been reached
@@ -93,11 +94,12 @@ void RelayControl::update(unsigned int ctime) {
          digitalWrite(relayPin_, RELAY_ON);
          stateTime_ = millis();
          state_ = StateCycleOn;
+         cycleCount_++;
       }
    }
 
    // Currently on portion of cycle
-   else if (state_ == StateCycleOff ) {
+   else if (state_ == StateCycleOn ) {
 
       // Transition to forced off
       if ( conf_->getRunState() == conf_->StateOff ) {
@@ -118,7 +120,6 @@ void RelayControl::update(unsigned int ctime) {
          digitalWrite(relayPin_, RELAY_OFF);
          stateTime_ = millis();
          state_ = StateCycleOff;
-         cycleCount_++;
       }
 
       // On timer has been reached
@@ -126,7 +127,6 @@ void RelayControl::update(unsigned int ctime) {
          digitalWrite(relayPin_, RELAY_OFF);
          stateTime_ = millis();
          state_ = StateCycleOff;
-         cycleCount_++;
       }
    }
 }

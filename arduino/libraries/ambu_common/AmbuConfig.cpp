@@ -3,6 +3,7 @@
 #include <EEPROM.h>
 
 #include <HardwareSerial.h>
+#include <Arduino.h>
 
 AmbuConfig::AmbuConfig () {
    memset(rxBuffer_,0,20);
@@ -36,6 +37,7 @@ void AmbuConfig::setup() {
       runState_   = StateCycle;
       storeConfig();
    }
+   confTime_ = millis();
 }
 
 void AmbuConfig::update(unsigned int ctime) {
@@ -67,12 +69,12 @@ void AmbuConfig::update(unsigned int ctime) {
       }
       rxCount_ = 0;
    }
-}
 
-void AmbuConfig::sendString() {
-   sprintf(txBuffer_, " %u %u 0x%x %u 0x%x", period_, onTime_, startThold_, runState_, stopThold_);
-
-   Serial.write(txBuffer_);
+   if ((ctime - confTime_) > CONFIG_MILLIS) {
+       sprintf(txBuffer_, "CONFIG %u %u 0x%x %u 0x%x\n", period_, onTime_, startThold_, runState_, stopThold_);
+       Serial.write(txBuffer_);
+       confTime_ = ctime;
+   }
 }
 
 unsigned int AmbuConfig::getPeriod() {

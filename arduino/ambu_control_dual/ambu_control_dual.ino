@@ -45,7 +45,6 @@ void loop() {
       // Generate serial output
       Serial.write("STATUS");
       relay->sendString();
-      conf->sendString();
       press->sendString();
       flow->sendString();
       Serial.write("\n");
