@@ -19,6 +19,9 @@ void setup() {
    Serial.begin(57600);
    Wire.begin();
 
+   // Wait 5 seconds for pressure to settle
+   delay(5000);
+
    ref->setup();
    flow->setup();
 
