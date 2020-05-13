@@ -18,25 +18,32 @@ void AmbuConfig::setup() {
 
    EEPROM.get(addr_, onTime_);
    addr_ += 4;
-
-   EEPROM.get(addr_, startThold_);
-   addr_ += 4;
+   addr_ += 4; // Old config
 
    EEPROM.get(addr_, runState_);
+   addr_ += 4;
+   addr_ += 4; // Old config
+
+   EEPROM.get(addr_, startThold_);
    addr_ += 4;
 
    EEPROM.get(addr_, stopThold_);
    addr_ += 4;
 
+   EEPROM.get(addr_, volThold_);
+   addr_ += 4;
+
    // Just in case the values are bad
-   if ( period_ == 0xFFFF ) {
-      period_     = 3000;
-      onTime_     = 1000;
-      startThold_ = 0x8a14;
-      stopThold_  = 0xFFFF;
-      runState_   = StateCycle;
-      storeConfig();
-   }
+   if ( period_ == 0xFFFF ) period_ = 3000;
+   if ( onTime_ == 0xFFFF ) onTime_ = 1000;
+   if ( runState_ == 0xFFFF ) runState_ = StateCycle;
+
+   // Cast double locations to int * to check for empty storage locations
+   if ( *((unsigned int *)(&startThold_)) == 0xFFFF ) startThold_ = -10.0;
+   if ( *((unsigned int *)(&stopThold_)) == 0xFFFF ) stopThold_ = 100.0;
+   if ( *((unsigned int *)(&volThold_)) == 0xFFFF ) volThold_ = 200.0;
+
+   storeConfig();
    confTime_ = millis();
 }
 
@@ -55,15 +62,16 @@ void AmbuConfig::update(unsigned int ctime) {
    if ( rxCount_ > 7 && rxBuffer_[rxCount_-1] == '\n') {
 
       // Parse string
-      ret_ = sscanf(rxBuffer_,"%s %u %u %u %u %u", mark_, &scanPeriod_, &scanOn_, &scanStartThold_, &scanRun_, &scanStopThold_);
+      ret_ = sscanf(rxBuffer_,"%s %u %u %lf %u %lf %lf", mark_, &scanPeriod_, &scanOn_, &scanStartThold_, &scanRun_, &scanStopThold_, &scanVolThold_);
 
       // Check marker
-      if ( ret_ == 6 && strcmp(mark_,"CONFIG") == 0 ) {
+      if ( ret_ == 7 && strcmp(mark_,"CONFIG") == 0 ) {
          period_     = scanPeriod_;
          onTime_     = scanOn_;
          startThold_ = scanStartThold_;
          runState_   = scanRun_;
          stopThold_  = scanStopThold_;
+         volThold_   = scanVolThold_;
 
          storeConfig();
       }
@@ -71,8 +79,19 @@ void AmbuConfig::update(unsigned int ctime) {
    }
 
    if ((ctime - confTime_) > CONFIG_MILLIS) {
-       sprintf(txBuffer_, "CONFIG %u %u 0x%x %u 0x%x\n", period_, onTime_, startThold_, runState_, stopThold_);
-       Serial.write(txBuffer_);
+       Serial.print("CONFIG ");
+       Serial.print(period_);
+       Serial.print(" ");
+       Serial.print(onTime_);
+       Serial.print(" ");
+       Serial.print(startThold_);
+       Serial.print(" ");
+       Serial.print(runState_);
+       Serial.print(" ");
+       Serial.print(stopThold_);
+       Serial.print(" ");
+       Serial.print(volThold_);
+       Serial.print("\n");
        confTime_ = ctime;
    }
 }
@@ -85,12 +104,16 @@ unsigned int AmbuConfig::getOnTime() {
    return onTime_;
 }
 
-unsigned int AmbuConfig::getStartThold() {
+double AmbuConfig::getStartThold() {
    return startThold_;
 }
 
-unsigned int AmbuConfig::getStopThold() {
+double AmbuConfig::getStopThold() {
    return stopThold_;
+}
+
+double AmbuConfig::getVolThold() {
+   return volThold_;
 }
 
 unsigned int AmbuConfig::getRunState() {
@@ -105,14 +128,18 @@ void AmbuConfig::storeConfig() {
 
    EEPROM.put(addr_, onTime_);
    addr_ += 4;
+   addr_ += 4; // Old config
+
+   EEPROM.put(addr_, runState_);
+   addr_ += 4;
+   addr_ += 4; // Old config
 
    EEPROM.put(addr_, startThold_);
    addr_ += 4;
 
-   EEPROM.put(addr_, runState_);
-   addr_ += 4;
-
    EEPROM.put(addr_, stopThold_);
    addr_ += 4;
+
+   EEPROM.put(addr_, volThold_);
 }
 

@@ -68,34 +68,29 @@ class AmbuControl(object):
 
     @property
     def startThold(self):
-        return convertDlcL20dD4(self._startThold * 256)
+        return self._startThold
 
     @startThold.setter
     def startThold(self,value):
-        thold = int(convertDlcL20dD4Reverse(value) / 256)
-
-        if ( thold > 0xFFFF):
-            thold = 0xFFFF
-        elif (thold < 0 ):
-            thold = 0
-
-        self._startThold = thold
+        self._startThold = value
         self._setConfig()
 
     @property
     def stopThold(self):
-        return convertDlcL20dD4(self._stopThold * 256)
+        return self._stopThold
 
     @stopThold.setter
     def stopThold(self,value):
-        thold = int(convertDlcL20dD4Reverse(value) / 256)
+        self._stopThold = value
+        self._setConfig()
 
-        if ( thold > 0xFFFF):
-            thold = 0xFFFF
-        elif (thold < 0 ):
-            thold = 0
+    @property
+    def volThold(self):
+        return self._volThold
 
-        self._stopThold = thold
+    @volThold.setter
+    def volThold(self,value):
+        self._volThold = value
         self._setConfig()
 
     @property
@@ -112,7 +107,7 @@ class AmbuControl(object):
         self._thread.join()
 
     def _setConfig(self):
-        msg = f"CONFIG {self._period} {self._onTime} {self._startThold} {self._state} {self._stopThold}\n"
+        msg = f"CONFIG {self._period} {self._onTime} {self._startThold:.2f} {self._state} {self._stopThold:.2f} {self._volThold:.2f}\n"
         self._ser.write(msg.encode('UTF-8'))
         print(msg)
 
@@ -131,20 +126,22 @@ class AmbuControl(object):
                     print(f"Got debug: {line}")
 
                 elif data[0] == 'CONFIG':
-                    #print(f"Got config: {line}")
+                    print(f"Got config: {line}")
                     doNotify = False
 
                     period     = int(data[1],0)
                     onTime     = int(data[2],0)
-                    startThold = int(data[3],0)
+                    startThold = float(data[3])
                     state      = int(data[4],0)
-                    stopThold  = int(data[5],0)
+                    stopThold  = float(data[5])
+                    volThold   = float(data[6])
 
                     if (self._period != period) or \
                        (self._onTime != onTime) or \
                        (self._startThold != startThold) or \
                        (self._stopThold != stopThold) or \
-                       (self._state != state):
+                       (self._state != state) or \
+                       (self._volThold != volThold):
                        doNotify = True
 
                     self._period = period
@@ -152,6 +149,7 @@ class AmbuControl(object):
                     self._startThold = startThold
                     self._state = state
                     self._stopThold = stopThold
+                    self._volThold = volThold
 
                     if doNotify and self._confCallBack is not None:
                         self._confCallBack()

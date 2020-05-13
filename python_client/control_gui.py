@@ -208,6 +208,13 @@ class ControlGui(QWidget):
         except Exception as e:
             print(f"Got GUI value error {e}")
 
+    @pyqtSlot()
+    def setVolThold(self):
+        try:
+            self.ambu.volThold = float(self.vl.text())
+        except Exception as e:
+            print(f"Got GUI value error {e}")
+
     @pyqtSlot(int)
     def setState(self, value):
         print(f"set state value = {value}")
