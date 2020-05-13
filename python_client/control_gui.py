@@ -235,25 +235,6 @@ class ControlGui(QWidget):
     def plotData(self,inData,count):
         self.plotData.append(inData)
 
-        if len(inData['data']) != 2:
-            print("Invalid data value count. Exepected 2")
-            return
-
-        # Add third data = volume
-        inData['data'].append([])
-
-        refT = inData['time'][0]
-        intSum = 0
-
-        for i,v in enumerate(zip(inData['time'],inData['data'][1])):
-            durr = (v[0] - refT) / 60.0
-            refT = v[0]
-
-            if durr > 0:
-                intSum += (v[1] * durr) * 1000.0
-
-            inData['data'][2].append(intSum)
-
         pc = int(self.plotCycles.text())
 
         if len(self.plotData) > pc:
@@ -267,16 +248,15 @@ class ControlGui(QWidget):
         self.updateRate.emit(f"{rate:.1f}")
 
         xAxis = []
-        data = []
-
-        for _ in range(3):
-            data.append([])
+        press = []
+        flow  = []
+        vol   = []
 
         for pd in self.plotData:
             xAxis.extend([val - self.rTime for val in pd['time']])
-
-            for i,d in enumerate(data):
-                d.extend(pd['data'][i])
+            press.extend(pd['press'])
+            flow.extend(pd['flow'])
+            vol.extend(pd['vol'])
 
         try:
             self.plot.axes[0].cla()
@@ -284,9 +264,9 @@ class ControlGui(QWidget):
             self.plot.axes[2].cla()
             xa = np.array(xAxis)
 
-            self.plot.axes[0].plot(xa,np.array(data[0]),color="yellow",linewidth=2.0)
-            self.plot.axes[1].plot(xa,np.array(data[1]),color="green",linewidth=2.0)
-            self.plot.axes[2].plot(xa,np.array(data[2]),color="blue",linewidth=2.0)
+            self.plot.axes[0].plot(xa,np.array(press),color="yellow",linewidth=2.0)
+            self.plot.axes[1].plot(xa,np.array(flow),color="green",linewidth=2.0)
+            self.plot.axes[2].plot(xa,np.array(vol),color="blue",linewidth=2.0)
 
             self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
             self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])

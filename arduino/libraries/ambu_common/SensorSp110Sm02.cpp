@@ -30,11 +30,13 @@ void SensorSp110Sm02::update(unsigned int ctime) {
    Wire.requestFrom(addr_, byte(2));
    for (x_=0; x_ < 2; x_++) data_[x_] = Wire.read();
 
-   // puts the range in uint territory for compatability w/ GUI
-   scaled_ = ((data_[0] << 8) | data_[1]) + 32768;
+   raw_ = (double)((data_[0] << 8) | data_[1]);
 
-   // Create serial representation
-   sprintf(buffer_," 0x%.4x", scaled_);
+   // Negative
+   if ( data_[0] & 0x80 ) raw_ -= 65536.0;
 
+   raw_ = 10.0;
+
+   scaled_ = raw_ * (2.0 / (0.9 * 32768.0));
 }
 

@@ -5,19 +5,26 @@
 
 GenericSensor::GenericSensor (unsigned char addr) {
    addr_ = addr;
-   memset(buffer_,0,20);
    memset(data_,0,10);
+   raw_ = 0.0;
+   scaled_ = 0.0;
 }
 
 void GenericSensor::setup() { }
 
 void GenericSensor::update(unsigned int ctime) { }
 
-void GenericSensor::sendString() {
-   Serial.write(buffer_);
+void GenericSensor::reset(unsigned int ctime) {
+   raw_ = 0.0;
+   scaled_ = 0.0;
 }
 
-unsigned int GenericSensor::scaledValue() {
+void GenericSensor::sendString() {
+   Serial.print(" ");
+   Serial.print(scaled_);
+}
+
+double GenericSensor::scaledValue() {
    return scaled_;
 }
 

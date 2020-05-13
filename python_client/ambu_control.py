@@ -6,93 +6,22 @@ import math
 import sys
 import traceback
 
-def convertArduinoHaf(val):
-
-    flow = 50.0 * (((float(val) / 16384.0) - 0.1) / 0.8)
-
-    return flow
-
-
-def convertArduinoAdcToVolts(val):
-    return float(val) * (5.0 / 1023.0)
-
-
-def convertNpa700B02WD(val):
-    press = float(val-8192) * ( 5.07492 / 8191.0 )
-
-    return press
-
-
-def convertNpa700B02WDFlow(val):
-    #return convertNpa700B02WD(val) * 12.0
-
-    press = float(val-8192) * ( 2.0 / 8191.0 )
-
-    B = 51.7
-
-    if press < 0:
-        sign = -1
-        press = abs(press)
-    else:
-        sign = 1
-
-    return sign * B * math.sqrt(abs(press))
-
-
-def convertSp110Sm02Flow(val):
-    press = float(val-32768) * ( 2.0 / (0.9 * 32768.0) )
-
-    B = 51.7
-
-    if press < 0:
-        sign = -1
-        press = abs(press)
-    else:
-        sign = 1
-
-    return sign * B * math.sqrt(abs(press))
-
-
-def convertDlcL20dD4(val):
-    press = 1.25 * ((float(val) - (0.5 * float(2**24))) / (0.5 * float(2**24))) * 20.0 * 2.54
-    return press
-
-
-def convertDlcL20dD4Reverse(press):
-    adc = ((press / (1.25 * 20.0 * 2.54)) * (0.5 * float(2**24))) + (0.5 * float(2**24))
-    return int(adc)
-
-
-def convertRaw(val):
-    return float(val)
-
-
-def convertZero(val):
-    return 0.0
-
-
 class AmbuControl(object):
 
-    def __init__(self, dev, convert=[], adjust=[]):
+    def __init__(self, dev):
 
         self._ser = serial.Serial(dev, 57600, timeout=1.0)
 
-        self._convert = convert
         self._runEn = True
         self._dataCallBack = self._debugCallBack
         self._confCallBack = None
         self._file = None
         self._last = None
-        self._adjust = adjust
         self._period = 0
         self._onTime = 0
         self._startThold = 0
         self._stopThold = 0
         self._state = 0
-
-        if len(convert) != len(adjust):
-            raise Exception("Convert and adjust mismatch")
-            sys.exit(1)
 
         self._initData()
 
@@ -100,12 +29,7 @@ class AmbuControl(object):
         self._thread.start()
 
     def _initData(self):
-        self._data = {'time': [], 'data': [], 'raw': []}
-
-        for cf in self._convert:
-            if cf is not None:
-                self._data['data'].append([])
-                self._data['raw'].append([])
+        self._data = {'time': [], 'press': [], 'flow':[], 'vol':[]}
 
     def openLog(self, fName):
         self._file = open(fName,'a')
@@ -232,23 +156,15 @@ class AmbuControl(object):
                     if doNotify and self._confCallBack is not None:
                         self._confCallBack()
 
-                elif data[0] == 'STATUS' and len(data) >= (len(self._convert)+2):
+                elif data[0] == 'STATUS' and len(data) == 5:
                     #print(f"Got status: {line}")
                     count = int(data[1],0)
-
-                    convValues = []
-                    rawValues = []
-                    volume = 0
-
-                    for i,cf in enumerate(self._convert):
-                        if cf is not None:
-                            val = int(data[i+2],0)
-                            convValues.append(cf(val + self._adjust[i]))
-                            rawValues.append(val)
+                    press = float(data[2])
+                    flow  = float(data[3])
+                    vol   = float(data[4])
 
                     if self._file is not None:
-                        self._file.write(f'{ts}, {count}, ' + ', '.join(map(str,convValues)))
-                        self._file.write('\n')
+                        self._file.write(f'{ts}, {count}, {press}, {flow}, {vol}\n')
 
                     if self._last is None:
                         self._last = count
@@ -256,11 +172,7 @@ class AmbuControl(object):
                         self._last = count
 
                         try:
-                            self._dataCallBack(self._data,count)
-                            avgs = [int(sum(lst) / len(lst)) for lst in self._data['raw']]
-
-                            #print(f"Got status: {line}")
-                            print('Averages: ' + ' '.join(map(str,avgs)))
+                            self._dataCallBack(self._data, count)
                         except Exception as e:
                             traceback.print_exc()
                             print("Got error {}".format(e))
@@ -268,10 +180,9 @@ class AmbuControl(object):
                         self._initData()
 
                     self._data['time'].append(ts)
-
-                    for i,dat in enumerate(zip(convValues,rawValues)):
-                        self._data['data'][i].append(dat[0])
-                        self._data['raw'][i].append(dat[1])
+                    self._data['press'].append(press)
+                    self._data['flow'].append(flow)
+                    self._data['vol'].append(vol)
 
             except Exception as e:
                 traceback.print_exc()

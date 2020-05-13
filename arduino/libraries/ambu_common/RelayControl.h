@@ -20,6 +20,7 @@ class RelayControl {
 
       AmbuConfig * conf_;
       GenericSensor * press_;
+      GenericSensor * vol_;
 
       unsigned int state_;
       unsigned int stateTime_;
@@ -30,7 +31,10 @@ class RelayControl {
 
    public:
 
-      RelayControl (AmbuConfig *conf, GenericSensor *press, unsigned int relayPin);
+      RelayControl (AmbuConfig *conf,
+                    GenericSensor *press,
+                    GenericSensor *vol,
+                    unsigned int relayPin);
 
       void setup();
 

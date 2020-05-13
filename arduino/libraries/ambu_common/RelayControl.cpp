@@ -5,15 +5,18 @@
 
 #include <HardwareSerial.h>
 
-RelayControl::RelayControl (AmbuConfig *conf, GenericSensor *press, unsigned int relayPin) {
-   conf_ = conf;
+RelayControl::RelayControl (AmbuConfig *conf,
+                            GenericSensor *press,
+                            GenericSensor *vol,
+                            unsigned int relayPin) {
+   conf_  = conf;
    press_ = press;
+   vol_   = vol;
 
    relayPin_ = relayPin;
 
    stateTime_ = 0;
    cycleCount_ = 0;
-
 }
 
 void RelayControl::setup() {
@@ -34,14 +37,14 @@ void RelayControl::update(unsigned int ctime) {
       // Transition to Forced on
       if ( conf_->getRunState() == conf_->StateOn ) {
          digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateOn;
       }
 
       // Transition to Cycle
       else if ( conf_->getRunState() == conf_->StateCycle ) {
          digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateCycleOff;
       }
    }
@@ -52,14 +55,14 @@ void RelayControl::update(unsigned int ctime) {
       // Transition to Forced off
       if ( conf_->getRunState() == conf_->StateOff ) {
          digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateOff;
       }
 
       // Transition to Cycle
       else if ( conf_->getRunState() == conf_->StateCycle ) {
          digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateCycleOff;
       }
    }
@@ -70,30 +73,32 @@ void RelayControl::update(unsigned int ctime) {
       // Transition to forced off
       if ( conf_->getRunState() == conf_->StateOff ) {
          digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateOff;
       }
 
       // Transition to forced on
       else if ( conf_->getRunState() == conf_->StateOn ) {
          digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateOn;
       }
 
       // Turn on threshold exceeded, and we have met min off period
       else if ( (press_->scaledValue() < conf_->getStartThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) {
          digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateCycleOn;
+         vol_->reset(ctime);
          cycleCount_++;
       }
 
       // Off timer has been reached
       else if ((ctime - stateTime_) > (conf_->getPeriod() - conf_->getOnTime())) {
          digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateCycleOn;
+         vol_->reset(ctime);
          cycleCount_++;
       }
    }
@@ -104,28 +109,28 @@ void RelayControl::update(unsigned int ctime) {
       // Transition to forced off
       if ( conf_->getRunState() == conf_->StateOff ) {
          digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateOff;
       }
 
       // Transition to forced on
       else if ( conf_->getRunState() == conf_->StateOn ) {
          digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateOn;
       }
 
       // Turn off threshold exceeded
       else if ( press_->scaledValue() > conf_->getStopThold() ) {
          digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateCycleOff;
       }
 
       // On timer has been reached
       else if ((ctime - stateTime_) > conf_->getOnTime()) {
          digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = millis();
+         stateTime_ = ctime;
          state_ = StateCycleOff;
       }
    }

@@ -21,11 +21,11 @@ void SensorDlcL20D4::update(unsigned int ctime) {
    Wire.requestFrom(addr_, byte(4));
    for (x_=0; x_ < 4; x_++) data_[x_] = Wire.read();
 
-   // Scaled value, upper 16 bits
-   scaled_ = (data_[1] << 8) | data_[2];
+   //raw_ = (double)((data_[1] << 8) | data_[2]);
+   raw_ = 32800.0;
 
-   // Create serial representation
-   sprintf(buffer_," 0x%.2x%.2x%.2x", data_[1], data_[2], data_[3]);
+   // Scaled value, upper 16 bits
+   scaled_ = 1.25 * ((raw_ - 32768.0) / 32768.0) * 20.0 * 2.54;
 
    // Start new cycle for dlc
    Wire.beginTransmission(addr_);

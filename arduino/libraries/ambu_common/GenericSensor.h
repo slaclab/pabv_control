@@ -8,10 +8,9 @@ class GenericSensor {
 
       unsigned char addr_;
       unsigned char data_[10];
-      unsigned int scaled_;
       unsigned int x_;
-
-      char buffer_[100];
+      double raw_;
+      double scaled_;
 
    public:
 
@@ -21,9 +20,11 @@ class GenericSensor {
 
       virtual void update(unsigned int ctime);
 
+      virtual void reset(unsigned int ctime);
+
       void sendString();
 
-      unsigned int scaledValue();
+      double scaledValue();
 };
 
 #endif

@@ -18,12 +18,10 @@ void SensorNpa700B02WD::update(unsigned int ctime) {
    // Trim bits
    data_[0] &= 0x3F;
 
-   // Scaled value
-   scaled_ = (data_[0] << 8) | data_[1];
+   raw_ = (double)((data_[0] << 8) | data_[1]);
 
-   // Create serial representation
-   sprintf(buffer_," 0x%.2x%.2x", data_[0], data_[1]);
-
+   // Scaled value:w
+   scaled_ = (raw_-8192.0) * (2.0 / 8191.0);
 }
 
 

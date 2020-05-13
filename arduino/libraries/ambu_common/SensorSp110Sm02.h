@@ -17,7 +17,7 @@ class SensorSp110Sm02 : public GenericSensor {
 
       void setup();
 
-      void update(unsigned int ctime);
+      virtual void update(unsigned int ctime);
 
 };
 
