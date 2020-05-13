@@ -121,10 +121,11 @@ class AmbuControl(object):
                 ts = time.time()
 
                 if data[0] == 'DEBUG':
-                    print(f"Got debug: {line.rstrip()}")
+                    #print(f"Got debug: {line.rstrip()}")
+                    pass
 
                 elif data[0] == 'CONFIG':
-                    print(f"Got config: {line.rstrip()}")
+                    #print(f"Got config: {line.rstrip()}")
                     doNotify = False
 
                     period     = int(data[1],0)

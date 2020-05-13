@@ -38,55 +38,76 @@ class ControlGui(QWidget):
         self.refPlot = refPlot
 
         self.ambu = ambu
-        self.ambu.setDataCallBack(self.plotData)
+        self.ambu.setDataCallBack(self.dataUpdated)
         self.ambu.setConfCallBack(self.confUpdated)
+
+        self.rateInput    = None
+        self.inTimeInput  = None
+        self.startThInput = None
+        self.stopThInput  = None
+        self.volThInput   = None
 
         top = QVBoxLayout()
         self.setLayout(top)
 
+        self.tabs = QTabWidget()
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
+
+        self.tabs.addTab(self.tab1,"AMBU Control")
+        self.tabs.addTab(self.tab2,"AMBU Expert")
+
+        self.setupPageOne()
+        self.setupPageTwo()
+
+        top.addWidget(self.tabs)
+
+    def setupPageOne(self):
+
+        top = QHBoxLayout()
+        self.tab1.setLayout(top)
+
+        left = QVBoxLayout()
+        top.addLayout(left)
+
+        # Plot on right
         self.plot = MplCanvas()
         top.addWidget(self.plot)
 
-        hl = QHBoxLayout()
-        top.addLayout(hl)
-
-        # Period Control
-        gb = QGroupBox('Period Control')
-        hl.addWidget(gb)
-
-        vl = QVBoxLayout()
-        gb.setLayout(vl)
+        # Controls on left
+        gb = QGroupBox('Control')
+        left.addWidget(gb)
 
         fl = QFormLayout()
         fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
-        vl.addLayout(fl)
+        gb.setLayout(fl)
 
-        self.rp = QLineEdit()
-        self.rp.returnPressed.connect(self.setRate)
-        self.updateRR.connect(self.rp.setText)
-        fl.addRow('RR (Breaths/Min):',self.rp)
+        self.rateInput = QLineEdit()
+        self.rateInput.returnPressed.connect(self.setRate)
+        self.updateRR.connect(self.rateInput.setText)
+        fl.addRow('RR (Breaths/Min):',self.rateInput)
 
-        self.ro = QLineEdit()
-        self.ro.returnPressed.connect(self.setOnTime)
-        self.updateIT.connect(self.ro.setText)
-        fl.addRow('Inhalation Time (S):',self.ro)
+        self.inTimeInput = QLineEdit()
+        self.inTimeInput.returnPressed.connect(self.setOnTime)
+        self.updateIT.connect(self.inTimeInput.setText)
+        fl.addRow('Inhalation Time (S):',self.inTimeInput)
 
-        self.st = QLineEdit()
-        self.st.returnPressed.connect(self.setStartThold)
-        self.updateStart.connect(self.st.setText)
-        fl.addRow('Start Thold (cmH20):',self.st)
+        self.startThInput = QLineEdit()
+        self.startThInput.returnPressed.connect(self.setStartThold)
+        self.updateStart.connect(self.startThInput.setText)
+        fl.addRow('Start Thold (cmH20):',self.startThInput)
 
-        self.sp = QLineEdit()
-        self.sp.returnPressed.connect(self.setStopThold)
-        self.updateStop.connect(self.sp.setText)
-        fl.addRow('Stop Thold (cmH20):',self.sp)
+        self.stopThInput = QLineEdit()
+        self.stopThInput.returnPressed.connect(self.setStopThold)
+        self.updateStop.connect(self.stopThInput.setText)
+        fl.addRow('Stop Thold (cmH20):',self.stopThInput)
 
-        self.vl = QLineEdit()
-        self.vl.returnPressed.connect(self.setVolThold)
-        self.updateVol.connect(self.vl.setText)
-        fl.addRow('Volume Thold (mL):',self.vl)
+        self.volThInput = QLineEdit()
+        self.volThInput.returnPressed.connect(self.setVolThold)
+        self.updateVol.connect(self.volThInput.setText)
+        fl.addRow('Volume Thold (mL):',self.volThInput)
 
         rs = QComboBox()
         rs.addItem("Relay Off")
@@ -96,6 +117,16 @@ class ControlGui(QWidget):
         self.updateState.connect(rs.setCurrentIndex)
         rs.currentIndexChanged.connect(self.setState)
         fl.addRow('State:',rs)
+
+        # Status
+        gb = QGroupBox('Status')
+        left.addWidget(gb)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
 
         cycles = QLineEdit()
         cycles.setText("0")
@@ -109,9 +140,14 @@ class ControlGui(QWidget):
         self.updateRate.connect(sampRate.setText)
         fl.addRow('Sample Rate:',sampRate)
 
+    def setupPageTwo(self):
+
+        top = QHBoxLayout()
+        self.tab2.setLayout(top)
+
         # Period Control
         gb = QGroupBox('GUI Control')
-        hl.addWidget(gb)
+        top.addWidget(gb)
 
         vl = QVBoxLayout()
         gb.setLayout(vl)
@@ -160,7 +196,7 @@ class ControlGui(QWidget):
 
         # Log File
         gb = QGroupBox('Log File')
-        hl.addWidget(gb)
+        top.addWidget(gb)
 
         vl = QVBoxLayout()
         gb.setLayout(vl)
@@ -185,39 +221,38 @@ class ControlGui(QWidget):
         self.plotData = []
         self.rTime = time.time()
 
-
     @pyqtSlot()
     def setRate(self):
         try:
-            self.ambu.cycleRate = float(self.rp.text())
+            self.ambu.cycleRate = float(self.rateInput.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
     def setOnTime(self):
         try:
-            self.ambu.onTime = float(self.ro.text())
+            self.ambu.onTime = float(self.inTimeInput.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
     def setStartThold(self):
         try:
-            self.ambu.startThold = float(self.st.text())
+            self.ambu.startThold = float(self.startThInput.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
     def setStopThold(self):
         try:
-            self.ambu.stopThold = float(self.sp.text())
+            self.ambu.stopThold = float(self.stopThInput.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
     def setVolThold(self):
         try:
-            self.ambu.volThold = float(self.vl.text())
+            self.ambu.volThold = float(self.volThInput.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
@@ -246,7 +281,7 @@ class ControlGui(QWidget):
         self.updateVol.emit("{:0.1f}".format(self.ambu.volThold))
         self.updateState.emit(self.ambu.state)
 
-    def plotData(self,inData,count):
+    def dataUpdated(self,inData,count):
         self.plotData.append(inData)
 
         pc = int(self.plotCycles.text())
@@ -302,7 +337,4 @@ class ControlGui(QWidget):
             self.plot.draw()
         except Exception as e:
             print(f"Got plotting exception {e}")
-
-# -3 offset
-# Add Run/Stop
 
