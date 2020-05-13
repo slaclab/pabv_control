@@ -84,7 +84,7 @@ void RelayControl::update(unsigned int ctime) {
          state_ = StateOn;
       }
 
-      // Turn on threshold exceeded, and we have met min off period
+      // Turn on volume threshold exceeded, and we have met min off period
       else if ( (press_->scaledValue() < conf_->getStartThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) {
          digitalWrite(relayPin_, RELAY_ON);
          stateTime_ = ctime;
@@ -120,8 +120,15 @@ void RelayControl::update(unsigned int ctime) {
          state_ = StateOn;
       }
 
-      // Turn off threshold exceeded
+      // Turn off pressure threshold exceeded
       else if ( press_->scaledValue() > conf_->getStopThold() ) {
+         digitalWrite(relayPin_, RELAY_OFF);
+         stateTime_ = ctime;
+         state_ = StateCycleOff;
+      }
+
+      // Turn off volume threshold exceeded
+      else if ( vol_->scaledValue() > conf_->getVolThold() ) {
          digitalWrite(relayPin_, RELAY_OFF);
          stateTime_ = ctime;
          state_ = StateCycleOff;
