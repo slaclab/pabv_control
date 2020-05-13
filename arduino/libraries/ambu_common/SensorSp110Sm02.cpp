@@ -35,8 +35,6 @@ void SensorSp110Sm02::update(unsigned int ctime) {
    // Negative
    if ( data_[0] & 0x80 ) raw_ -= 65536.0;
 
-   raw_ = 10.0;
-
    scaled_ = raw_ * (2.0 / (0.9 * 32768.0));
 }
 
