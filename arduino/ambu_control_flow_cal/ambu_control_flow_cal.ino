@@ -12,20 +12,23 @@ unsigned int sensorTime;
 unsigned int currTime;
 unsigned int cycleCount;
 
-char txBuffer[100];
-
 void setup() {
 
    Serial.begin(57600);
+   Serial.print("DEBUG Booted\n");
+
    Wire.begin();
 
    // Wait 5 seconds for pressure to settle
+   Serial.print("DEBUG Wait 5 seconds\n");
    delay(5000);
 
    ref->setup();
    flow->setup();
 
    sensorTime = millis();
+   Serial.print("DEBUG setup done\n");
+
    cycleCount = 0;
 }
 
@@ -39,11 +42,11 @@ void loop() {
       flow->update(currTime);
 
       // Generate serial output
-      sprintf(txBuffer, "STATUS %i",(cycleCount / 100));
-      Serial.write(txBuffer);
+      Serial.print("STATUS ");
+      Serial.print(cycleCount / 100);
       ref->sendString();
       flow->sendString();
-      Serial.write("\n");
+      Serial.print(" 0\n");
       sensorTime = currTime;
       cycleCount += 1;
    }

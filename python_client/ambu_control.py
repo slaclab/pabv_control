@@ -112,8 +112,6 @@ class AmbuControl(object):
         print(msg)
 
     def _handleSerial(self):
-        print("Starting thread")
-
         while self._runEn:
             try:
                 raw = self._ser.readline()
@@ -123,10 +121,10 @@ class AmbuControl(object):
                 ts = time.time()
 
                 if data[0] == 'DEBUG':
-                    print(f"Got debug: {line}")
+                    print(f"Got debug: {line.rstrip()}")
 
                 elif data[0] == 'CONFIG':
-                    print(f"Got config: {line}")
+                    print(f"Got config: {line.rstrip()}")
                     doNotify = False
 
                     period     = int(data[1],0)
@@ -155,7 +153,7 @@ class AmbuControl(object):
                         self._confCallBack()
 
                 elif data[0] == 'STATUS' and len(data) == 5:
-                    #print(f"Got status: {line}")
+                    #print(f"Got status: {line.rstrip()}")
                     count = int(data[1],0)
                     press = float(data[2])
                     flow  = float(data[3])
@@ -185,6 +183,4 @@ class AmbuControl(object):
             except Exception as e:
                 traceback.print_exc()
                 print(f"Got error {e}")
-
-        print("Stopping thread")
 

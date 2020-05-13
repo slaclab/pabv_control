@@ -29,6 +29,7 @@ class ControlGui(QWidget):
     updateIT    = pyqtSignal(str)
     updateStart = pyqtSignal(str)
     updateStop  = pyqtSignal(str)
+    updateVol   = pyqtSignal(str)
     updateState = pyqtSignal(int)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
@@ -82,13 +83,18 @@ class ControlGui(QWidget):
         self.updateStop.connect(self.sp.setText)
         fl.addRow('Stop Thold (cmH20):',self.sp)
 
+        self.vl = QLineEdit()
+        self.vl.returnPressed.connect(self.setVolThold)
+        self.updateVol.connect(self.vl.setText)
+        fl.addRow('Volume Thold (mL):',self.vl)
+
         rs = QComboBox()
         rs.addItem("Relay Off")
         rs.addItem("Relay On")
         rs.addItem("Relay Cycle")
-        rs.setCurrentIndex(0)
-        rs.currentIndexChanged.connect(self.setState)
+        rs.setCurrentIndex(2)
         self.updateState.connect(rs.setCurrentIndex)
+        rs.currentIndexChanged.connect(self.setState)
         fl.addRow('State:',rs)
 
         cycles = QLineEdit()
@@ -237,6 +243,7 @@ class ControlGui(QWidget):
         self.updateIT.emit("{:0.1f}".format(self.ambu.onTime))
         self.updateStart.emit("{:0.1f}".format(self.ambu.startThold))
         self.updateStop.emit("{:0.1f}".format(self.ambu.stopThold))
+        self.updateVol.emit("{:0.1f}".format(self.ambu.volThold))
         self.updateState.emit(self.ambu.state)
 
     def plotData(self,inData,count):
