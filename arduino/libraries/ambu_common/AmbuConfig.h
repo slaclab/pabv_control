@@ -32,13 +32,12 @@ class AmbuConfig {
       double stopThold_;
       double volThold_;
 
-      unsigned int scanPeriod_;
-      unsigned int scanOn_;
-      unsigned int scanRun_;
-
-      double scanStartThold_;
-      double scanStopThold_;
-      double scanVolThold_;
+      char scanPeriod_[10];
+      char scanOn_[10];
+      char scanRun_[10];
+      char scanStartThold_[10];
+      char scanStopThold_[10];
+      char scanVolThold_[10];
 
       void storeConfig();
 

@@ -62,17 +62,16 @@ void AmbuConfig::update(unsigned int ctime) {
    if ( rxCount_ > 7 && rxBuffer_[rxCount_-1] == '\n') {
 
       // Parse string
-      ret_ = sscanf(rxBuffer_,"%s %u %u %lf %u %lf %lf", mark_, &scanPeriod_, &scanOn_, &scanStartThold_, &scanRun_, &scanStopThold_, &scanVolThold_);
+      ret_ = sscanf(rxBuffer_,"%s %s %s %s %s %s %s", mark_, scanPeriod_, scanOn_, scanStartThold_, scanRun_, scanStopThold_, scanVolThold_);
 
       // Check marker
       if ( ret_ == 7 && strcmp(mark_,"CONFIG") == 0 ) {
-         period_     = scanPeriod_;
-         onTime_     = scanOn_;
-         startThold_ = scanStartThold_;
-         runState_   = scanRun_;
-         stopThold_  = scanStopThold_;
-         volThold_   = scanVolThold_;
-
+         period_     = atoi(scanPeriod_);
+         onTime_     = atoi(scanOn_);
+         startThold_ = atof(scanStartThold_);
+         runState_   = atoi(scanRun_);
+         stopThold_  = atof(scanStopThold_);
+         volThold_   = atof(scanVolThold_);
          storeConfig();
       }
       rxCount_ = 0;

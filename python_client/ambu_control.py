@@ -109,7 +109,7 @@ class AmbuControl(object):
     def _setConfig(self):
         msg = f"CONFIG {self._period} {self._onTime} {self._startThold:.2f} {self._state} {self._stopThold:.2f} {self._volThold:.2f}\n"
         self._ser.write(msg.encode('UTF-8'))
-        print(msg)
+        print("Send Config: " + msg.rstrip())
 
     def _handleSerial(self):
         while self._runEn:
