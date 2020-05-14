@@ -16,13 +16,15 @@ class cli:
         self.__exe__= {
             "Windows-64bit": ".exe",
             "Windows-32bit": ".exe",
-            "Linux-64bit" : ""
+            "Linux-64bit" : "",
+            "Darwin-64bit" : ""
         }
         self.__arduino_url__= "https://downloads.arduino.cc/arduino-cli"
         self.__images__={
             "Windows-64bit": "arduino-cli_latest_Windows_64bit.zip",
             "Windows-32bit": "arduino-cli_latest_Windows_32bit.zip",
-            "Linux-64bit" : "arduino-cli_latest_Linux_64bit.tar.gz"
+            "Linux-64bit" : "arduino-cli_latest_Linux_64bit.tar.gz",
+            "Darwin-64bit" : "arduino-cli_latest_macOS_64bit.tar.gz"
         }
         self.target=platform.system()+"-"+platform.architecture()[0]
 
