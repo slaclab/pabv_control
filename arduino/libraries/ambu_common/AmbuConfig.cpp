@@ -83,13 +83,13 @@ void AmbuConfig::update(unsigned int ctime) {
        Serial.print(" ");
        Serial.print(onTime_);
        Serial.print(" ");
-       Serial.print(startThold_);
+       Serial.print(startThold_,4);
        Serial.print(" ");
        Serial.print(runState_);
        Serial.print(" ");
-       Serial.print(stopThold_);
+       Serial.print(stopThold_,4);
        Serial.print(" ");
-       Serial.print(volThold_);
+       Serial.print(volThold_,4);
        Serial.print("\n");
        confTime_ = ctime;
    }
