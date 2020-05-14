@@ -21,7 +21,7 @@ void GenericSensor::reset(unsigned int ctime) {
 
 void GenericSensor::sendString() {
    Serial.print(" ");
-   Serial.print(scaled_);
+   Serial.print(scaled_,6);
 }
 
 double GenericSensor::scaledValue() {

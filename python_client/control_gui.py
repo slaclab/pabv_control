@@ -230,10 +230,6 @@ class ControlGui(QWidget):
         self.vMaxValue.setText("500")
         fl.addRow('Vol Max Value:',self.vMaxValue)
 
-        self.plotCycles = QLineEdit()
-        self.plotCycles.setText("10")
-        fl.addRow('Plot Breaths:',self.plotCycles)
-
         # Log File
         gb = QGroupBox('Log File')
         top.addWidget(gb)
