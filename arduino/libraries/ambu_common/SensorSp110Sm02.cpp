@@ -30,11 +30,11 @@ void SensorSp110Sm02::update(unsigned int ctime) {
    Wire.requestFrom(addr_, byte(2));
    for (x_=0; x_ < 2; x_++) data_[x_] = Wire.read();
 
-   Serial.print("Debug: SP11 Value: ");
-   Serial.print(data_[0]);
-   Serial.print(" ");
-   Serial.print(data_[1]);
-   Serial.print("\n");
+   //Serial.print("Debug: SP11 Value: ");
+   //Serial.print(data_[0]);
+   //Serial.print(" ");
+   //Serial.print(data_[1]);
+   //Serial.print("\n");
 
    raw_ = (double)((data_[0] << 8) | data_[1]);
 
