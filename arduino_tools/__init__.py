@@ -11,6 +11,8 @@ import sys
 class cli:
     def __init__(self,board):
         self.board=board
+        avr=board.split(":")
+        self.avr="%s:%s"%(avr[0],avr[1])
         self.__exe__= {
             "Windows-64bit": ".exe",
             "Windows-32bit": ".exe",
@@ -29,7 +31,7 @@ class cli:
         cmd=cmd+command.split(" ")
         process = subprocess.run(cmd,
                                    stdout=sys.stdout, stderr=sys.stderr)
-       
+
     def install(self):
         destdir="bin"
         datadir="data"
@@ -45,14 +47,14 @@ class cli:
             content=tar.extractall(path=destdir)
         elif (filename.endswith(".zip")):
             zipfile = ZipFile(data)
-            zipfile.extractall(path=destdir)            
+            zipfile.extractall(path=destdir)
         self.call("cache clean")
         self.call("core update-index")
-        self.call("core install "+self.board)
+        self.call("core install "+self.avr)
 
     def compile(self):
         label = subprocess.check_output(["git", "describe","--tags"]).strip()
-        dirs=glob.glob("arduino/ambu*")        
+        dirs=glob.glob("arduino/ambu*")
         for d in dirs:
             bn=os.path.basename(d)
             cmd="compile -b %s --libraries arduino/libraries -o %s/%s.hex %s" % (self.board,d,bn,d)
@@ -64,7 +66,3 @@ class cli:
         self.call(cmd)
     def list(self):
         self.call("board list")
-
-
-        
-

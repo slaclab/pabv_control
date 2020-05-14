@@ -3,31 +3,14 @@
 1. Install Anaconda3 (64-bit) for Windows 10 from here:
    https://www.anaconda.com/products/individual
 and open a Anaconda Prompt
-2. `conda install -y -c conda-forge git pyinstaller make pyserial pyqt`
+2. `conda install -y -c conda-forge git pyinstaller pyserial pyqt`
 3. `git clone https://github.com/slaclab/pabv_control`
 4. `cd pabv_control`
 ##### Downloading arduin-cli
-5. `bash ./bootstrap.sh`
-##### gnumake commands should be run in a bash shell
-6.  `bash`
-##### on some Anaconda3 installations it might be necessary to fix the PATH for bash once
+5. `bootstrap.py`
+##### Compiling all sketches
+6. boot_compile.py
 
-    First check if you Anaconda3 installation needs to be fixed by running in bash
-   
-    which git
-   
-If git is found the next step can be skipped
-
-7.  `echo 'export PATH=$CONDA_PREFIX/Library/bin:$PATH' >> ~/.bashrc`
-
-    After modifying .bashrc, exit bash ny typing exit, enter bash again
-      
-##### Building arduino targets
-8. `gnumake`
-##### Building client stand-alone executable
-9.  `gnumake distro`
-##### Building the arduino software installer
-10.  `gnumake installer`
 
 ### Test platforms
 1.    Windows 10 64-bit
@@ -39,7 +22,7 @@ If git is found the next step can be skipped
 ### Wrapper scripts for arduino CLI
 
 ##### Show connected boards
-- `scripts/board_list.sh`
+- `board_list.py`
 
 Example output for an UNO
 
@@ -48,20 +31,16 @@ Example output for an UNO
 `COM3 Serial Port (USB) Arduino Uno arduino:avr:uno arduino:avr`
 
 ##### Upload compiled sketch
-- `scripts/board_upload.sh COM3 ambu_control_dual`
+- `board_upload.py COM3 ambu_control_flow_cal`
 
 Example output:
 
-`Uploading to port: COM3`
-
-`Sketch : arduino/ambu_control_dual`
-
-`HEX file : arduino/ambu_control_dual/ambu_control_dual.hex`
+`Uploading sketch ambu_control_flow_cal to port COM3`
 
 ### Getting Running
 - In Anaconda Prompt  
   - `cd pabv_control/python_client`  
-  - `python client_dual.py`  
+  - `python client.py`  
 
 # Arduino Wireing
 test
