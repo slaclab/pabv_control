@@ -15,6 +15,7 @@ and open a Anaconda Prompt
 1.    Windows 10 64-bit
 2.    Windows 10 32-bit
 3.    Linux 64-bit
+4.    MacOSX 64-bit
 
 - Excutables built on Windows 10 32-bit may run on Windows 10 64-bit. Windows 7 or 8 support would require a native build.
 
@@ -27,6 +28,7 @@ and open a Anaconda Prompt
 ##### Show connected boards
 - `board_list.py`
 - this will create a standalone executable that can be copied to a USB stick
+
 = example filename: `dist\client_py_Windows_64bit_v0.0.2-50-g3790d7b.exe`
 
 Example output for an UNO
