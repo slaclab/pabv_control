@@ -1,14 +1,20 @@
 # -*- mode: python ; coding: utf-8 -*-
 import sys
 import platform
-sys.path.append("arduino_installer")
-import client_version
+import subprocess
+git_tag = subprocess.check_output(["git", "describe","--tags"]).strip()
+git_status=subprocess.check_output(["git", "status","--porcelain"]).strip()
+if(git_status!=""): git_status="-dirty"
+else: git_status=""
+
+git_tag=str(git_tag)+git_status
+#import client_version
 target=platform.system()+"_"+platform.architecture()[0]
 sys.setrecursionlimit(30000)
 block_cipher = None
 
 
-a = Analysis(['client_dual.py'],
+a = Analysis(['client.py'],
              pathex=['python_client'],
              binaries=[],
              datas=[],
@@ -27,9 +33,8 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          Tree('arduino/data/',prefix='arduino/data/'),
-          [],
-          name='client_dual_'+target+"_"+client_version.client_version,
+           [],
+          name='client_py_'+target+"_"+git_tag,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
