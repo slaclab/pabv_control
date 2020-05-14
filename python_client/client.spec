@@ -5,7 +5,7 @@ import subprocess
 git_tag = subprocess.check_output(["git", "describe","--tags"]).strip()
 git_status=subprocess.check_output(["git", "status","--porcelain"]).strip()
 
-if(len(git_status)==0): git_status="-dirty"
+if(len(git_status)!=0): git_status="-dirty"
 else: git_status=""
 
 git_tag=str(git_tag)+git_status
