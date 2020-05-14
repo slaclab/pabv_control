@@ -8,7 +8,8 @@ git_status=subprocess.check_output(["git", "status","--porcelain"]).strip()
 if(len(git_status)!=0): git_status="-dirty"
 else: git_status=""
 
-git_tag=str(git_tag)+git_status
+git_tag=str("%s%s"%(repr(git_tag)[2:-1],git_status))
+print('######## Tag:',git_tag)
 #import client_version
 target=platform.system()+"_"+platform.architecture()[0]
 sys.setrecursionlimit(30000)
@@ -35,7 +36,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
            [],
-          name='client_py_'+target+"_"+git_tag,
+          name="client_%s_%s" %(target,git_tag),
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
