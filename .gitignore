@@ -1,8 +1,8 @@
 *~
 *.hex
 *.elf
-tools/
-arduino/data/
+bin/
+data/
 build/
 dist/
 __pycache__/
