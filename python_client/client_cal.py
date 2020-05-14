@@ -16,7 +16,6 @@ else:
 appTop = QApplication(sys.argv)
 
 guiTop = control_gui.ControlGui(ambu=ambu,refPlot=True)
-guiTop.setWindowTitle("PABV Control")
 guiTop.show()
 
 appTop.exec_()

@@ -15,8 +15,6 @@ class RelayControl {
 
       const unsigned int StateOff      = 0;
       const unsigned int StateOn       = 1;
-      const unsigned int StateCycleOff = 2;
-      const unsigned int StateCycleOn  = 3;
 
       AmbuConfig * conf_;
       GenericSensor * press_;

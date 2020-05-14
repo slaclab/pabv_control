@@ -36,7 +36,7 @@ void AmbuConfig::setup() {
    // Just in case the values are bad
    if ( period_ == 0xFFFF ) period_ = 3000;
    if ( onTime_ == 0xFFFF ) onTime_ = 1000;
-   if ( runState_ == 0xFFFF ) runState_ = StateCycle;
+   if ( runState_ == 0xFFFF ) runState_ = StateRunOn;
 
    // Cast double locations to int * to check for empty storage locations
    if ( *((unsigned int *)(&startThold_)) == 0xFFFF ) startThold_ = -10.0;

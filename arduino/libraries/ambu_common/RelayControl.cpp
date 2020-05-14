@@ -31,114 +31,59 @@ void RelayControl::setup() {
 
 void RelayControl::update(unsigned int ctime) {
 
-   // Currently forced off
-   if ( state_ == StateOff ) {
-
-      // Transition to Forced on
-      if ( conf_->getRunState() == conf_->StateOn ) {
-         digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = ctime;
-         state_ = StateOn;
-      }
-
-      // Transition to Cycle
-      else if ( conf_->getRunState() == conf_->StateCycle ) {
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateCycleOff;
-      }
+   // Currently relay forced off
+   if ( conf_->getRunState() == conf_->StateForceOff ) {
+      digitalWrite(relayPin_, RELAY_OFF);
+      state_ = StateOff;
+      stateTime_ = ctime;
    }
 
-   // Currently forced on
-   else if ( state_ == StateOn ) {
-
-      // Transition to Forced off
-      if ( conf_->getRunState() == conf_->StateOff ) {
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateOff;
-      }
-
-      // Transition to Cycle
-      else if ( conf_->getRunState() == conf_->StateCycle ) {
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateCycleOff;
-      }
+   // Currently relay forced on
+   else if ( conf_->getRunState() == conf_->StateForceOn ) {
+      digitalWrite(relayPin_, RELAY_ON);
+      state_ = StateOn;
+      stateTime_ = ctime;
    }
 
-   // Currently off portion of cycle
-   else if ( state_ == StateCycleOff ) {
+   // Currently turned off
+   else if ( conf_->getRunState() == conf_->StateRunOff ) {
+      digitalWrite(relayPin_, RELAY_OFF);
+      state_ = StateOff;
+      stateTime_ = ctime;
+   }
 
-      // Transition to forced off
-      if ( conf_->getRunState() == conf_->StateOff ) {
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateOff;
-      }
-
-      // Transition to forced on
-      else if ( conf_->getRunState() == conf_->StateOn ) {
-         digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = ctime;
-         state_ = StateOn;
-      }
+   // Off portion of the cycle
+   else if ( state_ == StateOff ) {
 
       // Turn on volume threshold exceeded, and we have met min off period
-      else if ( (press_->scaledValue() < conf_->getStartThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) {
-         digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = ctime;
-         state_ = StateCycleOn;
-         vol_->reset(ctime);
-         cycleCount_++;
-      }
+      if ( ( (press_->scaledValue() < conf_->getStartThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) ||
 
-      // Off timer has been reached
-      else if ((ctime - stateTime_) > (conf_->getPeriod() - conf_->getOnTime())) {
+           // Off timer has been reached
+           ( (ctime - stateTime_) > (conf_->getPeriod() - conf_->getOnTime())) ) {
+
          digitalWrite(relayPin_, RELAY_ON);
          stateTime_ = ctime;
-         state_ = StateCycleOn;
+         state_ = StateOn;
          vol_->reset(ctime);
          cycleCount_++;
       }
    }
 
-   // Currently on portion of cycle
-   else if (state_ == StateCycleOn ) {
+   // On portion of the cycle
+   else {
 
-      // Transition to forced off
-      if ( conf_->getRunState() == conf_->StateOff ) {
+      // Turn off pressure threshold exceeded
+      if ( ( press_->scaledValue() > conf_->getStopThold() ) ||
+
+           // Turn off volume threshold exceeded
+           ( vol_->scaledValue() > conf_->getVolThold() ) ||
+
+           // On timer has been reached
+           ((ctime - stateTime_) > conf_->getOnTime()) ) {
+
          digitalWrite(relayPin_, RELAY_OFF);
          stateTime_ = ctime;
          state_ = StateOff;
-      }
-
-      // Transition to forced on
-      else if ( conf_->getRunState() == conf_->StateOn ) {
-         digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = ctime;
-         state_ = StateOn;
-      }
-
-      // Turn off pressure threshold exceeded
-      else if ( press_->scaledValue() > conf_->getStopThold() ) {
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateCycleOff;
-      }
-
-      // Turn off volume threshold exceeded
-      else if ( vol_->scaledValue() > conf_->getVolThold() ) {
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateCycleOff;
-      }
-
-      // On timer has been reached
-      else if ((ctime - stateTime_) > conf_->getOnTime()) {
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateCycleOff;
       }
    }
 }

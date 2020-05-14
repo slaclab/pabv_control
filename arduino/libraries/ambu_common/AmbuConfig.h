@@ -8,9 +8,10 @@ class AmbuConfig {
 
    public:
 
-      const unsigned int StateOff   = 0;
-      const unsigned int StateOn    = 1;
-      const unsigned int StateCycle = 2;
+      const unsigned int StateForceOff = 0;
+      const unsigned int StateForceOn  = 1;
+      const unsigned int StateRunOff   = 2;
+      const unsigned int StateRunOn    = 3;
 
    private:
 

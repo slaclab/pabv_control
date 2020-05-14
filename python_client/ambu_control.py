@@ -21,15 +21,15 @@ class AmbuControl(object):
         self._onTime = 0
         self._startThold = 0
         self._stopThold = 0
+        self._volThold = 0
         self._state = 0
+        self._stime = time.time()
+        self._refresh = time.time()
 
-        self._initData()
+        self._data = {'time': [], 'count':[], 'press': [], 'flow':[], 'vol':[], 'maxP': [], 'inhP': [], 'maxV': []}
 
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
-
-    def _initData(self):
-        self._data = {'time': [], 'press': [], 'flow':[], 'vol':[]}
 
     def openLog(self, fName):
         self._file = open(fName,'a')
@@ -109,7 +109,7 @@ class AmbuControl(object):
     def _setConfig(self):
         msg = f"CONFIG {self._period} {self._onTime} {self._startThold:.2f} {self._state} {self._stopThold:.2f} {self._volThold:.2f}\n"
         self._ser.write(msg.encode('UTF-8'))
-        print("Send Config: " + msg.rstrip())
+        #print("Send Config: " + msg.rstrip())
 
     def _handleSerial(self):
         while self._runEn:
@@ -159,27 +159,37 @@ class AmbuControl(object):
                     press = float(data[2])
                     flow  = float(data[3])
                     vol   = float(data[4])
+                    diffT = ts - self._stime
+
+                    self._data['time'].append(diffT)
+                    self._data['count'].append(count)
+                    self._data['press'].append(press)
+                    self._data['flow'].append(flow)
+                    self._data['vol'].append(vol)
+                    self._data['inhP'].append(self.startThold)
+                    self._data['maxP'].append(self.stopThold)
+                    self._data['maxV'].append(self.volThold)
 
                     if self._file is not None:
                         self._file.write(f'{ts}, {count}, {press}, {flow}, {vol}\n')
 
-                    if self._last is None:
-                        self._last = count
-                    elif self._last != count:
-                        self._last = count
+                    if time.time() - self._refresh > 0.5:
+                        self._refresh = time.time()
+
+                        if len(self._data['time']) > 6000:
+                            for k in self._data:
+                                self._data[k] = self._data[k][-6000:]
 
                         try:
-                            self._dataCallBack(self._data, count)
+                            rate = len(self._data['time']) / (self._data['time'][-1] - self._data['time'][0])
+                        except:
+                            rate=0.
+
+                        try:
+                            self._dataCallBack(self._data, count, rate)
                         except Exception as e:
                             traceback.print_exc()
                             print("Got error {}".format(e))
-
-                        self._initData()
-
-                    self._data['time'].append(ts)
-                    self._data['press'].append(press)
-                    self._data['flow'].append(flow)
-                    self._data['vol'].append(vol)
 
             except Exception as e:
                 traceback.print_exc()

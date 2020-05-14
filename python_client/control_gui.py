@@ -20,6 +20,38 @@ class MplCanvas(FigureCanvasQTAgg):
         super(MplCanvas, self).__init__(fig)
         fig.tight_layout(pad=3.0)
 
+class PowerSwitch(QPushButton):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self.setCheckable(True)
+        self.setMinimumWidth(66)
+        self.setMinimumHeight(22)
+
+    def paintEvent(self, event):
+        label = "ON" if self.isChecked() else "OFF"
+        bg_color = Qt.green if self.isChecked() else Qt.red
+
+        radius = 10
+        width = 32
+        center = self.rect().center()
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.translate(center)
+        painter.setBrush(QColor(0,0,0))
+
+        pen = QPen(Qt.black)
+        pen.setWidth(2)
+        painter.setPen(pen)
+
+        painter.drawRoundedRect(QRect(-width, -radius, 2*width, 2*radius), radius, radius)
+        painter.setBrush(QBrush(bg_color))
+        sw_rect = QRect(-radius, -radius, width + radius, 2*radius)
+        if not self.isChecked():
+            sw_rect.moveLeft(-width)
+        painter.drawRoundedRect(sw_rect, radius, radius)
+        painter.drawText(sw_rect, Qt.AlignCenter, label)
+
 
 class ControlGui(QWidget):
 
@@ -36,6 +68,7 @@ class ControlGui(QWidget):
         super(ControlGui, self).__init__(parent)
 
         self.refPlot = refPlot
+        self.setWindowTitle("SLAC Accute Shortage Ventilator")
 
         self.ambu = ambu
         self.ambu.setDataCallBack(self.dataUpdated)
@@ -46,6 +79,8 @@ class ControlGui(QWidget):
         self.startThInput = None
         self.stopThInput  = None
         self.volThInput   = None
+        self.stateControl = None
+        self.runControl   = None
 
         top = QVBoxLayout()
         self.setLayout(top)
@@ -97,26 +132,21 @@ class ControlGui(QWidget):
         self.startThInput = QLineEdit()
         self.startThInput.returnPressed.connect(self.setStartThold)
         self.updateStart.connect(self.startThInput.setText)
-        fl.addRow('Start Thold (cmH20):',self.startThInput)
+        fl.addRow('Vol Inh P (cmH20):',self.startThInput)
 
         self.stopThInput = QLineEdit()
         self.stopThInput.returnPressed.connect(self.setStopThold)
         self.updateStop.connect(self.stopThInput.setText)
-        fl.addRow('Stop Thold (cmH20):',self.stopThInput)
+        fl.addRow('Pip Max (cmH20):',self.stopThInput)
 
         self.volThInput = QLineEdit()
         self.volThInput.returnPressed.connect(self.setVolThold)
         self.updateVol.connect(self.volThInput.setText)
-        fl.addRow('Volume Thold (mL):',self.volThInput)
+        fl.addRow('V Max (mL):',self.volThInput)
 
-        rs = QComboBox()
-        rs.addItem("Relay Off")
-        rs.addItem("Relay On")
-        rs.addItem("Relay Cycle")
-        rs.setCurrentIndex(2)
-        self.updateState.connect(rs.setCurrentIndex)
-        rs.currentIndexChanged.connect(self.setState)
-        fl.addRow('State:',rs)
+        self.runControl = PowerSwitch()
+        self.runControl.clicked.connect(self.setRunState)
+        fl.addRow('Run Enable:',self.runControl)
 
         # Status
         gb = QGroupBox('Status')
@@ -157,6 +187,16 @@ class ControlGui(QWidget):
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
         vl.addLayout(fl)
+
+        self.stateControl = QComboBox()
+        self.stateControl.addItem("Relay Force Off")
+        self.stateControl.addItem("Relay Force On")
+        self.stateControl.addItem("Relay Run Off")
+        self.stateControl.addItem("Relay Run On")
+        self.stateControl.setCurrentIndex(3)
+        self.updateState.connect(self.stateControl.setCurrentIndex)
+        self.stateControl.currentIndexChanged.connect(self.setState)
+        fl.addRow('State:',self.stateControl)
 
         self.pMinValue = QLineEdit()
         self.pMinValue.setText("-5")
@@ -257,12 +297,24 @@ class ControlGui(QWidget):
             print(f"Got GUI value error {e}")
 
     @pyqtSlot(int)
-    def setState(self, value):
-        print(f"set state value = {value}")
+    def setState(self,value):
         try:
             self.ambu.state = value
+
+            if value == 3:
+                self.runControl.setChecked(True)
+            else:
+                self.runControl.setChecked(False)
+
         except Exception as e:
             print(f"Got GUI value error {e}")
+
+    @pyqtSlot(bool)
+    def setRunState(self,st):
+        if st:
+            self.stateControl.setCurrentIndex(3)
+        elif self.stateControl.currentIndex() >= 2:
+            self.stateControl.setCurrentIndex(2)
 
     @pyqtSlot()
     def openPressed(self):
@@ -281,41 +333,28 @@ class ControlGui(QWidget):
         self.updateVol.emit("{:0.1f}".format(self.ambu.volThold))
         self.updateState.emit(self.ambu.state)
 
-    def dataUpdated(self,inData,count):
-        self.plotData.append(inData)
+        if self.ambu.state == 3:
+            self.runControl.setChecked(True)
+        else:
+            self.runControl.setChecked(False)
 
-        pc = int(self.plotCycles.text())
-
-        if len(self.plotData) > pc:
-            self.plotData = self.plotData[-1 * pc:]
+    def dataUpdated(self,inData,count,rate):
 
         self.updateCount.emit(str(count))
-        try:
-            rate = len(inData['time']) / (inData['time'][-1] - inData['time'][0])
-        except:
-            rate=0.
         self.updateRate.emit(f"{rate:.1f}")
-
-        xAxis = []
-        press = []
-        flow  = []
-        vol   = []
-
-        for pd in self.plotData:
-            xAxis.extend([val - self.rTime for val in pd['time']])
-            press.extend(pd['press'])
-            flow.extend(pd['flow'])
-            vol.extend(pd['vol'])
 
         try:
             self.plot.axes[0].cla()
             self.plot.axes[1].cla()
             self.plot.axes[2].cla()
-            xa = np.array(xAxis)
+            xa = np.array(inData['time'])
 
-            self.plot.axes[0].plot(xa,np.array(press),color="yellow",linewidth=2.0)
-            self.plot.axes[1].plot(xa,np.array(flow),color="green",linewidth=2.0)
-            self.plot.axes[2].plot(xa,np.array(vol),color="blue",linewidth=2.0)
+            self.plot.axes[0].plot(xa,np.array(inData['press']),color="yellow",linewidth=2.0)
+            self.plot.axes[0].plot(xa,np.array(inData['inhP']),color="red",linewidth=1.0)
+            self.plot.axes[0].plot(xa,np.array(inData['maxP']),color="red",linewidth=1.0)
+            self.plot.axes[1].plot(xa,np.array(inData['flow']),color="green",linewidth=2.0)
+            self.plot.axes[2].plot(xa,np.array(inData['vol']),color="blue",linewidth=2.0)
+            self.plot.axes[2].plot(xa,np.array(inData['maxV']),color="red",linewidth=1.0)
 
             self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
             self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
