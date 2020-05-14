@@ -9,7 +9,7 @@ and open a Anaconda Prompt
 ##### Downloading arduin-cli
 5. `bootstrap.py`
 ##### Compiling all sketches
-6. `boot_compile.py`
+6. `board_compile.py`
 
 ### Tested platforms
 1.    Windows 10 64-bit
