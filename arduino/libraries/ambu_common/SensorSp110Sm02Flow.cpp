@@ -15,7 +15,7 @@ void SensorSp110Sm02Flow::update(unsigned int ctime) {
    //else sign_ = 1.0;
 
    //scaled_ = sign_ * FLOW_BETA * sqrt(abs(scaled_));
-   scaled_ += 1000.0;
+   scaled_ *= 1000.0;
 
 }
 
