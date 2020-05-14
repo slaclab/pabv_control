@@ -21,9 +21,9 @@ void SensorDlcL20D4::update(unsigned int ctime) {
    Wire.requestFrom(addr_, byte(4));
    for (x_=0; x_ < 4; x_++) data_[x_] = Wire.read();
 
-   Serial.print("Debug: Status :");
-   Serial.print(data_[0],HEX);
-   Serial.print("\n");
+   //Serial.print("Debug: Status :");
+   //Serial.print(data_[0],HEX);
+   //Serial.print("\n");
 
    if ( data_[0] == 0x40 ) {
 
@@ -34,7 +34,7 @@ void SensorDlcL20D4::update(unsigned int ctime) {
    }
 
    // Start new cycle for dlc, if not busy
-   if ( (data_[0] & 0x20) != 0 ) {
+   if ( (data_[0] & 0x20) == 0 ) {
        Wire.beginTransmission(addr_);
        Wire.write(DLC_L20D4_CMD); // 2 cycle average = 8ms
        Wire.endTransmission();
