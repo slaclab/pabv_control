@@ -164,30 +164,17 @@ class AmbuControl(object):
                     vol   = float(data[4])
                     diffT = ts - self._stime
 
-                    #self._data['time'].append(diffT)
-                    #self._data['count'].append(count)
-                    #self._data['press'].append(press)
-                    #self._data['flow'].append(flow)
-                    #self._data['vol'].append(vol)
-                    #self._data['inhP'].append(self.startThold)
-                    #self._data['maxP'].append(self.stopThold)
-                    #self._data['maxV'].append(self.volThold)
                     self._data.append([diffT, count, press, flow, vol, self.startThold, self.stopThold, self.volThold])
 
                     if self._file is not None:
                         self._file.write(f'{ts}, {count}, {press}, {flow}, {vol}\n')
 
-                    if time.time() - self._refresh > 0.5:
+                    if time.time() - self._refresh > 0.1:
                         self._refresh = time.time()
 
-                        #if len(self._data['time']) > 6000:
-                        #    for k in self._data:
-                        #        self._data[k] = self._data[k][-6000:]
-
                         try:
-                            #rate = len(self._data['time']) / (self._data['time'][-1] - self._data['time'][0])
-                            n_i = self._data.get_i()
-                            rate = 1.0/numpy.mean(self._data[0,-n_i:])
+                            num_points = self._data.get_i()
+                            rate = num_points / (self._data.A[0,-1] - self._data.A[0,-num_points])
                         except:
                             rate=0.
 
@@ -216,7 +203,7 @@ class npfifo:
         self.A[:,:-1] = self.A[:,1:]
         # add the data to the end of the buffer
         self.A[:,-1] = X
-        # increment number of 
+        # increment number of data-points entered
         self._i += 1 
     
     def clear(self):
@@ -225,6 +212,7 @@ class npfifo:
 
     def get_data(self):
         if self._i > 1:
+            # Returns data array up to the minimum of length or entries
             return self.A[:,-min(self._i, self._x):]
         else:
             return None
