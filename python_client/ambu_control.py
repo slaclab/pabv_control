@@ -25,6 +25,7 @@ class AmbuControl(object):
         self._volThold = 0
         self._state = 0
         self._stime = time.time()
+        self._smillis = -1
         self._refresh = time.time()
 
         #self._data = {'time': [], 'count':[], 'press': [], 'flow':[], 'vol':[], 'maxP': [], 'inhP': [], 'maxV': []}
@@ -160,14 +161,19 @@ class AmbuControl(object):
                     if doNotify and self._confCallBack is not None:
                         self._confCallBack()
 
-                elif data[0] == 'STATUS' and len(data) == 5:
+                elif data[0] == 'STATUS' and len(data) == 6:
                     #print(f"Got status: {line.rstrip()}")
-                    count = int(data[1],0)
-                    press = float(data[2])
-                    flow  = float(data[3])
-                    vol   = float(data[4])
-                    diffT = ts - self._stime
-
+                    millis = int(data[1],0) 
+                    count  = int(data[2],0)
+                    press  = float(data[3])
+                    flow   = float(data[4])
+                    vol    = float(data[5])
+                    #diffT  = ts - self._stime
+                    if self._smillis==-1: 
+                        self._smillis=millis
+                        continue
+                    else:
+                        diffT=(millis-self._smillis)/1000.
                     self._data.append([diffT, count, press, flow, vol, self.startThold, self.stopThold, self.volThold])
 
                     if self._file is not None:
@@ -178,7 +184,11 @@ class AmbuControl(object):
 
                         try:
                             num_points = self._data.get_n()
-                            rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
+                            denom= (self._data.A[0,-1] - self._data.get_nextout_time())
+                            if denom!=0:
+                                rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
+                            else:
+                                rate=0
                         except Exception as e:
                             traceback.print_exc()
                             print(f"Got error {e}")

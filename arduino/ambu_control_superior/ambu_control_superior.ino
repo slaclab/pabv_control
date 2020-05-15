@@ -5,6 +5,7 @@
 #include <SensorDlcL20D4.h>
 #include <SensorSp110Sm02Flow.h>
 #include <SensorVolume.h>
+#include <stdint.h>
 
 #define RELAY_PIN 4
 #define SENSOR_PERIOD_MILLIS 9
@@ -15,8 +16,9 @@ SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow();
 SensorVolume        * vol   = new SensorVolume(flow);
 RelayControl        * relay = new RelayControl(conf,press,vol,RELAY_PIN);
 
-unsigned int sensorTime;
-unsigned int currTime;
+uint32_t sensorTime;
+uint32_t currTime;
+
 
 void setup() {
 
@@ -49,9 +51,9 @@ void loop() {
       press->update(currTime);
       flow->update(currTime);
       vol->update(currTime);
-
       // Generate serial output
-      Serial.print("STATUS");
+      Serial.print("STATUS ");
+      Serial.print(currTime);
       relay->sendString();
       press->sendString();
       flow->sendString();
