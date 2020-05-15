@@ -5,6 +5,7 @@ import threading
 import math
 import sys
 import traceback
+import numpy
 
 class AmbuControl(object):
 
@@ -26,7 +27,8 @@ class AmbuControl(object):
         self._stime = time.time()
         self._refresh = time.time()
 
-        self._data = {'time': [], 'count':[], 'press': [], 'flow':[], 'vol':[], 'maxP': [], 'inhP': [], 'maxV': []}
+        #self._data = {'time': [], 'count':[], 'press': [], 'flow':[], 'vol':[], 'maxP': [], 'inhP': [], 'maxV': []}
+        self._data = npfifo(8,6000)
 
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
@@ -39,7 +41,8 @@ class AmbuControl(object):
         self._file = None
 
     def _debugCallBack(self,data,count):
-        l = len(self._data['time'])
+        # BM: I dont understand the point of this
+        l = len(self._data.get_i())
         print(f"Got data. Len={l} count={count}")
 
     def setDataCallBack(self, callBack):
@@ -161,14 +164,7 @@ class AmbuControl(object):
                     vol   = float(data[4])
                     diffT = ts - self._stime
 
-                    self._data['time'].append(diffT)
-                    self._data['count'].append(count)
-                    self._data['press'].append(press)
-                    self._data['flow'].append(flow)
-                    self._data['vol'].append(vol)
-                    self._data['inhP'].append(self.startThold)
-                    self._data['maxP'].append(self.stopThold)
-                    self._data['maxV'].append(self.volThold)
+                    self._data.append([diffT, count, press, flow, vol, self.startThold, self.stopThold, self.volThold])
 
                     if self._file is not None:
                         self._file.write(f'{ts}, {count}, {press}, {flow}, {vol}\n')
@@ -176,13 +172,13 @@ class AmbuControl(object):
                     if time.time() - self._refresh > 0.5:
                         self._refresh = time.time()
 
-                        if len(self._data['time']) > 6000:
-                            for k in self._data:
-                                self._data[k] = self._data[k][-6000:]
-
                         try:
-                            rate = len(self._data['time']) / (self._data['time'][-1] - self._data['time'][0])
-                        except:
+                            num_points = self._data.get_n()
+                            rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
+                        except Exception as e:
+                            traceback.print_exc()
+                            print(f"Got error {e}")
+                            print(num_points, self._data.A[0,-1], self._data.get_nextout_time())
                             rate=0.
 
                         try:
@@ -195,3 +191,42 @@ class AmbuControl(object):
                 traceback.print_exc()
                 print(f"Got error {e}")
 
+
+class npfifo:
+    def __init__(self, num_parm, num_points):
+        self._n = num_parm
+        self._x = num_points
+        self.A = numpy.zeros((self._n, self._x))
+        self._i = 0
+    
+    def append(self, X):
+        if len(X) != self._n:
+            print("Wrong number of parameters to append, ignoring")
+        # Move the data in the buffer
+        self.A[:,:-1] = self.A[:,1:]
+        # add the data to the end of the buffer
+        self.A[:,-1] = X
+        # increment number of data-points entered
+        self._i += 1 
+    
+    def clear(self):
+        self.A = 0.0
+        self._i = 0
+
+    def get_data(self):
+        if self._i > 1:
+            # Returns data array up to the minimum of length or entries
+            return self.A[:,-min(self._i, self._x):]
+        else:
+            return None
+        
+    def get_i(self):
+        return self._i
+
+    def get_n(self):
+        return min(self._i, self._x)
+    
+    def get_nextout_time(self):
+        return self.A[0, -(self.get_n()-1)]
+        
+    
