@@ -50,7 +50,11 @@ class AmbuControl(object):
 
     @property
     def cycleRate(self):
-        return (1.0 / ((self._period / 1000.0) / 60.0))
+        try:
+            rate=(1.0 / ((self._period / 1000.0) / 60.0))
+        except:
+            rate=0.0
+        return rate
 
     @cycleRate.setter
     def cycleRate(self,value):
