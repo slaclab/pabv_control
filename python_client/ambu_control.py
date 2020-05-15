@@ -173,12 +173,12 @@ class AmbuControl(object):
                         self._refresh = time.time()
 
                         try:
-                            num_points = self._data.get_i()
-                            rate = num_points / (self._data.A[0,-1] - self._data.A[0,-min(num_points,self._data._x)])
+                            num_points = self._data.get_n()
+                            rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
                         except Exception as e:
                             traceback.print_exc()
                             print(f"Got error {e}")
-                            print(num_points, self._data.A[0,-1], self._data.A[0,-(num_points-1)])
+                            print(num_points, self._data.A[0,-1], self._data.get_nextout_time())
                             rate=0.
 
                         try:
@@ -222,4 +222,11 @@ class npfifo:
         
     def get_i(self):
         return self._i
+
+    def get_n(self):
+        return min(self._i, self._x)
+    
+    def get_nextout_time(self):
+        return self.A[0, -(self.get_n()-1)]
+        
     
