@@ -343,14 +343,16 @@ class ControlGui(QWidget):
             self.plot.axes[0].cla()
             self.plot.axes[1].cla()
             self.plot.axes[2].cla()
-            xa = np.array(inData['time'])
+            #xa = np.array(inData['time'])
+            ambu_data = inData.get_data()
+            xa = ambu_data[0,:]
 
-            self.plot.axes[0].plot(xa,np.array(inData['press']),color="yellow",linewidth=2.0)
-            self.plot.axes[0].plot(xa,np.array(inData['inhP']),color="red",linewidth=1.0)
-            self.plot.axes[0].plot(xa,np.array(inData['maxP']),color="red",linewidth=1.0)
-            self.plot.axes[1].plot(xa,np.array(inData['flow']),color="green",linewidth=2.0)
-            self.plot.axes[2].plot(xa,np.array(inData['vol']),color="blue",linewidth=2.0)
-            self.plot.axes[2].plot(xa,np.array(inData['maxV']),color="red",linewidth=1.0)
+            self.plot.axes[0].plot(xa, ambu_data[1,:],color="yellow",linewidth=2.0)
+            self.plot.axes[0].plot(xa, ambu_data[2,:],color="red",linewidth=1.0)
+            self.plot.axes[0].plot(xa, ambu_data[3,:],color="red",linewidth=1.0)
+            self.plot.axes[1].plot(xa, ambu_data[4,:],color="green",linewidth=2.0)
+            self.plot.axes[2].plot(xa, ambu_data[5,:],color="blue",linewidth=2.0)
+            self.plot.axes[2].plot(xa, ambu_data[6,:],color="red",linewidth=1.0)
 
             self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
             self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
