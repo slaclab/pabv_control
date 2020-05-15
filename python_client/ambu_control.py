@@ -169,13 +169,16 @@ class AmbuControl(object):
                     if self._file is not None:
                         self._file.write(f'{ts}, {count}, {press}, {flow}, {vol}\n')
 
-                    if time.time() - self._refresh > 0.1:
+                    if time.time() - self._refresh > 0.5:
                         self._refresh = time.time()
 
                         try:
                             num_points = self._data.get_i()
-                            rate = num_points / (self._data.A[0,-1] - self._data.A[0,-num_points])
-                        except:
+                            rate = num_points / (self._data.A[0,-1] - self._data.A[0,-min(num_points,self._data._x)])
+                        except Exception as e:
+                            traceback.print_exc()
+                            print(f"Got error {e}")
+                            print(num_points, self._data.A[0,-1], self._data.A[0,-(num_points-1)])
                             rate=0.
 
                         try:
