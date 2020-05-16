@@ -169,11 +169,12 @@ class AmbuControl(object):
                     flow   = float(data[4])
                     vol    = float(data[5])
                     #diffT  = ts - self._stime
-                    if self._smillis==-1: 
+                    if self._smillis == -1: 
                         self._smillis=millis
                         continue
                     else:
                         diffT=(millis-self._smillis)/1000.
+                        if(diffT<=0): continue
                     self._data.append([diffT, count, press, flow, vol, self.startThold, self.stopThold, self.volThold])
 
                     if self._file is not None:
