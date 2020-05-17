@@ -5,6 +5,14 @@
 #include <HardwareSerial.h>
 #include <Arduino.h>
 
+#ifndef GIT_VERSION
+const char *git_version= "unknown";
+#else
+#define Q(x) #x
+#define QUOTE(x) Q(x)
+const char *git_version=QUOTE(GIT_VERSION);
+#endif
+
 AmbuConfig::AmbuConfig () {
    memset(rxBuffer_,0,20);
    rxCount_ = 0;
@@ -91,6 +99,9 @@ void AmbuConfig::update(unsigned int ctime) {
        Serial.print(" ");
        Serial.print(volThold_,4);
        Serial.print("\n");
+       Serial.print("VERSION ");
+       Serial.print(git_version);
+       Serial.print("\n");
        confTime_ = ctime;
    }
 }
@@ -141,4 +152,3 @@ void AmbuConfig::storeConfig() {
 
    EEPROM.put(addr_, volThold_);
 }
-

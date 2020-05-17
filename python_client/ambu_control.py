@@ -14,7 +14,7 @@ class AmbuControl(object):
 
     def __init__(self, dev):
 
-        self._ser = serial.Serial(port=dev, baudrate=57600, 
+        self._ser = serial.Serial(port=dev, baudrate=57600,
                                   timeout=1.0)
         self._runEn = True
         self._dataCallBack = self._debugCallBack
@@ -27,9 +27,10 @@ class AmbuControl(object):
         self._stopThold = 0
         self._volThold = 0
         self._state = 0
-        self._stime = 0 
+        self._stime = 0
         self._smillis = -1
         self._refresh = time.time()
+        self.version='unknown'
 
         #self._data = {'time': [], 'count':[], 'press': [], 'flow':[], 'vol':[], 'maxP': [], 'inhP': [], 'maxV': []}
         self._data = npfifo(8,6000)
@@ -130,11 +131,11 @@ class AmbuControl(object):
                 line = raw.decode('UTF-8')
                 data = line.rstrip().split(' ')
                 ts = time.time()
-
                 if data[0] == 'DEBUG':
                     #print(f"Got debug: {line.rstrip()}")
                     pass
-
+                elif data[0] == 'VERSION' and len(data)==2:
+                    self.version=data[1]
                 elif data[0] == 'CONFIG':
                     #print(f"Got config: {line.rstrip()}")
                     doNotify = False
@@ -166,12 +167,12 @@ class AmbuControl(object):
 
                 elif data[0] == 'STATUS' and len(data) == 6:
                     #print(f"Got status: {line.rstrip()}")
-                    millis = int(data[1],0) 
+                    millis = int(data[1],0)
                     count  = int(data[2],0)
                     press  = float(data[3])
                     flow   = float(data[4])
                     vol    = float(data[5])
-                    if self._smillis == -1: 
+                    if self._smillis == -1:
                         self._smillis=millis
                         self._stime = time.time()
                         continue
@@ -201,7 +202,7 @@ class AmbuControl(object):
                             rate=0.
 
                         try:
-                            self._dataCallBack(self._data, count, rate, stime)
+                            self._dataCallBack(self._data, count, rate, stime, self.version)
                         except Exception as e:
                             traceback.print_exc()
                             print("Got error {}".format(e))
@@ -217,7 +218,7 @@ class npfifo:
         self._x = num_points
         self.A = numpy.zeros((self._n, self._x))
         self._i = 0
-    
+
     def append(self, X):
         if len(X) != self._n:
             print("Wrong number of parameters to append, ignoring")
@@ -226,8 +227,8 @@ class npfifo:
         # add the data to the end of the buffer
         self.A[:,-1] = X
         # increment number of data-points entered
-        self._i += 1 
-    
+        self._i += 1
+
     def clear(self):
         self.A = 0.0
         self._i = 0
@@ -238,14 +239,12 @@ class npfifo:
             return self.A[:,-min(self._i, self._x):]
         else:
             return None
-        
+
     def get_i(self):
         return self._i
 
     def get_n(self):
         return min(self._i, self._x)
-    
+
     def get_nextout_time(self):
         return self.A[0, -(self.get_n()-1)]
-        
-    

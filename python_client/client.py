@@ -13,7 +13,7 @@ if sys.platform == 'linux':
     ambu = ambu_control.AmbuControl("/dev/ttyACM0")
     #ambu = ambu_control.AmbuControl("/dev/ttyUSB0")
 else:
-    ambu = ambu_control.AmbuControl("COM4")
+    ambu = ambu_control.AmbuControl("COM3")
 
 appTop = QApplication(sys.argv)
 
@@ -23,4 +23,3 @@ guiTop.show()
 appTop.exec_()
 
 ambu.stop()
-

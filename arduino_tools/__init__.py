@@ -7,6 +7,8 @@ import platform
 import subprocess
 import glob
 import sys
+sys.path.insert(0,"python_client")
+import git_version
 
 class cli:
     def __init__(self,board):
@@ -59,7 +61,8 @@ class cli:
         dirs=glob.glob("arduino/ambu*")
         for d in dirs:
             bn=os.path.basename(d)
-            cmd="compile -b %s --libraries arduino/libraries -o %s/%s.hex %s" % (self.board,d,bn,d)
+            cmd='compile -b %s --build-properties "compiler.cpp.extra_flags=-DGIT_VERSION=%s" --libraries arduino/libraries -o %s/%s.hex %s' \
+                % (self.board,git_version.tag,d,bn,d)
             self.call(cmd)
     def upload(self,com,sketch):
         hex="arduino/%s/%s.hex" % (sketch,sketch)
