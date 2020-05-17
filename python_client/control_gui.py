@@ -12,6 +12,13 @@ from matplotlib.figure import Figure
 
 import time
 
+git_version="unknown"
+try:
+    import version
+    git_version=version.version
+except:
+    pass
+
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=10, height=10, dpi=100):
@@ -57,6 +64,7 @@ class ControlGui(QWidget):
 
     updateCount = pyqtSignal(str)
     updateRate  = pyqtSignal(str)
+    updateTime  = pyqtSignal(str)
     updateRR    = pyqtSignal(str)
     updateIT    = pyqtSignal(str)
     updateStart = pyqtSignal(str)
@@ -169,6 +177,24 @@ class ControlGui(QWidget):
         sampRate.setReadOnly(True)
         self.updateRate.connect(sampRate.setText)
         fl.addRow('Sample Rate:',sampRate)
+
+        timeSinceStart=QLineEdit()
+        timeSinceStart.setText("0")
+        timeSinceStart.setReadOnly(True)
+        self.updateTime.connect(timeSinceStart.setText)
+        fl.addRow('Time since start:',timeSinceStart)
+
+        guiVersion = QLineEdit()
+        guiVersion.setText(git_version)
+        guiVersion.setReadOnly(True)
+        fl.addRow('GUI version:',guiVersion)
+
+        hwVersion = QLineEdit()
+        hwVersion.setText("v0.0.2-8594858")
+        hwVersion.setReadOnly(True)
+        fl.addRow('Control SW version:',hwVersion)
+        
+
 
     def setupPageTwo(self):
 
@@ -334,10 +360,10 @@ class ControlGui(QWidget):
         else:
             self.runControl.setChecked(False)
 
-    def dataUpdated(self,inData,count,rate):
-
+    def dataUpdated(self,inData,count,rate,stime):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
+        self.updateTime.emit(f"{stime:.1f}")
 
         try:
             self.plot.axes[0].cla()
