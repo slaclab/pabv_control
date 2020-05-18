@@ -12,6 +12,13 @@ from matplotlib.figure import Figure
 
 import time
 
+git_version="unknown"
+try:
+    import version
+    git_version=version.version
+except:
+    pass
+
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=10, height=10, dpi=100):
@@ -55,14 +62,16 @@ class PowerSwitch(QPushButton):
 
 class ControlGui(QWidget):
 
-    updateCount = pyqtSignal(str)
-    updateRate  = pyqtSignal(str)
-    updateRR    = pyqtSignal(str)
-    updateIT    = pyqtSignal(str)
-    updateStart = pyqtSignal(str)
-    updateStop  = pyqtSignal(str)
-    updateVol   = pyqtSignal(str)
-    updateState = pyqtSignal(int)
+    updateCount   = pyqtSignal(str)
+    updateRate    = pyqtSignal(str)
+    updateTime    = pyqtSignal(str)
+    updateRR      = pyqtSignal(str)
+    updateIT      = pyqtSignal(str)
+    updateStart   = pyqtSignal(str)
+    updateStop    = pyqtSignal(str)
+    updateVol     = pyqtSignal(str)
+    updateState   = pyqtSignal(int)
+    updateVersion = pyqtSignal(str)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -169,6 +178,25 @@ class ControlGui(QWidget):
         sampRate.setReadOnly(True)
         self.updateRate.connect(sampRate.setText)
         fl.addRow('Sample Rate:',sampRate)
+
+        timeSinceStart=QLineEdit()
+        timeSinceStart.setText("0")
+        timeSinceStart.setReadOnly(True)
+        self.updateTime.connect(timeSinceStart.setText)
+        fl.addRow('Seconds since start:',timeSinceStart)
+
+        guiVersion = QLineEdit()
+        guiVersion.setText(git_version)
+        guiVersion.setReadOnly(True)
+        fl.addRow('GUI version:',guiVersion)
+
+        hwVersion = QLineEdit()
+        hwVersion.setText("unknown")
+        hwVersion.setReadOnly(True)
+        self.updateVersion.connect(hwVersion.setText)
+        fl.addRow('Control SW version:',hwVersion)
+
+
 
     def setupPageTwo(self):
 
@@ -334,10 +362,11 @@ class ControlGui(QWidget):
         else:
             self.runControl.setChecked(False)
 
-    def dataUpdated(self,inData,count,rate):
-
+    def dataUpdated(self,inData,count,rate,stime,version):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
+        self.updateTime.emit(f"{stime:.1f}")
+        self.updateVersion.emit(str(version))
 
         try:
             self.plot.axes[0].cla()
@@ -383,4 +412,3 @@ class ControlGui(QWidget):
             self.plot.draw()
         except Exception as e:
             print(f"Got plotting exception {e}")
-
