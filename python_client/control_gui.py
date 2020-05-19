@@ -72,6 +72,7 @@ class ControlGui(QWidget):
     updateVol     = pyqtSignal(str)
     updateState   = pyqtSignal(int)
     updateVersion = pyqtSignal(str)
+    updateArTime  = pyqtSignal(str)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -184,6 +185,12 @@ class ControlGui(QWidget):
         timeSinceStart.setReadOnly(True)
         self.updateTime.connect(timeSinceStart.setText)
         fl.addRow('Seconds since start:',timeSinceStart)
+        
+        arduinoUptime=QLineEdit()
+        arduinoUptime.setText("0")
+        arduinoUptime.setReadOnly(True)
+        self.updateArTime.connect(arduinoUptime.setText)
+        fl.addRow('Arduino uptime (s):',arduinoUptime)
 
         guiVersion = QLineEdit()
         guiVersion.setText(git_version)
@@ -243,19 +250,19 @@ class ControlGui(QWidget):
             fl.addRow('Pres Max Value:',self.pMaxValue)
 
         self.fMinValue = QLineEdit()
-        self.fMinValue.setText("-5")
+        self.fMinValue.setText("-50")
         fl.addRow('Flow Min Value:',self.fMinValue)
 
         self.fMaxValue = QLineEdit()
-        self.fMaxValue.setText("250")
+        self.fMaxValue.setText("100")
         fl.addRow('Flow Max Value:',self.fMaxValue)
 
         self.vMinValue = QLineEdit()
-        self.vMinValue.setText("-5")
+        self.vMinValue.setText("-200")
         fl.addRow('Vol Min Value:',self.vMinValue)
 
         self.vMaxValue = QLineEdit()
-        self.vMaxValue.setText("500")
+        self.vMaxValue.setText("800")
         fl.addRow('Vol Max Value:',self.vMaxValue)
 
         # Log File
@@ -362,11 +369,12 @@ class ControlGui(QWidget):
         else:
             self.runControl.setChecked(False)
 
-    def dataUpdated(self,inData,count,rate,stime,version):
+    def dataUpdated(self,inData,count,rate,stime,version,artime):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
         self.updateTime.emit(f"{stime:.1f}")
         self.updateVersion.emit(str(version))
+        self.updateArTime.emit(f"{artime:.1f}")
 
         try:
             self.plot.axes[0].cla()

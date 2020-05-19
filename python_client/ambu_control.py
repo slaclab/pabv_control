@@ -31,6 +31,7 @@ class AmbuControl(object):
         self._smillis = -1
         self._refresh = time.time()
         self.version='unknown'
+        self.artime = 0
 
         #self._data = {'time': [], 'count':[], 'press': [], 'flow':[], 'vol':[], 'maxP': [], 'inhP': [], 'maxV': []}
         self._data = npfifo(8,6000)
@@ -180,6 +181,7 @@ class AmbuControl(object):
                         diffT=(millis-self._smillis)/1000.
                         if(diffT<=0): continue
                     stime  = ts - self._stime
+                    artime= millis/1000.
                     self._data.append([diffT, count, press, flow, vol, self.startThold, self.stopThold, self.volThold])
 
                     if self._file is not None:
@@ -202,7 +204,7 @@ class AmbuControl(object):
                             rate=0.
 
                         try:
-                            self._dataCallBack(self._data, count, rate, stime, self.version)
+                            self._dataCallBack(self._data, count, rate, stime, self.version, artime)
                         except Exception as e:
                             traceback.print_exc()
                             print("Got error {}".format(e))
