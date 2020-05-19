@@ -5,7 +5,6 @@
 #define CONFIG_MILLIS 1000
 
 class AmbuConfig {
-
    public:
 
       const unsigned int StateForceOff = 0;
@@ -13,7 +12,7 @@ class AmbuConfig {
       const unsigned int StateRunOff   = 2;
       const unsigned int StateRunOn    = 3;
 
-   private:
+   protected:
 
       char rxBuffer_[100];
       char mark_[10];
@@ -40,15 +39,15 @@ class AmbuConfig {
       char scanStopThold_[10];
       char scanVolThold_[10];
 
-      void storeConfig();
+      virtual void storeConfig()=0;
 
    public:
 
       AmbuConfig ();
 
-      virtual void setup();
+      virtual void setup()=0;
 
-      virtual void update(unsigned int ctime);
+      void update(unsigned int ctime);
 
       unsigned int getPeriod();
 

@@ -7,7 +7,7 @@ if(len(sys.argv)!=3):
     print("example:  board_upload.py COM1 ambu_control_flow_cal")
     exit(1)
 
-c=cli(board="arduino:avr:uno")
+c=cli()
 com=sys.argv[1]
 sketch=sys.argv[2]
 print("Uploading sketch %s to port %s" %(sketch,com))

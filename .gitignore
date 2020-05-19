@@ -9,3 +9,4 @@ __pycache__/
 .cache/
 arduino/libraries/ambu_common/version.h
 python_client/version.py
+*.pyc
