@@ -14,14 +14,14 @@ void AmbuConfigUno::setup() {
    uint8_t  c;
    uint16_t x;
 
-   AmbuParamters rconf;
+   AmbuParameters rconf;
 
    csumR = 0;
 
    for (x=0; x < sizeof(AmbuParameters); x++) {
       c = EEPROM.read(x+4);
       csumR += c;
-      ((uint8_t *)rconf)[x] = c;
+      ((uint8_t *)&rconf)[x] = c;
    }
 
    for (x=0; x < 4; x++ ) {
@@ -30,7 +30,7 @@ void AmbuConfigUno::setup() {
    }
 
    // verify checksum
-   if ( csum == csumR ) parms_ = rconf;
+   if ( csum == csumR ) conf_ = rconf;
 
    else {
       AmbuConfig::setup();
@@ -47,7 +47,7 @@ void AmbuConfigUno::storeConfig() {
    csum = 0;
 
    for (x=0; x < sizeof(AmbuParameters); x++) {
-      c = ((uint8_t *)parms_)[x];
+      c = ((uint8_t *)&conf_)[x];
       EEPROM.write(x+4,c);
       csum += c;
    }

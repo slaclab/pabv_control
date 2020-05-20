@@ -31,7 +31,7 @@ void AmbuConfig::setup () {
    confTime_ = millis();
 }
 
-void AmbuConfig::update(unsigned int ctime, CycleControl &cycle) {
+void AmbuConfig::update(unsigned int ctime, CycleControl *cycle) {
    char mark[10];
    char scanParam[10];
    uint16_t param;
@@ -109,7 +109,7 @@ void AmbuConfig::update(unsigned int ctime, CycleControl &cycle) {
                break;
 
             case ClearAlarm:
-               cycle.clearAlarm();
+               cycle->clearAlarm();
                break;
 
             default:
@@ -186,7 +186,7 @@ void AmbuConfig::setGetVolMax(double value) {
    storeConfig();
 }
 
-double AmbuConfig::getvolInThold() {
+double AmbuConfig::getVolInThold() {
    return conf_.volInThold;
 }
 

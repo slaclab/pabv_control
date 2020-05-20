@@ -1,7 +1,7 @@
 
 #include <Wire.h>
 #include <AmbuConfigUno.h>
-#include <RelayControl.h>
+#include <CycleControl.h>
 #include <SensorDlcL20D4.h>
 #include <SensorSp110Sm02Flow.h>
 #include <SensorVolume.h>
@@ -14,7 +14,7 @@ AmbuConfigUno       * conf  = new AmbuConfigUno();
 SensorDlcL20D4      * press = new SensorDlcL20D4();
 SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow();
 SensorVolume        * vol   = new SensorVolume(flow);
-RelayControl        * relay = new RelayControl(conf,press,vol,RELAY_PIN);
+CycleControl        * relay = new CycleControl(conf,press,vol,RELAY_PIN);
 
 uint32_t sensorTime;
 uint32_t currTime;

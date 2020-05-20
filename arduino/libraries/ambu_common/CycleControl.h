@@ -11,7 +11,7 @@
 class AmbuConfig;
 class GenericSensor;
 
-class RelayControl {
+class CycleControl {
 
       const unsigned int StateOff      = 0;
       const unsigned int StateOn       = 1;
@@ -29,7 +29,7 @@ class RelayControl {
 
    public:
 
-      RelayControl (AmbuConfig *conf,
+      CycleControl (AmbuConfig *conf,
                     GenericSensor *press,
                     GenericSensor *vol,
                     unsigned int relayPin);
@@ -39,6 +39,8 @@ class RelayControl {
       void update(unsigned int ctime);
 
       void sendString();
+
+      void clearAlarm();
 };
 
 #endif

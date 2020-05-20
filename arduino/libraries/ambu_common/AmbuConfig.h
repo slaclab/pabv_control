@@ -42,6 +42,7 @@ class AmbuConfig {
       static const uint8_t SetVolInThold = 7;
       static const uint8_t SetPeepMin    = 8;
       static const uint8_t SetRunState   = 9;
+      static const uint8_t ClearAlarm    = 10;
 
    protected:
 
@@ -60,7 +61,7 @@ class AmbuConfig {
 
       virtual void setup();
 
-      void update(unsigned int ctime, CycleControl &cycle);
+      void update(unsigned int ctime, CycleControl *cycle);
 
       // Set/Get Parameters
       double getRespRate();
@@ -75,7 +76,7 @@ class AmbuConfig {
       double getVolMax();
       void setGetVolMax(double value);
 
-      double getvolInThold();
+      double getVolInThold();
       void setVolInThold(double value);
 
       double setPeepMin();

@@ -1,11 +1,11 @@
 
-#include "RelayControl.h"
+#include "CycleControl.h"
 #include "AmbuConfig.h"
 #include "GenericSensor.h"
 
 #include <HardwareSerial.h>
 
-RelayControl::RelayControl (AmbuConfig *conf,
+CycleControl::CycleControl (AmbuConfig *conf,
                             GenericSensor *press,
                             GenericSensor *vol,
                             unsigned int relayPin) {
@@ -19,7 +19,7 @@ RelayControl::RelayControl (AmbuConfig *conf,
    cycleCount_ = 0;
 }
 
-void RelayControl::setup() {
+void CycleControl::setup() {
    stateTime_ = millis();
    cycleCount_ = 0;
 
@@ -29,7 +29,7 @@ void RelayControl::setup() {
    digitalWrite(relayPin_, RELAY_OFF);
 }
 
-void RelayControl::update(unsigned int ctime) {
+void CycleControl::update(unsigned int ctime) {
 
    // Currently relay forced off
    if ( conf_->getRunState() == conf_->StateForceOff ) {
@@ -56,10 +56,10 @@ void RelayControl::update(unsigned int ctime) {
    else if ( state_ == StateOff ) {
 
       // Turn on volume threshold exceeded, and we have met min off period
-      if ( ( (press_->scaledValue() < conf_->getStartThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) ||
+      if ( ( (press_->scaledValue() < conf_->getVolInThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) ||
 
            // Off timer has been reached
-           ( (ctime - stateTime_) > (conf_->getPeriod() - conf_->getOnTime())) ) {
+           ( (ctime - stateTime_) > conf_->getOffTimeMillis()) ) {
 
          digitalWrite(relayPin_, RELAY_ON);
          stateTime_ = ctime;
@@ -73,13 +73,13 @@ void RelayControl::update(unsigned int ctime) {
    else {
 
       // Turn off pressure threshold exceeded
-      if ( ( press_->scaledValue() > conf_->getStopThold() ) ||
+      if ( ( press_->scaledValue() > conf_->getAdjPipMax() ) ||
 
            // Turn off volume threshold exceeded
-           ( vol_->scaledValue() > conf_->getVolThold() ) ||
+           ( vol_->scaledValue() > conf_->getAdjVolMax() ) ||
 
            // On timer has been reached
-           ((ctime - stateTime_) > conf_->getOnTime()) ) {
+           ((ctime - stateTime_) > conf_->getOnTimeMillis()) ) {
 
          digitalWrite(relayPin_, RELAY_OFF);
          stateTime_ = ctime;
@@ -88,8 +88,14 @@ void RelayControl::update(unsigned int ctime) {
    }
 }
 
-void RelayControl::sendString() {
+void CycleControl::sendString() {
    sprintf(txBuffer_," %u",cycleCount_);
    Serial.write(txBuffer_);
+}
+
+
+void CycleControl::clearAlarm() {
+
+
 }
 
