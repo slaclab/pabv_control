@@ -8,9 +8,8 @@
 SensorHaf50Slpm * ref  = new SensorHaf50Slpm();
 SensorSp110Sm02 * flow = new SensorSp110Sm02();
 
-unsigned int sensorTime;
-unsigned int currTime;
-unsigned int cycleCount;
+uint32_t sensorTime;
+uint32_t cycleCount;
 
 void setup() {
 
@@ -33,6 +32,8 @@ void setup() {
 }
 
 void loop() {
+
+   uint32_t currTime;
 
    currTime = millis();
 

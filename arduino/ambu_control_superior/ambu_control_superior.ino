@@ -17,8 +17,6 @@ SensorVolume        * vol   = new SensorVolume(flow);
 CycleControl        * relay = new CycleControl(conf,press,vol,RELAY_PIN);
 
 uint32_t sensorTime;
-uint32_t currTime;
-
 
 void setup() {
 
@@ -43,6 +41,7 @@ void setup() {
 }
 
 void loop() {
+   uint32_t currTime;
 
    currTime = millis();
 

@@ -12,7 +12,7 @@ class SensorHaf50Slpm : public GenericSensor {
 
       SensorHaf50Slpm ();
 
-      void update(unsigned int ctime);
+      void update(uint32_t ctime);
 
 };
 

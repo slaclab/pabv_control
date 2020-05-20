@@ -8,14 +8,13 @@ class SensorVolume : public GenericSensor {
 
       GenericSensor *flow_;
       unsigned int lTime_;
-      unsigned int durr_;
 
    public:
 
       SensorVolume (GenericSensor *flow);
 
-      void reset(unsigned int ctime);
-      void update(unsigned int ctime);
+      void reset(uint32_t ctime);
+      void update(uint32_t ctime);
 
 };
 
