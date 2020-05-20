@@ -4,3 +4,6 @@
 [submodule "arduino/libraries/Adafruit-GFX-Library"]
 	path = arduino/libraries/Adafruit-GFX-Library
 	url = https://github.com/adafruit/Adafruit-GFX-Library
+[submodule "arduino/libraries/Adafruit_BusIO"]
+	path = arduino/libraries/Adafruit_BusIO
+	url = https://github.com/adafruit/Adafruit_BusIO
