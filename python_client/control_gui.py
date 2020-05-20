@@ -98,12 +98,15 @@ class ControlGui(QWidget):
         self.tabs = QTabWidget()
         self.tab1 = QWidget()
         self.tab2 = QWidget()
+        self.tab3 = QWidget()
 
         self.tabs.addTab(self.tab1,"AMBU Control")
         self.tabs.addTab(self.tab2,"AMBU Expert")
+        self.tabs.addTab(self.tab3,"Calibration and Test")
 
         self.setupPageOne()
         self.setupPageTwo()
+        self.setupPageThree()
 
         top.addWidget(self.tabs)
 
@@ -292,6 +295,134 @@ class ControlGui(QWidget):
         self.plotData = []
         self.rTime = time.time()
 
+    def setupPageThree(self):
+        top = QHBoxLayout()
+        self.tab3.setLayout(top)
+    
+        left = QVBoxLayout()
+        top.addLayout(left)
+        
+        right = QVBoxLayout()
+        top.addLayout(right)
+    
+        # Controls and plot on right
+        
+        #controls group box{
+        gb = QGroupBox('Relay Control (Disabled for now to avoid conflict)')
+        right.addWidget(gb)
+
+        right.addSpacing(50)
+        
+        #f1 defines layout for group box gb
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
+        
+        #relay control
+        self.stateControl = QComboBox()
+        self.stateControl.addItem("Relay Force Off")
+        self.stateControl.addItem("Relay Force On")
+        self.stateControl.addItem("Relay Run Off")
+        self.stateControl.addItem("Relay Run On")
+        self.stateControl.setCurrentIndex(3)
+        #self.updateState.connect(self.stateControl.setCurrentIndex)
+        #self.stateControl.currentIndexChanged.connect(self.setState)
+        fl.addRow('State:',self.stateControl)
+        
+
+        #} end controls gb
+    
+        #using self.plot makes it disappear from other page... this is placeholder for now
+        
+        #temp_message = QLabel('plot intentionally blank for now')
+        #right.addWidget(temp_message)
+        
+        #self.plot2 = MplCanvas()
+        #right.addWidget(self.plot2)
+        
+        
+        # left
+        gb = QGroupBox('Calibration Instructions')
+        left.addWidget(gb)
+        left.addSpacing(300)
+        gb.setMinimumWidth(450)
+        gb.setMaximumHeight(300)
+        
+        
+        #f1 defines layout for group box gb
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        #gb.setLayout(fl)
+        
+        vbox = QVBoxLayout()
+
+        #Text field and control buttons for instructions
+        
+        self.instructions = ["page 1","page 2", "page 3", "page 4"]
+        
+        self.instructions[0] = "The ASV should be off and the paddle up. Please check that the patient circuit is connected and a test lung in place"
+        
+        self.instructions[1] = "The ASV is now cycling. Check that the paddle pushes the AMBU bag down smoothly before the paddle comes up. Adjust the air supply valve as needed"
+        
+        self.instlength = len(self.instructions)
+        
+        self.index=0
+        
+        self.textfield = QTextEdit()
+        self.textfield.setReadOnly(True)
+
+        self.textfield.setText(self.instructions[self.index])
+
+        vbox.addWidget(self.textfield)
+        gb.setLayout(vbox)
+
+        buttongroup = QHBoxLayout()
+
+        prevbutton = QPushButton('Backward')
+        prevbutton.clicked.connect(self.prevPressed)
+
+        nextbutton = QPushButton('Forward')
+        nextbutton.clicked.connect(self.nextPressed)
+
+        repbutton = QPushButton('Repeat')
+        #repbutton.clicked.connect(self.repPressed)
+        
+        buttongroup.addWidget(nextbutton)
+        buttongroup.addWidget(prevbutton)
+        buttongroup.addWidget(repbutton)
+
+        vbox.addLayout(buttongroup)
+        
+    @pyqtSlot()
+    def nextPressed(self):
+        try:
+        #self.textfield.setText("Yay, the text changed!")
+            if self.index < self.instlength-1:
+                self.index=self.index+1
+                self.textfield.setText(self.instructions[self.index])
+        except Exception as e:
+            print(f"Got GUI value error {e}")
+
+    @pyqtSlot()
+    def prevPressed(self):
+        try:
+            if self.index > 0:
+                self.index=self.index-1
+                self.textfield.setText(self.instructions[self.index])
+        except Exception as e:
+            print(f"Got GUI value error {e}")
+
+    @pyqtSlot()
+    def repPressed(self):
+        try:
+            self.textfield.setText("Filler text for repeat button")
+        except Exception as e:
+            print(f"Got GUI value error {e}")
+
     @pyqtSlot()
     def setRate(self):
         try:
@@ -418,5 +549,6 @@ class ControlGui(QWidget):
             self.plot.axes[2].set_ylabel('Volume mL')
 
             self.plot.draw()
+    
         except Exception as e:
             print(f"Got plotting exception {e}")
