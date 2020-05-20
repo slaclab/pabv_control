@@ -1,4 +1,3 @@
-
 #ifndef __GENERIC_SENSOR_H__
 #define __GENERIC_SENSOR_H__
 
