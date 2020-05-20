@@ -8,7 +8,7 @@
 CycleControl::CycleControl (AmbuConfig *conf,
                             GenericSensor *press,
                             GenericSensor *vol,
-                            unsigned int relayPin) {
+                            uint8_t relayPin) {
    conf_  = conf;
    press_ = press;
    vol_   = vol;
@@ -29,7 +29,7 @@ void CycleControl::setup() {
    digitalWrite(relayPin_, RELAY_OFF);
 }
 
-void CycleControl::update(unsigned int ctime) {
+void CycleControl::update(uint32_t ctime) {
 
    // Currently relay forced off
    if ( conf_->getRunState() == conf_->StateForceOff ) {
@@ -73,14 +73,23 @@ void CycleControl::update(unsigned int ctime) {
    else {
 
       // Turn off pressure threshold exceeded
-      if ( ( press_->scaledValue() > conf_->getAdjPipMax() ) ||
+      if ( press_->scaledValue() > conf_->getAdjPipMax() )  {
+         alarmState_ |= AlarmPipMax;
+         digitalWrite(relayPin_, RELAY_OFF);
+         stateTime_ = ctime;
+         state_ = StateOff;
+      }
 
-           // Turn off volume threshold exceeded
-           ( vol_->scaledValue() > conf_->getAdjVolMax() ) ||
+      // Turn off volume threshold exceeded
+      if ( vol_->scaledValue() > conf_->getAdjVolMax() ) {
+            alarmState_ |= AlarmVolMax;
+            digitalWrite(relayPin_, RELAY_OFF);
+            stateTime_ = ctime;
+            state_ = StateOff;
+      }
 
-           // On timer has been reached
-           ((ctime - stateTime_) > conf_->getOnTimeMillis()) ) {
-
+      // On timer has been reached
+      if ((ctime - stateTime_) > conf_->getOnTimeMillis()) {
          digitalWrite(relayPin_, RELAY_OFF);
          stateTime_ = ctime;
          state_ = StateOff;
@@ -89,13 +98,14 @@ void CycleControl::update(unsigned int ctime) {
 }
 
 void CycleControl::sendString() {
-   sprintf(txBuffer_," %u",cycleCount_);
-   Serial.write(txBuffer_);
+   Serial.write(" ");
+   Serial.write(cycleCount_);
+   Serial.write(" ");
+   Serial.write(alarmState_);
 }
 
 
 void CycleControl::clearAlarm() {
-
-
+   alarmState_ = 0;
 }
 

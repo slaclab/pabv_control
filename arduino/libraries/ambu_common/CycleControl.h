@@ -13,30 +13,35 @@ class GenericSensor;
 
 class CycleControl {
 
-      const unsigned int StateOff      = 0;
-      const unsigned int StateOn       = 1;
+      // States
+      static const uint8_t StateOff = 0;
+      static const uint8_t StateOn  = 1;
+
+      // Alarm Bits
+      static const uint8_t AlarmPipMax  = 1;
+      static const uint8_t AlarmVolMax  = 2;
+      static const uint8_t AlarmPeepMin = 4;
 
       AmbuConfig * conf_;
       GenericSensor * press_;
       GenericSensor * vol_;
 
-      unsigned int state_;
-      unsigned int stateTime_;
-      unsigned int relayPin_;
-      unsigned int cycleCount_;
-
-      char txBuffer_[20];
+      uint8_t  state_;
+      uint32_t stateTime_;
+      uint8_t  relayPin_;
+      uint8_t  alarmState_;
+      uint32_t cycleCount_;
 
    public:
 
       CycleControl (AmbuConfig *conf,
                     GenericSensor *press,
                     GenericSensor *vol,
-                    unsigned int relayPin);
+                    uint8_t relayPin);
 
       void setup();
 
-      void update(unsigned int ctime);
+      void update(uint32_t ctime);
 
       void sendString();
 

@@ -61,7 +61,7 @@ class AmbuConfig {
 
       virtual void setup();
 
-      void update(unsigned int ctime, CycleControl *cycle);
+      void update(uint32_t ctime, CycleControl *cycle);
 
       // Set/Get Parameters
       double getRespRate();

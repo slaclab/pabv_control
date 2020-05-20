@@ -31,13 +31,13 @@ void AmbuConfig::setup () {
    confTime_ = millis();
 }
 
-void AmbuConfig::update(unsigned int ctime, CycleControl *cycle) {
+void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
    char mark[10];
    char scanParam[10];
    uint16_t param;
    bool sendConfig;
 
-   int32_t ret;
+   int16_t ret;
    char c;
 
    sendConfig = false;
