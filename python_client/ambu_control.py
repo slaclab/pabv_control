@@ -207,11 +207,11 @@ class AmbuControl(object):
                             self._dataCallBack(self._data, count, rate, stime, self.version, artime)
                         except Exception as e:
                             traceback.print_exc()
-                            print("Got error {}".format(e))
+                            print("Got callback error {}".format(e))
 
             except Exception as e:
                 traceback.print_exc()
-                print(f"Got error {e}")
+                print(f"Got handleSerial error {e}")
 
 
 class npfifo:

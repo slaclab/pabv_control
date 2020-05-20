@@ -63,7 +63,7 @@ void loop() {
    }
 
    relay->update(currTime);
-   conf->update(currTime);
+   conf->update(currTime,relay);
 
 }
 
