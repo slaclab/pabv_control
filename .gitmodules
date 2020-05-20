@@ -1,0 +1,6 @@
+[submodule "arduino/libraries/Adafruit_ILI9341"]
+	path = arduino/libraries/Adafruit_ILI9341
+	url = https://github.com/adafruit/Adafruit_ILI9341
+[submodule "arduino/libraries/Adafruit-GFX-Library"]
+	path = arduino/libraries/Adafruit-GFX-Library
+	url = https://github.com/adafruit/Adafruit-GFX-Library
