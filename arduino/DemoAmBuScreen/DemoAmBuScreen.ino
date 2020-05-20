@@ -23,7 +23,7 @@
 // current, change_by, min, max
 float pRR[]   = {20.0, 0.5, 10.0, 30.0};  // breaths/min
 float pTH[]   = {-5.0, 0.1, -10.0, 0} ;   // cmH2O
-float pIE[]   = {2.0, 0.05, 1.0, 2.5};    // in:out ratio 
+float pIE[]   = {2.0, 0.05, 1.0, 2.5};    // in:out ratio
 float pVol[]  = {500., 10., 200., 1000.}; // mL
 float pVmax[] = {600., 10., 250., 1000};  // mL
 float pPmax[] = {60., 2., 20., 100.};     // cmH2O
@@ -51,20 +51,20 @@ const int TFT_h = 320;
 char s[5];
 long t0, tf, tm;
 
-Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST, TFT_MISO);
-//Adafruit_ILI9341 tft = Adafruit_ILI9341(&SPI, TFT_DC, TFT_CS, TFT_RST);
+//Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST, TFT_MISO);
+Adafruit_ILI9341 tft = Adafruit_ILI9341(&SPI, TFT_DC, TFT_CS, TFT_RST);
 void setup_display(){
   // Screen is 240x320
   // Clear screen
   tft.fillScreen(ILI9341_BLACK);
-  tft.setTextSize(2); 
-  tft.setTextColor(ILI9341_BLUE); 
+  tft.setTextSize(2);
+  tft.setTextColor(ILI9341_BLUE);
   tft.setCursor(16, 1); // 40 - 12*2
   tft.print("PEEP");
-  tft.setTextColor(ILI9341_GREEN); 
+  tft.setTextColor(ILI9341_GREEN);
   tft.setCursor(102, 1); // 120 - 12*1.5
   tft.print("PIP");
-  tft.setTextColor(ILI9341_CYAN); 
+  tft.setTextColor(ILI9341_CYAN);
   tft.setCursor(182, 1);  // 200 - 12*1.5
   tft.print("Vol");
   // Values start at y=30
@@ -73,17 +73,17 @@ void setup_display(){
 void update_display() {
   // Headers for display live parms starts on L1 and are font size 2
   // values that go below these labels:
-  tft.setTextSize(3); 
-  tft.setTextColor(ILI9341_BLUE); 
+  tft.setTextSize(3);
+  tft.setTextColor(ILI9341_BLUE);
   tft.fillRect(0,30,80,TFT_FONTH_3,ILI9341_BLACK);
   tft.setCursor(1, 30);   // 40 - 18*2 - 3
   tft.print(randp_peep,1);
   //
-  tft.setTextColor(ILI9341_GREEN); 
+  tft.setTextColor(ILI9341_GREEN);
   tft.fillRect(80,30,80,TFT_FONTH_3,ILI9341_BLACK);
   tft.setCursor(87, 30);   // 120 - 18*2 +3
   tft.print(randp_pip,1);
-  tft.setTextColor(ILI9341_CYAN); 
+  tft.setTextColor(ILI9341_CYAN);
   tft.fillRect(160,30,80,TFT_FONTH_3,ILI9341_BLACK);
   tft.setCursor(173, 30);  // 200-18*1.5
   tft.print(randp_vol,0);
@@ -135,7 +135,7 @@ void loop() {
       Serial.println(tf - t0 - (tm-tf));
     }
   }
-  else if ( cycleState == 1 ) { 
+  else if ( cycleState == 1 ) {
     if ( (curTime - cycleTime) > ( (respPeriod / (1.0 + pIE[0])) ) ){
       cycleState = 0;
       digitalWrite(pin_relay, LOW);
