@@ -6,6 +6,7 @@ from PyQt5.QtGui     import *
 import numpy as np
 import matplotlib.pyplot as plt
 import ambu_control
+import time
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -296,6 +297,7 @@ class ControlGui(QWidget):
         self.rTime = time.time()
 
     def setupPageThree(self):
+        self.timeoutabort=0
         top = QHBoxLayout()
         self.tab3.setLayout(top)
     
@@ -321,26 +323,23 @@ class ControlGui(QWidget):
         gb.setLayout(fl)
         
         #relay control
-        self.stateControl = QComboBox()
-        self.stateControl.addItem("Relay Force Off")
-        self.stateControl.addItem("Relay Force On")
-        self.stateControl.addItem("Relay Run Off")
-        self.stateControl.addItem("Relay Run On")
-        self.stateControl.setCurrentIndex(3)
+        self.stateControl2 = QComboBox()
+        self.stateControl2.addItem("Relay Force Off")
+        self.stateControl2.addItem("Relay Force On")
+        self.stateControl2.addItem("Relay Run Off")
+        self.stateControl2.addItem("Relay Run On")
+        #self.stateControl.setCurrentIndex(3)
         #self.updateState.connect(self.stateControl.setCurrentIndex)
         #self.stateControl.currentIndexChanged.connect(self.setState)
-        fl.addRow('State:',self.stateControl)
+        fl.addRow('State:',self.stateControl2)
         
 
         #} end controls gb
     
         #using self.plot makes it disappear from other page... this is placeholder for now
         
-        #temp_message = QLabel('plot intentionally blank for now')
-        #right.addWidget(temp_message)
-        
-        #self.plot2 = MplCanvas()
-        #right.addWidget(self.plot2)
+        self.plot2 = MplCanvas()
+        right.addWidget(self.plot2)
         
         
         # left
@@ -362,11 +361,38 @@ class ControlGui(QWidget):
 
         #Text field and control buttons for instructions
         
-        self.instructions = ["page 1","page 2", "page 3", "page 4"]
+        self.instructions = []
         
-        self.instructions[0] = "The ASV should be off and the paddle up. Please check that the patient circuit is connected and a test lung in place"
+        self.instructions.append("Click 'Next' to begin calibration procedure")
         
-        self.instructions[1] = "The ASV is now cycling. Check that the paddle pushes the AMBU bag down smoothly before the paddle comes up. Adjust the air supply valve as needed"
+        self.instructions.append("The ASV should be off and the paddle up. Please check that the patient circuit is connected and a test lung in place. Make sure the compressed air supply is connected and on.")
+        
+        self.instructions.append("Press the paddle down by hand. The pressure, flow, and volume plots should indicate the bag compression.")
+        
+        self.instructions.append("The ASV is now cycling. Check that the paddle pushes the AMBU bag down smoothly before the paddle comes up. Adjust the air supply valve as needed. Adjust the exhaust valve so paddle rises smoothly.")
+        
+        
+        self.instructions.append(" Leak Check. After the paddle goes down, observe the pressure plot. The pressure should decline slowly, taking at least 10 seconds to reach 0. Faster indicates a leak in the patient circuit.")
+        
+        self.instructions.append( " PIP Check: Check that the  PIP valve has marked cap indicating it has been modified for higher pressure. Set PIP for 40 cm H2O using calibration plot.")
+        
+        self.instructions.append(" Checking PIP.")
+
+        self.instructions.append(" Please set PIP to 30 cm H2O.")
+
+        self.instructions.append("Checking PIP")
+
+        self.instructions.append(" Please set PIP to 20 cm H2O.")
+            
+        self.instructions.append(" Checking PIP.")
+        
+        self.instructions.append(" Below are the data. The values should be consistent with the calibration plot.")
+            
+        self.instructions.append("Please set PIP valve back to 30 cm H2O. Please set PIPmax parameter to 25 cm H2O.")
+       
+        self.instructions.append(" The ASV is running. Check the pressure plot to see that the paddle cycle stops when PIPmax is reached.")
+        
+        self.instructions.append("Calibration cycle compelete.")
         
         self.instlength = len(self.instructions)
         
@@ -376,49 +402,87 @@ class ControlGui(QWidget):
         self.textfield.setReadOnly(True)
 
         self.textfield.setText(self.instructions[self.index])
+        
+        self.performAction()
 
         vbox.addWidget(self.textfield)
         gb.setLayout(vbox)
 
         buttongroup = QHBoxLayout()
 
-        prevbutton = QPushButton('Backward')
+        prevbutton = QPushButton('Previous')
         prevbutton.clicked.connect(self.prevPressed)
 
-        nextbutton = QPushButton('Forward')
+        nextbutton = QPushButton('Next')
         nextbutton.clicked.connect(self.nextPressed)
 
         repbutton = QPushButton('Repeat')
         #repbutton.clicked.connect(self.repPressed)
         
-        buttongroup.addWidget(nextbutton)
         buttongroup.addWidget(prevbutton)
         buttongroup.addWidget(repbutton)
+        buttongroup.addWidget(nextbutton)
 
         vbox.addLayout(buttongroup)
+    
+    def performAction(self):
+        try:
+            if self.index == 1 or self.index == 2 or self.index == 5 or self.index == 6  or self.index == 9 or self.index == 11 or self.index == 12:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle up")
+                self.stateControl.setCurrentIndex(0)
+    
+            if self.index == 3 or self.index == 13 or self.index == 14:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle cycling")
+                self.stateControl.setCurrentIndex(3)
+                      
+            if self.index == 4:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle up for 5 seconds, then Paddle down")
+                self.stateControl.setCurrentIndex(0)
+                sleeptime=5
+                sleeptimer=0
+                self.timeoutabort=0
+                while sleeptimer<sleeptime:
+                    time.sleep(0.1)
+                    QCoreApplication.processEvents()
+                    if self.timeoutabort>0:
+                        break
+                    sleeptimer=sleeptimer+0.1
+                if self.timeoutabort==0:
+                    self.stateControl.setCurrentIndex(1)
+                                       
+            if self.index == 6 or self.index == 8 or self.index == 10:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Running 10 cycles; calculating observed PIP from pressure plot.  Results will appear below.")
+    
+                                       
+        except Exception as e:
+            print(f"Got GUI value error {e}")
         
     @pyqtSlot()
     def nextPressed(self):
         try:
-        #self.textfield.setText("Yay, the text changed!")
+            self.timeoutabort=1
             if self.index < self.instlength-1:
                 self.index=self.index+1
                 self.textfield.setText(self.instructions[self.index])
+                self.performAction()
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
     def prevPressed(self):
         try:
+            self.timeoutabort=1
             if self.index > 0:
                 self.index=self.index-1
                 self.textfield.setText(self.instructions[self.index])
+                self.performAction()
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
     def repPressed(self):
         try:
+            self.timeoutabort=1
             self.textfield.setText("Filler text for repeat button")
         except Exception as e:
             print(f"Got GUI value error {e}")
