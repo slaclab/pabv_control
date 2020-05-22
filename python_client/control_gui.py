@@ -472,7 +472,9 @@ class ControlGui(QWidget):
 
             self.plot.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0)   # press
             self.plot.axes[0].plot(xa, ambu_data[5,:],color="red",linewidth=1.0)       # p-threshold high
-            self.plot.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0)       # p-threshold low
+            self.plot.axes[0].plot(xa, ambu_data[6,:],color="green",linewidth=1.0)     # p-threshold low
+            self.plot.axes[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0)       # peep min
+
             self.plot.axes[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0)     # flow
             self.plot.axes[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0)      # volume
             self.plot.axes[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0)       # volume threshold
