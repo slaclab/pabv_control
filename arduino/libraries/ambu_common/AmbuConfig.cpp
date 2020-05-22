@@ -47,7 +47,6 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
       if ( rxCount_ >= 190) rxCount_ = 0;
 
       c = Serial.read();
-      Serial.println(c);
       rxBuffer_[rxCount_++] = c;
       rxBuffer_[rxCount_] = '\0';
    }
@@ -57,8 +56,6 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
 
       // Parse string
       ret = sscanf(rxBuffer_,"%s %i %s", mark, &param, scanParam);
-      Serial.print(ret);
-      Serial.println(param);
 
       // Check marker
       if ( ret == 3 && strcmp(mark,"CONFIG") == 0 ) {
