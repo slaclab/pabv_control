@@ -7,7 +7,7 @@
 class SensorVolume : public GenericSensor {
 
       GenericSensor *flow_;
-      unsigned int lTime_;
+      uint32_t lTime_;
 
    public:
 
