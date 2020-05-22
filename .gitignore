@@ -1,5 +1,6 @@
 *~
 *.hex
+*.bin
 *.elf
 bin/
 data/
