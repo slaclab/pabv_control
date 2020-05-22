@@ -313,7 +313,7 @@ class ControlGui(QWidget):
         gb = QGroupBox('Relay Control (Disabled for now to avoid conflict)')
         right.addWidget(gb)
 
-        right.addSpacing(50)
+        right.addSpacing(20)
         
         #f1 defines layout for group box gb
         fl = QFormLayout()
@@ -345,17 +345,11 @@ class ControlGui(QWidget):
         # left
         gb = QGroupBox('Calibration Instructions')
         left.addWidget(gb)
-        left.addSpacing(300)
+        #left.addSpacing(300)
         gb.setMinimumWidth(450)
-        gb.setMaximumHeight(300)
+        gb.setMaximumHeight(500)
         
         
-        #f1 defines layout for group box gb
-        fl = QFormLayout()
-        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
-        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
-        fl.setLabelAlignment(Qt.AlignRight)
-        #gb.setLayout(fl)
         
         vbox = QVBoxLayout()
 
@@ -417,7 +411,7 @@ class ControlGui(QWidget):
         nextbutton.clicked.connect(self.nextPressed)
 
         repbutton = QPushButton('Repeat')
-        #repbutton.clicked.connect(self.repPressed)
+        repbutton.clicked.connect(self.repPressed)
         
         buttongroup.addWidget(prevbutton)
         buttongroup.addWidget(repbutton)
@@ -425,9 +419,25 @@ class ControlGui(QWidget):
 
         vbox.addLayout(buttongroup)
     
+    
+    
+        #add results groupbox
+        gb_results = QGroupBox('Results')
+        left.addWidget(gb_results)
+        #left.addSpacing(300)
+        gb_results.setMinimumWidth(450)
+        gb_results.setMinimumHeight(300)
+    
+        results_hbox = QVBoxLayout()
+        gb_results.setLayout(results_hbox)
+    
+        #results_hbox.addLayout(nameofthing)
+    
+    
+    
     def performAction(self):
         try:
-            if self.index == 1 or self.index == 2 or self.index == 5 or self.index == 6  or self.index == 9 or self.index == 11 or self.index == 12:
+            if self.index == 1 or self.index == 2 or self.index == 5 or self.index == 7  or self.index == 9 or self.index == 11 or self.index == 12:
                 self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle up")
                 self.stateControl.setCurrentIndex(0)
     
@@ -452,6 +462,18 @@ class ControlGui(QWidget):
                                        
             if self.index == 6 or self.index == 8 or self.index == 10:
                 self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Running 10 cycles; calculating observed PIP from pressure plot.  Results will appear below.")
+                self.stateControl.setCurrentIndex(3)
+                sleeptime=30
+                sleeptimer=0
+                self.timeoutabort=0
+                while sleeptimer<sleeptime:
+                    time.sleep(0.1)
+                    QCoreApplication.processEvents()
+                    if self.timeoutabort>0:
+                        break
+                    sleeptimer=sleeptimer+0.1
+                if self.timeoutabort==0:
+                    self.stateControl.setCurrentIndex(0)
     
                                        
         except Exception as e:
@@ -483,7 +505,8 @@ class ControlGui(QWidget):
     def repPressed(self):
         try:
             self.timeoutabort=1
-            self.textfield.setText("Filler text for repeat button")
+            self.textfield.setText(self.instructions[self.index])
+            self.performAction()
         except Exception as e:
             print(f"Got GUI value error {e}")
 
