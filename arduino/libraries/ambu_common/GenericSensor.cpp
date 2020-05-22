@@ -1,18 +1,15 @@
 #include "GenericSensor.h"
 #include <Arduino.h>
-GenericSensor::GenericSensor (unsigned char addr) {
-   addr_ = addr;
-   memset(data_,0,10);
-   raw_ = 0.0;
+GenericSensor::GenericSensor (uint8_t addr) {
+   addr_   = addr;
    scaled_ = 0.0;
 }
 
 void GenericSensor::setup() { }
 
-void GenericSensor::update(unsigned int ctime) { }
+void GenericSensor::update(uint32_t ctime) { }
 
-void GenericSensor::reset(unsigned int ctime) {
-   raw_ = 0.0;
+void GenericSensor::reset(uint32_t ctime) {
    scaled_ = 0.0;
 }
 

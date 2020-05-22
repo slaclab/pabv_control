@@ -1,14 +1,14 @@
 
-#include "RelayControl.h"
+#include "CycleControl.h"
 #include "AmbuConfig.h"
 #include "GenericSensor.h"
 
 #include <HardwareSerial.h>
 
-RelayControl::RelayControl (AmbuConfig *conf,
+CycleControl::CycleControl (AmbuConfig *conf,
                             GenericSensor *press,
                             GenericSensor *vol,
-                            unsigned int relayPin) {
+                            uint8_t relayPin) {
    conf_  = conf;
    press_ = press;
    vol_   = vol;
@@ -19,17 +19,24 @@ RelayControl::RelayControl (AmbuConfig *conf,
    cycleCount_ = 0;
 }
 
-void RelayControl::setup() {
+void CycleControl::setup() {
    stateTime_ = millis();
    cycleCount_ = 0;
 
    state_ = StateOff;
+   alarmState_ = 0;
 
    pinMode(relayPin_, OUTPUT);
    digitalWrite(relayPin_, RELAY_OFF);
+
+   currVmax_ = 0;
+   prevVmax_ = 0;
 }
 
-void RelayControl::update(unsigned int ctime) {
+void CycleControl::update(uint32_t ctime) {
+
+   // Keep track of vmax
+   if ( vol_->scaledValue() > currVmax_ ) currVmax_ = vol_->scaledValue();
 
    // Currently relay forced off
    if ( conf_->getRunState() == conf_->StateForceOff ) {
@@ -56,16 +63,18 @@ void RelayControl::update(unsigned int ctime) {
    else if ( state_ == StateOff ) {
 
       // Turn on volume threshold exceeded, and we have met min off period
-      if ( ( (press_->scaledValue() < conf_->getStartThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) ||
+      if ( ( (press_->scaledValue() < conf_->getVolInThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) ||
 
            // Off timer has been reached
-           ( (ctime - stateTime_) > (conf_->getPeriod() - conf_->getOnTime())) ) {
+           ( (ctime - stateTime_) > conf_->getOffTimeMillis()) ) {
 
          digitalWrite(relayPin_, RELAY_ON);
          stateTime_ = ctime;
          state_ = StateOn;
          vol_->reset(ctime);
          cycleCount_++;
+         prevVmax_ = currVmax_;
+         currVmax_ = 0;
       }
    }
 
@@ -73,14 +82,23 @@ void RelayControl::update(unsigned int ctime) {
    else {
 
       // Turn off pressure threshold exceeded
-      if ( ( press_->scaledValue() > conf_->getStopThold() ) ||
+      if ( press_->scaledValue() > conf_->getAdjPipMax() )  {
+         alarmState_ |= AlarmPipMax;
+         digitalWrite(relayPin_, RELAY_OFF);
+         stateTime_ = ctime;
+         state_ = StateOff;
+      }
 
-           // Turn off volume threshold exceeded
-           ( vol_->scaledValue() > conf_->getVolThold() ) ||
+      // Turn off volume threshold exceeded
+      if ( vol_->scaledValue() > conf_->getAdjVolMax() ) {
+            alarmState_ |= AlarmVolMax;
+            digitalWrite(relayPin_, RELAY_OFF);
+            stateTime_ = ctime;
+            state_ = StateOff;
+      }
 
-           // On timer has been reached
-           ((ctime - stateTime_) > conf_->getOnTime()) ) {
-
+      // On timer has been reached
+      if ((ctime - stateTime_) > conf_->getOnTimeMillis()) {
          digitalWrite(relayPin_, RELAY_OFF);
          stateTime_ = ctime;
          state_ = StateOff;
@@ -88,8 +106,17 @@ void RelayControl::update(unsigned int ctime) {
    }
 }
 
-void RelayControl::sendString() {
-   sprintf(txBuffer_," %u",cycleCount_);
-   Serial.write(txBuffer_);
+void CycleControl::sendString() {
+   Serial.print(" ");
+   Serial.print(cycleCount_);
+   Serial.print(" ");
+   Serial.print(alarmState_);
+   Serial.print(" ");
+   Serial.print(prevVmax_);
+}
+
+
+void CycleControl::clearAlarm() {
+   alarmState_ = 0;
 }
 
