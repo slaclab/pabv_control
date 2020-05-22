@@ -56,11 +56,8 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
    if ( rxCount_ > 7 && rxBuffer_[rxCount_-1] == '\n') {
 
       // Parse string
-      Serial.print("DEBUG  Got message\n");
       ret = sscanf(rxBuffer_,"%s %i %s", mark, &param, scanParam);
-      Serial.print("DEBUG  Return = ");
       Serial.print(ret);
-      Serial.print(" param = ");
       Serial.println(param);
 
       // Check marker
