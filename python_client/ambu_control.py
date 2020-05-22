@@ -275,7 +275,7 @@ class AmbuControl(object):
 
                         try:
                             self._dataCallBack(self._data, count, rate, stime, artime)
-                            print(f"Got status: {line.rstrip()}")
+                            #print(f"Got status: {line.rstrip()}")
                         except Exception as e:
                             traceback.print_exc()
                             print("Got callback error {}".format(e))
