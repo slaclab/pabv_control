@@ -184,7 +184,7 @@ class AmbuControl(object):
         self._runEn = True
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
-        self.requestConfig()
+        #self.requestConfig()
 
     def requestConfig(self):
         self._ser.write(f"CONFIG {self.ConfigKey['GetConfig']} 0\n".encode('UTF-8'))
