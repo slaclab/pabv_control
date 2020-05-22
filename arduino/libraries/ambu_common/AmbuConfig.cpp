@@ -32,9 +32,9 @@ void AmbuConfig::setup () {
 }
 
 void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
-   char mark[10];
-   char scanParam[10];
-   uint16_t param;
+   char mark[50];
+   char scanParam[50];
+   uint32_t param;
    bool sendConfig;
 
    int16_t ret;
@@ -44,9 +44,10 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
 
    // Get serial data
    while (Serial.available()) {
-      if ( rxCount_ == 49 ) rxCount_ = 0;
+      if ( rxCount_ >= 190) rxCount_ = 0;
 
       c = Serial.read();
+      Serial.println(c);
       rxBuffer_[rxCount_++] = c;
       rxBuffer_[rxCount_] = '\0';
    }
@@ -55,7 +56,12 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
    if ( rxCount_ > 7 && rxBuffer_[rxCount_-1] == '\n') {
 
       // Parse string
+      Serial.print("DEBUG  Got message\n");
       ret = sscanf(rxBuffer_,"%s %i %s", mark, &param, scanParam);
+      Serial.print("DEBUG  Return = ");
+      Serial.print(ret);
+      Serial.print(" param = ");
+      Serial.println(param);
 
       // Check marker
       if ( ret == 3 && strcmp(mark,"CONFIG") == 0 ) {

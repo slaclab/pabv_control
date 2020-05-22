@@ -32,6 +32,8 @@ class CycleControl {
       uint8_t  relayPin_;
       uint8_t  alarmState_;
       uint32_t cycleCount_;
+      double   currVmax_;
+      double   prevVmax_;
 
    public:
 

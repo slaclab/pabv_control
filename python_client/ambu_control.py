@@ -60,8 +60,7 @@ class AmbuControl(object):
         self._file.close()
         self._file = None
 
-    def _debugCallBack(self,data,count):
-        # BM: I dont understand the point of this
+    def _debugCallBack(self,data,count,*args):
         l = len(self._data.get_i())
         print(f"Got data. Len={l} count={count}")
 
@@ -154,7 +153,9 @@ class AmbuControl(object):
     @runState.setter
     def runState(self,value):
         self._runState = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetRunState']} {self._runState}\n".encode('UTF-8'))
+        msg = f"CONFIG {self.ConfigKey['SetRunState']} {self._runState}\n"
+        print(msg)
+        self._ser.write(msg.encode('UTF-8'))
 
     @property
     def alarmVolMax(self):
@@ -184,7 +185,7 @@ class AmbuControl(object):
         self._runEn = True
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
-        #self.requestConfig()
+        self.requestConfig()
 
     def requestConfig(self):
         self._ser.write(f"CONFIG {self.ConfigKey['GetConfig']} 0\n".encode('UTF-8'))
@@ -230,14 +231,15 @@ class AmbuControl(object):
                         self._gotConf = True
                         self._stateCallBack()
 
-                elif self._gotConf and data[0] == 'STATUS' and len(data) == 7:
+                elif self._gotConf and data[0] == 'STATUS' and len(data) == 8:
                     #print(f"Got status: {line.rstrip()}")
                     millis = int(data[1],0)
                     count  = int(data[2],0)
                     alarm  = int(data[3])
-                    press  = float(data[4])
-                    flow   = float(data[5])
-                    vol    = float(data[6])
+                    volMax = float(data[4])
+                    press  = float(data[5])
+                    flow   = float(data[6])
+                    vol    = float(data[7])
 
                     doAlarm = (alarm != self._alarm)
                     self._alarm = alarm
@@ -274,7 +276,7 @@ class AmbuControl(object):
                             rate=0.
 
                         try:
-                            self._dataCallBack(self._data, count, rate, stime, artime)
+                            self._dataCallBack(self._data, count, rate, stime, artime, volMax)
                             #print(f"Got status: {line.rstrip()}")
                         except Exception as e:
                             traceback.print_exc()
