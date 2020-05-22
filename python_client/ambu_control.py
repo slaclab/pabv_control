@@ -154,7 +154,6 @@ class AmbuControl(object):
     def runState(self,value):
         self._runState = value
         msg = f"CONFIG {self.ConfigKey['SetRunState']} {self._runState}\n"
-        print(msg)
         self._ser.write(msg.encode('UTF-8'))
 
     @property
