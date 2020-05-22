@@ -20,7 +20,8 @@ class CycleControl {
       // Alarm Bits
       static const uint8_t AlarmPipMax  = 1;
       static const uint8_t AlarmVolMax  = 2;
-      static const uint8_t AlarmPeepMin = 4;
+      static const uint8_t Alarm12V     = 3;
+      static const uint8_t Alarm9V      = 4;
 
       AmbuConfig * conf_;
       GenericSensor * press_;

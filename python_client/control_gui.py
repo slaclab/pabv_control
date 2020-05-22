@@ -62,17 +62,27 @@ class PowerSwitch(QPushButton):
 
 class ControlGui(QWidget):
 
-    updateCount   = pyqtSignal(str)
-    updateRate    = pyqtSignal(str)
-    updateTime    = pyqtSignal(str)
-    updateRR      = pyqtSignal(str)
-    updateIT      = pyqtSignal(str)
-    updateStart   = pyqtSignal(str)
-    updateStop    = pyqtSignal(str)
-    updateVol     = pyqtSignal(str)
-    updateState   = pyqtSignal(int)
-    updateVersion = pyqtSignal(str)
-    updateArTime  = pyqtSignal(str)
+    updateCount       = pyqtSignal(str)
+    updateRate        = pyqtSignal(str)
+    updateTime        = pyqtSignal(str)
+
+    updateRespRate    = pyqtSignal(str)
+    updateInhTime     = pyqtSignal(str)
+    updatePipMax      = pyqtSignal(str)
+    updatePipOffset   = pyqtSignal(str)
+    updateVolMax      = pyqtSignal(str)
+    updateVolOffset   = pyqtSignal(str)
+    updateVolInhThold = pyqtSignal(str)
+    updatePeepMin     = pyqtSignal(str)
+    updateState       = pyqtSignal(int)
+
+    updateVersion     = pyqtSignal(str)
+    updateArTime      = pyqtSignal(str)
+
+    updateAlarmPipMax = pyqtSignal(str)
+    updateAlarmVolMax = pyqtSignal(str)
+    updateAlarm12V    = pyqtSignal(str)
+    updateAlarm9V     = pyqtSignal(str)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -82,13 +92,13 @@ class ControlGui(QWidget):
 
         self.ambu = ambu
         self.ambu.setDataCallBack(self.dataUpdated)
-        self.ambu.setConfCallBack(self.confUpdated)
+        self.ambu.setStateCallBack(self.stateUpdated)
 
-        self.rateInput    = None
-        self.inTimeInput  = None
-        self.startThInput = None
-        self.stopThInput  = None
-        self.volThInput   = None
+        self.respRate     = None
+        self.inhTime      = None
+        self.volInhThold  = None
+        self.pipMax       = None
+        self.volMax       = None
         self.stateControl = None
         self.runControl   = None
 
@@ -129,34 +139,43 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
 
-        self.rateInput = QLineEdit()
-        self.rateInput.returnPressed.connect(self.setRate)
-        self.updateRR.connect(self.rateInput.setText)
-        fl.addRow('RR (Breaths/Min):',self.rateInput)
+        self.respRate = QLineEdit()
+        self.respRate.returnPressed.connect(self.setRespRate)
+        self.updateRespRate.connect(self.respRate.setText)
+        fl.addRow('RR (Breaths/Min):',self.respRate)
 
-        self.inTimeInput = QLineEdit()
-        self.inTimeInput.returnPressed.connect(self.setOnTime)
-        self.updateIT.connect(self.inTimeInput.setText)
-        fl.addRow('Inhalation Time (S):',self.inTimeInput)
+        self.inhTime = QLineEdit()
+        self.inhTime.returnPressed.connect(self.setInhTime)
+        self.updateInhTime.connect(self.inhTime.setText)
+        fl.addRow('Inhalation Time (S):',self.inhTime)
 
-        self.startThInput = QLineEdit()
-        self.startThInput.returnPressed.connect(self.setStartThold)
-        self.updateStart.connect(self.startThInput.setText)
-        fl.addRow('Vol Inh P (cmH20):',self.startThInput)
+        self.volInhThold = QLineEdit()
+        self.volInhThold.returnPressed.connect(self.setVolInhThold)
+        self.updateVolInhThold.connect(self.volInhThold.setText)
+        fl.addRow('Vol Inh P (cmH20):',self.volInhThold)
 
-        self.stopThInput = QLineEdit()
-        self.stopThInput.returnPressed.connect(self.setStopThold)
-        self.updateStop.connect(self.stopThInput.setText)
-        fl.addRow('Pip Max (cmH20):',self.stopThInput)
+        self.pipMax = QLineEdit()
+        self.pipMax.returnPressed.connect(self.setPipMax)
+        self.updatePipMax.connect(self.pipMax.setText)
+        fl.addRow('Pip Max (cmH20):',self.pipMax)
 
-        self.volThInput = QLineEdit()
-        self.volThInput.returnPressed.connect(self.setVolThold)
-        self.updateVol.connect(self.volThInput.setText)
-        fl.addRow('V Max (mL):',self.volThInput)
+        self.volMax = QLineEdit()
+        self.volMax.returnPressed.connect(self.setVolMax)
+        self.updateVolMax.connect(self.volMax.setText)
+        fl.addRow('V Max (mL):',self.volMax)
+
+        self.peepMin = QLineEdit()
+        self.peepMin.returnPressed.connect(self.setPeepMin)
+        self.updatePeepMin.connect(self.peepMin.setText)
+        fl.addRow('Peep Min (cmH20):',self.peepMin)
 
         self.runControl = PowerSwitch()
         self.runControl.clicked.connect(self.setRunState)
         fl.addRow('Run Enable:',self.runControl)
+
+        clrAlarm = QPushButton("Clear Alarm")
+        clrAlarm.pressed.connect(self.clearAlarm)
+        fl.addRow('',clrAlarm)
 
         # Status
         gb = QGroupBox('Status')
@@ -167,6 +186,30 @@ class ControlGui(QWidget):
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
+
+        alarmPipMax = QLineEdit()
+        alarmPipMax.setText("0")
+        alarmPipMax.setReadOnly(True)
+        self.updateAlarmPipMax.connect(alarmPipMax.setText)
+        fl.addRow('Pip Max Alarm:',alarmPipMax)
+
+        alarmVolMax = QLineEdit()
+        alarmVolMax.setText("0")
+        alarmVolMax.setReadOnly(True)
+        self.updateAlarmVolMax.connect(alarmVolMax.setText)
+        fl.addRow('Vol Max Alarm:',alarmVolMax)
+
+        alarm12V = QLineEdit()
+        alarm12V.setText("0")
+        alarm12V.setReadOnly(True)
+        self.updateAlarm12V.connect(alarm12V.setText)
+        fl.addRow('12V Alarm:',alarm12V)
+
+        alarm9V = QLineEdit()
+        alarm9V.setText("0")
+        alarm9V.setReadOnly(True)
+        self.updateAlarm9V.connect(alarm9V.setText)
+        fl.addRow('9V Alarm:',alarm9V)
 
         cycles = QLineEdit()
         cycles.setText("0")
@@ -185,7 +228,7 @@ class ControlGui(QWidget):
         timeSinceStart.setReadOnly(True)
         self.updateTime.connect(timeSinceStart.setText)
         fl.addRow('Seconds since start:',timeSinceStart)
-        
+
         arduinoUptime=QLineEdit()
         arduinoUptime.setText("0")
         arduinoUptime.setReadOnly(True)
@@ -196,14 +239,6 @@ class ControlGui(QWidget):
         guiVersion.setText(git_version)
         guiVersion.setReadOnly(True)
         fl.addRow('GUI version:',guiVersion)
-
-        hwVersion = QLineEdit()
-        hwVersion.setText("unknown")
-        hwVersion.setReadOnly(True)
-        self.updateVersion.connect(hwVersion.setText)
-        fl.addRow('Control SW version:',hwVersion)
-
-
 
     def setupPageTwo(self):
 
@@ -232,6 +267,16 @@ class ControlGui(QWidget):
         self.updateState.connect(self.stateControl.setCurrentIndex)
         self.stateControl.currentIndexChanged.connect(self.setState)
         fl.addRow('State:',self.stateControl)
+
+        self.pipOffset = QLineEdit()
+        self.pipOffset.returnPressed.connect(self.setPipOffset)
+        self.updatePipOffset.connect(self.pipOffset.setText)
+        fl.addRow('Pip Offset (cmH20):',self.pipOffset)
+
+        self.volOffset = QLineEdit()
+        self.volOffset.returnPressed.connect(self.setVolOffset)
+        self.updateVolOffset.connect(self.volOffset.setText)
+        fl.addRow('Vol Offset (mL):',self.volOffset)
 
         self.pMinValue = QLineEdit()
         self.pMinValue.setText("-5")
@@ -293,44 +338,65 @@ class ControlGui(QWidget):
         self.rTime = time.time()
 
     @pyqtSlot()
-    def setRate(self):
+    def setRespRate(self):
         try:
-            self.ambu.cycleRate = float(self.rateInput.text())
+            self.ambu.respRate = float(self.respRate.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
-    def setOnTime(self):
+    def setInhTime(self):
         try:
-            self.ambu.onTime = float(self.inTimeInput.text())
+            self.ambu.inhTime = float(self.inhTime.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
-    def setStartThold(self):
+    def setVolInhThold(self):
         try:
-            self.ambu.startThold = float(self.startThInput.text())
+            self.ambu.volInThold = float(self.volInhThold.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
-    def setStopThold(self):
+    def setPipMax(self):
         try:
-            self.ambu.stopThold = float(self.stopThInput.text())
+            self.ambu.pipMax = float(self.pipMax.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
-    def setVolThold(self):
+    def setPipOffset(self):
         try:
-            self.ambu.volThold = float(self.volThInput.text())
+            self.ambu.pipOffset = float(self.pipOffset.text())
+        except Exception as e:
+            print(f"Got GUI value error {e}")
+
+    @pyqtSlot()
+    def setPeepMin(self):
+        try:
+            self.ambu.peepMin = float(self.peepMin.text())
+        except Exception as e:
+            print(f"Got GUI value error {e}")
+
+    @pyqtSlot()
+    def setVolMax(self):
+        try:
+            self.ambu.volMax = float(self.volMax.text())
+        except Exception as e:
+            print(f"Got GUI value error {e}")
+
+    @pyqtSlot()
+    def setVolOffset(self):
+        try:
+            self.ambu.volOffset = float(self.volOffset.text())
         except Exception as e:
             print(f"Got GUI value error {e}")
 
     @pyqtSlot(int)
     def setState(self,value):
         try:
-            self.ambu.state = value
+            self.ambu.runState = value
 
             if value == 3:
                 self.runControl.setChecked(True)
@@ -348,6 +414,10 @@ class ControlGui(QWidget):
             self.stateControl.setCurrentIndex(2)
 
     @pyqtSlot()
+    def clearAlarm(self):
+        self.ambu.clearAlarm()
+
+    @pyqtSlot()
     def openPressed(self):
         f = self.logFile.text()
         self.ambu.openLog(f)
@@ -356,43 +426,42 @@ class ControlGui(QWidget):
     def closePressed(self):
         self.ambu.closeLog()
 
-    def confUpdated(self):
-        self.updateRR.emit("{:0.1f}".format(self.ambu.cycleRate))
-        self.updateIT.emit("{:0.1f}".format(self.ambu.onTime))
-        self.updateStart.emit("{:0.1f}".format(self.ambu.startThold))
-        self.updateStop.emit("{:0.1f}".format(self.ambu.stopThold))
-        self.updateVol.emit("{:0.1f}".format(self.ambu.volThold))
-        self.updateState.emit(self.ambu.state)
+    def stateUpdated(self):
+        self.updateRespRate.emit("{:0.1f}".format(self.ambu.respRate))
+        self.updateInhTime.emit("{:0.1f}".format(self.ambu.inhTime))
+        self.updateVolInhThold.emit("{:0.1f}".format(self.ambu.volInThold))
+        self.updatePipMax.emit("{:0.1f}".format(self.ambu.pipMax))
+        self.updateVolMax.emit("{:0.1f}".format(self.ambu.volMax))
+        self.updatePipOffset.emit("{:0.1f}".format(self.ambu.pipOffset))
+        self.updateVolOffset.emit("{:0.1f}".format(self.ambu.volOffset))
+        self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
+        self.updateState.emit(self.ambu.runState)
 
-        if self.ambu.state == 3:
+        if self.ambu.runState == 3:
             self.runControl.setChecked(True)
         else:
             self.runControl.setChecked(False)
 
-    def dataUpdated(self,inData,count,rate,stime,version,artime):
+        self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
+        self.updateAlarmVolMax.emit("{}".format(self.ambu.alarmVolMax))
+        self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
+        self.updateAlarm9V.emit("{}".format(self.ambu.alarm9V))
+
+        self.updateVersion.emit(str(self.ambu.version))
+
+    def dataUpdated(self,inData,count,rate,stime,artime):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
         self.updateTime.emit(f"{stime:.1f}")
-        self.updateVersion.emit(str(version))
         self.updateArTime.emit(f"{artime:.1f}")
 
         try:
             self.plot.axes[0].cla()
             self.plot.axes[1].cla()
             self.plot.axes[2].cla()
-            #xa = np.array(inData['time'])
             ambu_data = inData.get_data()
             xa = ambu_data[0,:]
 
-            # self._data.append([diffT, count, press, flow, vol, self.startThold, self.stopThold, self.volThold])
-            #self._data['time'].append(diffT)
-            #self._data['count'].append(count)
-            #self._data['press'].append(press)
-            #self._data['flow'].append(flow)
-            #self._data['vol'].append(vol)
-            #self._data['inhP'].append(self.startThold)
-            #self._data['maxP'].append(self.stopThold)
-            #self._data['maxV'].append(self.volThold)
             self.plot.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0)   # press
             self.plot.axes[0].plot(xa, ambu_data[5,:],color="red",linewidth=1.0)       # p-threshold high
             self.plot.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0)       # p-threshold low

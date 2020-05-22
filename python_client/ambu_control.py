@@ -12,32 +12,46 @@ import random
 
 class AmbuControl(object):
 
+    # State constants
+    RunStates = { 0:'StateForceOff', 1:'StateForceOn', 2:'StateRunOff', 3:'StateRunOn' }
+
+    # Config constants
+    ConfigKey = { 'GetConfig'    : 0, 'SetRespRate' : 1, 'SetInhTime'   : 2, 'SetPipMax'     : 3,
+                  'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolOffset' : 6, 'SetVolInThold' : 7,
+                  'SetPeepMin'   : 8, 'SetRunState' : 9, 'ClearAlarm'   : 10 }
+
+    # Alarm constants
+    AlarmKey = { 'AlarmPipMax'  : 1, 'AlarmVolMax' : 2, 'Alarm12V' : 3, 'Alarm9V' : 8 }
+
     def __init__(self, dev):
 
-        self._ser = serial.Serial(port=dev, baudrate=57600,
-                                  timeout=1.0)
-        self._runEn = True
-        self._dataCallBack = self._debugCallBack
-        self._confCallBack = None
+        self._ser = serial.Serial(port=dev, baudrate=57600, timeout=1.0)
+        self._runEn = False
+        self._dataCallBack  = self._debugCallBack
+        self._stateCallBack = None
         self._file = None
         self._last = None
-        self._period = 0
-        self._onTime = 0
-        self._startThold = 0
-        self._stopThold = 0
-        self._volThold = 0
-        self._state = 0
+        self._gotConf = False
+
+        self._respRate = 0
+        self._inhTime = 0
+        self._pipMax = 0
+        self._pipOffset = 0
+        self._volMax = 0
+        self._volOffset = 0
+        self._volInThold = 0
+        self._peepMin = 0
+        self._runState = 0
+
+        self._alarm = 0
+
         self._stime = 0
         self._smillis = -1
         self._refresh = time.time()
-        self.version='unknown'
+        self._version='unknown'
         self.artime = 0
 
-        #self._data = {'time': [], 'count':[], 'press': [], 'flow':[], 'vol':[], 'maxP': [], 'inhP': [], 'maxV': []}
-        self._data = npfifo(8,6000)
-
-        self._thread = threading.Thread(target=self._handleSerial)
-        self._thread.start()
+        self._data = npfifo(9,6000)
 
     def openLog(self, fName):
         self._file = open(fName,'a')
@@ -54,75 +68,126 @@ class AmbuControl(object):
     def setDataCallBack(self, callBack):
         self._dataCallBack = callBack
 
-    def setConfCallBack(self, callBack):
-        self._confCallBack = callBack
+    def setStateCallBack(self, callBack):
+        self._stateCallBack = callBack
 
     @property
-    def cycleRate(self):
-        try:
-            rate=(1.0 / ((self._period / 1000.0) / 60.0))
-        except:
-            rate=0.0
-        return rate
-
-    @cycleRate.setter
-    def cycleRate(self,value):
-        self._period = int((1.0 / float(value)) * 1000.0 * 60.0)
-        self._setConfig()
+    def version(self):
+        return self._version
 
     @property
-    def onTime(self):
-        return self._onTime / 1000.0
+    def respRate(self):
+        return self._respRate
 
-    @onTime.setter
-    def onTime(self,value):
-        self._onTime = int(value * 1000)
-        self._setConfig()
-
-    @property
-    def startThold(self):
-        return self._startThold
-
-    @startThold.setter
-    def startThold(self,value):
-        self._startThold = value
-        self._setConfig()
+    @respRate.setter
+    def respRate(self,value):
+        self._respRate = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetRespRate']} {self._respRate:.2f}\n".encode('UTF-8'))
 
     @property
-    def stopThold(self):
-        return self._stopThold
+    def inhTime(self):
+        return self._inhTime
 
-    @stopThold.setter
-    def stopThold(self,value):
-        self._stopThold = value
-        self._setConfig()
-
-    @property
-    def volThold(self):
-        return self._volThold
-
-    @volThold.setter
-    def volThold(self,value):
-        self._volThold = value
-        self._setConfig()
+    @inhTime.setter
+    def inhTime(self,value):
+        self._inhTime = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetInhTime']} {self._inhTime:.2f}\n".encode('UTF-8'))
 
     @property
-    def state(self):
-        return self._state
+    def pipMax(self):
+        return self._pipMax
 
-    @state.setter
-    def state(self,value):
-        self._state = value
-        self._setConfig()
+    @pipMax.setter
+    def pipMax(self,value):
+        self._pipMax = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetPipMax']} {self._pipMax:.2f}\n".encode('UTF-8'))
+
+    @property
+    def pipOffset(self):
+        return self._pipOffset
+
+    @pipOffset.setter
+    def pipOffset(self,value):
+        self._pipOffset = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetPipOffset']} {self._pipOffset:.2f}\n".encode('UTF-8'))
+
+    @property
+    def volMax(self):
+        return self._volMax
+
+    @volMax.setter
+    def volMax(self,value):
+        self._volMax = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetVolMax']} {self._volMax:.2f}\n".encode('UTF-8'))
+
+    @property
+    def volOffset(self):
+        return self._volOffset
+
+    @volOffset.setter
+    def volOffset(self,value):
+        self._volOffset = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetVolOffset']} {self._volOffset:.2f}\n".encode('UTF-8'))
+
+    @property
+    def volInThold(self):
+        return self._volInThold
+
+    @volInThold.setter
+    def volInThold(self,value):
+        self._volInThold = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetVolInThold']} {self._volInThold:.2f}\n".encode('UTF-8'))
+
+    @property
+    def peepMin(self):
+        return self._peepMin
+
+    @peepMin.setter
+    def peepMin(self,value):
+        self._peepMin = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetPeepMin']} {self._peepMin:.2f}\n".encode('UTF-8'))
+
+    @property
+    def runState(self):
+        return self._runState
+
+    @runState.setter
+    def runState(self,value):
+        self._runState = value
+        self._ser.write(f"CONFIG {self.ConfigKey['SetRunState']} {self._runState}\n".encode('UTF-8'))
+
+    @property
+    def alarmVolMax(self):
+        return ((self._alarm & self.AlarmKey['AlarmVolMax']) != 0)
+
+    @property
+    def alarmPipMax(self):
+        return ((self._alarm & self.AlarmKey['AlarmPipMax']) != 0)
+
+    @property
+    def alarm9V(self):
+        return ((self._alarm & self.AlarmKey['Alarm9V']) != 0)
+
+    @property
+    def alarm12V(self):
+        return ((self._alarm & self.AlarmKey['Alarm12V']) != 0)
+
+    def clearAlarm(self):
+        self._ser.write(f"CONFIG {self.ConfigKey['ClearAlarm']} 0\n".encode('UTF-8'))
+        self._alarm = 0
 
     def stop(self):
         self._runEn = False
         self._thread.join()
 
-    def _setConfig(self):
-        msg = f"CONFIG {self._period} {self._onTime} {self._startThold:.2f} {self._state} {self._stopThold:.2f} {self._volThold:.2f}\n"
-        self._ser.write(msg.encode('UTF-8'))
-        #print("Send Config: " + msg.rstrip())
+    def start(self):
+        self._runEn = True
+        self._thread = threading.Thread(target=self._handleSerial)
+        self._thread.start()
+        self.requestConfig()
+
+    def requestConfig(self):
+        self._ser.write(f"CONFIG {self.ConfigKey['GetConfig']} 0\n".encode('UTF-8'))
 
     def _handleSerial(self):
         counter=0
@@ -132,47 +197,51 @@ class AmbuControl(object):
                 line = raw.decode('UTF-8')
                 data = line.rstrip().split(' ')
                 ts = time.time()
+
                 if data[0] == 'DEBUG':
                     #print(f"Got debug: {line.rstrip()}")
                     pass
+
                 elif data[0] == 'VERSION' and len(data)==2:
-                    self.version=data[1]
-                elif data[0] == 'CONFIG':
+                    #print(f"Got version: {line.rstrip()}")
+                    self._version=data[1]
+
+                elif data[0] == 'CONFIG' and len(data) == 10:
                     #print(f"Got config: {line.rstrip()}")
                     doNotify = False
+                    nconf = {}
 
-                    period     = int(data[1],0)
-                    onTime     = int(data[2],0)
-                    startThold = float(data[3])
-                    state      = int(data[4],0)
-                    stopThold  = float(data[5])
-                    volThold   = float(data[6])
+                    nconf['_respRate']    = float(data[1])
+                    nconf['_inhTime']     = float(data[2])
+                    nconf['_pipMax']      = float(data[3])
+                    nconf['_pipOffset']   = float(data[4])
+                    nconf['_volMax']      = float(data[5])
+                    nconf['_volOffset']   = float(data[6])
+                    nconf['_volInThold']  = float(data[7])
+                    nconf['_peepMin']     = float(data[8])
+                    nconf['_runState']    = int(data[9],0)
 
-                    if (self._period != period) or \
-                       (self._onTime != onTime) or \
-                       (self._startThold != startThold) or \
-                       (self._stopThold != stopThold) or \
-                       (self._state != state) or \
-                       (self._volThold != volThold):
-                       doNotify = True
+                    for k,v in nconf.items():
+                        if v != getattr(self,k):
+                            doNotify = True
+                        setattr(self,k,v)
 
-                    self._period = period
-                    self._onTime = onTime
-                    self._startThold = startThold
-                    self._state = state
-                    self._stopThold = stopThold
-                    self._volThold = volThold
+                    if ((not self._gotConf) or doNotify) and self._stateCallBack is not None:
+                        self._gotConf = True
+                        self._stateCallBack()
 
-                    if doNotify and self._confCallBack is not None:
-                        self._confCallBack()
-
-                elif data[0] == 'STATUS' and len(data) == 6:
+                elif self._gotConf and data[0] == 'STATUS' and len(data) == 7:
                     #print(f"Got status: {line.rstrip()}")
                     millis = int(data[1],0)
                     count  = int(data[2],0)
-                    press  = float(data[3])
-                    flow   = float(data[4])
-                    vol    = float(data[5])
+                    alarm  = int(data[3])
+                    press  = float(data[4])
+                    flow   = float(data[5])
+                    vol    = float(data[6])
+
+                    doAlarm = (alarm != self._alarm)
+                    self._alarm = alarm
+
                     if self._smillis == -1:
                         self._smillis=millis
                         self._stime = time.time()
@@ -180,9 +249,10 @@ class AmbuControl(object):
                     else:
                         diffT=(millis-self._smillis)/1000.
                         if(diffT<=0): continue
+
                     stime  = ts - self._stime
                     artime= millis/1000.
-                    self._data.append([diffT, count, press, flow, vol, self.startThold, self.stopThold, self.volThold])
+                    self._data.append([diffT, count, press, flow, vol, self.volInThold, self.pipMax, self.volMax, self.peepMin])
 
                     if self._file is not None:
                         self._file.write(f'{ts}, {count}, {press}, {flow}, {vol}\n')
@@ -204,10 +274,15 @@ class AmbuControl(object):
                             rate=0.
 
                         try:
-                            self._dataCallBack(self._data, count, rate, stime, self.version, artime)
+                            self._dataCallBack(self._data, count, rate, stime, artime)
+                            print(f"Got status: {line.rstrip()}")
                         except Exception as e:
                             traceback.print_exc()
                             print("Got callback error {}".format(e))
+
+                    if doAlarm and self._stateCallBack is not None:
+                        self._stateCallBack()
+
 
             except Exception as e:
                 traceback.print_exc()
@@ -250,3 +325,4 @@ class npfifo:
 
     def get_nextout_time(self):
         return self.A[0, -(self.get_n()-1)]
+

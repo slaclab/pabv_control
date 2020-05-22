@@ -24,6 +24,7 @@ void CycleControl::setup() {
    cycleCount_ = 0;
 
    state_ = StateOff;
+   alarmState_ = 0;
 
    pinMode(relayPin_, OUTPUT);
    digitalWrite(relayPin_, RELAY_OFF);
@@ -98,10 +99,10 @@ void CycleControl::update(uint32_t ctime) {
 }
 
 void CycleControl::sendString() {
-   Serial.write(" ");
-   Serial.write(cycleCount_);
-   Serial.write(" ");
-   Serial.write(alarmState_);
+   Serial.print(" ");
+   Serial.print(cycleCount_);
+   Serial.print(" ");
+   Serial.print(alarmState_);
 }
 
 

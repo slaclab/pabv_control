@@ -123,6 +123,9 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
    if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;
 
    if (sendConfig) {
+       Serial.print("VERSION ");
+       Serial.print(git_version);
+       Serial.print("\n");
        Serial.print("CONFIG ");
        Serial.print(conf_.respRate,4);
        Serial.print(" ");
@@ -142,9 +145,6 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
        Serial.print(" ");
        Serial.print(conf_.runState);
        Serial.print(" ");
-       Serial.print("\n");
-       Serial.print("VERSION ");
-       Serial.print(git_version);
        Serial.print("\n");
        confTime_ = ctime;
    }
