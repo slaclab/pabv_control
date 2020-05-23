@@ -349,56 +349,64 @@ class ControlGui(QWidget):
         try:
             self.ambu.respRate = float(self.respRate.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setInhTime(self):
         try:
             self.ambu.inhTime = float(self.inhTime.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setVolInhThold(self):
         try:
             self.ambu.volInThold = float(self.volInhThold.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setPipMax(self):
         try:
             self.ambu.pipMax = float(self.pipMax.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setPipOffset(self):
         try:
             self.ambu.pipOffset = float(self.pipOffset.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setPeepMin(self):
         try:
             self.ambu.peepMin = float(self.peepMin.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setVolMax(self):
         try:
             self.ambu.volMax = float(self.volMax.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setVolOffset(self):
         try:
             self.ambu.volOffset = float(self.volOffset.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot(int)
     def setState(self,value):
@@ -411,7 +419,8 @@ class ControlGui(QWidget):
                 self.runControl.setChecked(False)
 
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot(bool)
     def setRunState(self,st):
@@ -498,4 +507,6 @@ class ControlGui(QWidget):
 
             self.plot.draw()
         except Exception as e:
-            print(f"Got plotting exception {e}")
+            #print(f"Got plotting exception {e}")
+            pass
+
