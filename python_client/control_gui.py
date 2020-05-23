@@ -78,7 +78,8 @@ class ControlGui(QWidget):
 
     updateVersion     = pyqtSignal(str)
     updateArTime      = pyqtSignal(str)
-    updateVoLMax      = pyqtSignal(str)
+    updateCycVoLMax   = pyqtSignal(str)
+    updateCycPipMax   = pyqtSignal(str)
 
     updateAlarmPipMax = pyqtSignal(str)
     updateAlarmVolMax = pyqtSignal(str)
@@ -224,11 +225,17 @@ class ControlGui(QWidget):
         self.updateRate.connect(sampRate.setText)
         fl.addRow('Sample Rate:',sampRate)
 
-        volMax = QLineEdit()
-        volMax.setText("0")
-        volMax.setReadOnly(True)
-        self.updateVolMax.connect(volMax.setText)
-        fl.addRow('Max Volume (mL):',volMax)
+        cycVolMax = QLineEdit()
+        cycVolMax.setText("0")
+        cycVolMax.setReadOnly(True)
+        self.updateCycVolMax.connect(cycVolMax.setText)
+        fl.addRow('Max Volume (mL):',cycVolMax)
+
+        cycPipMax = QLineEdit()
+        cycPipMax.setText("0")
+        cycPipMax.setReadOnly(True)
+        self.updateCycPipMax.connect(cycPipMax.setText)
+        fl.addRow('Max Pip (cmH20):',cycPipMax)
 
         timeSinceStart=QLineEdit()
         timeSinceStart.setText("0")
@@ -465,12 +472,13 @@ class ControlGui(QWidget):
 
         self.updateVersion.emit(str(self.ambu.version))
 
-    def dataUpdated(self,inData,count,rate,stime,artime,volMax):
+    def dataUpdated(self,inData,count,rate,stime,artime,volMax,pipMax):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
         self.updateTime.emit(f"{stime:.1f}")
         self.updateArTime.emit(f"{artime:.1f}")
-        self.updateVolMax.emit(f"{volMax:.1f}")
+        self.updateCycVolMax.emit(f"{volMax:.1f}")
+        self.updateCycPipMax.emit(f"{pipMax:.1f}")
 
         try:
             self.plot.axes[0].cla()

@@ -31,12 +31,17 @@ void CycleControl::setup() {
 
    currVmax_ = 0;
    prevVmax_ = 0;
+   currPmax_ = 0;
+   prevPmax_ = 0;
 }
 
 void CycleControl::update(uint32_t ctime) {
 
    // Keep track of vmax
    if ( vol_->scaledValue() > currVmax_ ) currVmax_ = vol_->scaledValue();
+
+   // Keep track of pmax
+   if ( press_->scaledValue() > currPmax_ ) currPmax_ = press_->scaledValue();
 
    // Currently relay forced off
    if ( conf_->getRunState() == conf_->StateForceOff ) {
@@ -75,6 +80,8 @@ void CycleControl::update(uint32_t ctime) {
          cycleCount_++;
          prevVmax_ = currVmax_;
          currVmax_ = 0;
+         prevPmax_ = currPmax_;
+         currPmax_ = 0;
       }
    }
 
@@ -113,6 +120,8 @@ void CycleControl::sendString() {
    Serial.print(alarmState_);
    Serial.print(" ");
    Serial.print(prevVmax_);
+   Serial.print(" ");
+   Serial.print(prevPmax_);
 }
 
 
