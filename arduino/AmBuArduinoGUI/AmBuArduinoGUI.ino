@@ -21,52 +21,7 @@ static constexpr uint8_t nParam = 7;
 float parms[nParam]={0.f};
 
 GUI_value gui_value[nParam]={
-  {.name="RR",
-   .id=pRR,
-   .val=&parms[pRR],
-   .dval=0.0f, 
-   .dx=0.5f, 
-   .min=10.0f,
-   .max= 30.0f,
-   .fmt="%02.1f"
-  },
-  {.name="TH",
-   .id=pTH,
-   .val=&parms[pTH],
-   .dval=5.0f,       
-   .dx=0.1f, 
-   .min=-10.0f, 
-   .max=0.0f,
-   .fmt="%02.1f"
-  },
-  {.name="IH",
-   .id=pIH,
-   .val=&parms[pIH],
-   .dval=1.0f,
-   .dx= 0.1f, 
-   .min=  0.5f, 
-   .max = 2.5f,
-   .fmt="%02.1f"
-  },
-  {.name="Vol",
-   .id=pVol,
-   .val=&parms[pVol],
-   .dval=500.0f, 
-   .dx=10.0f, 
-   .min=200.0f, 
-   .max=1000.0f,
-   .fmt="%02.1f"
-  },
-  {.name="Vmax",
-   .id=pVmax,
-   .val=&parms[pVmax],
-   .dval=600.0f, 
-   .dx=10.0f, 
-   .min=250.0f, 
-   .max=1000.0f,
-   .fmt="%02.1f"
-  },
-  {.name="PEEP",
+  {.name="PEEP",  //Last cycle min pressure
    .id=pPEEP,
    .val=&parms[pPEEP],
    .dval=60.0f, 
@@ -75,7 +30,7 @@ GUI_value gui_value[nParam]={
    .max=100.0f,
     .fmt="%02.1f"
   },
-  {.name="PEP",
+  {.name="PIP",  //last cycle max pressure
    .id=pPIP,
    .val=&parms[pPIP],
    .dval=0.0f, 
@@ -83,6 +38,69 @@ GUI_value gui_value[nParam]={
    .min=0.0f, 
    .max=30.0f,
    .fmt="%02.1f"
+  },
+  {.name="Vol",  // last cycle volume mL
+   .id=pVol,
+   .val=&parms[pVol],
+   .dval=500.0f, 
+   .dx=10.0f, 
+   .min=200.0f, 
+   .max=1000.0f,
+   .fmt="%03d"
+  },
+  {.name="RR",    // resp rate in Hz
+   .id=pRR,
+   .val=&parms[pRR],
+   .dval=0.0f, 
+   .dx=0.5f, 
+   .min=10.0f,
+   .max= 30.0f,
+   .fmt="%02.1f"
+  },
+  {.name="IH",    //Inhale time in seconds
+   .id=pIH,
+   .val=&parms[pIH],
+   .dval=1.0f,
+   .dx= 0.1f, 
+   .min=  0.5f, 
+   .max = 2.5f,
+   .fmt="%02.1f"
+  },
+  {.name="TH",    //threhsold cmH2O
+   .id=pTH,
+   .val=&parms[pTH],
+   .dval=5.0f,       
+   .dx=0.1f, 
+   .min=-10.0f, 
+   .max=0.0f,
+   .fmt="%02.1f"
+  },
+  {.name="Vmax",  //Threshold where volume will stop IH short
+   .id=pVmax,
+   .val=&parms[pVmax],
+   .dval=600.0f, 
+   .dx=10.0f, 
+   .min=250.0f, 
+   .max=1000.0f,
+   .fmt="%03d"
+  },
+  {.name="Pmax",  //Threshold where pressure will stop IH short
+   .id=pVmax,
+   .val=&parms[pVmax],
+   .dval=600.0f, 
+   .dx=10.0f, 
+   .min=250.0f, 
+   .max=1000.0f,
+   .fmt="%03d"
+  }
+  {.name="Pmin",  //Threshold where pressure will alarm
+   .id=pVmax,
+   .val=&parms[pVmax],
+   .dval=600.0f, 
+   .dx=10.0f, 
+   .min=250.0f, 
+   .max=1000.0f,
+   .fmt="%03d"
   }
 };
 
