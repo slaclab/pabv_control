@@ -35,7 +35,7 @@ class cli:
         process = subprocess.run(cmd,
                                    stdout=sys.stdout, stderr=sys.stderr)
 
-    def install(self,platform=["arduino:samd","arduino:avr"]):
+    def install(self,platform=["arduino:samd","arduino:avr","arduino:mbed"]):
         destdir="bin"
         datadir="data"
         try:

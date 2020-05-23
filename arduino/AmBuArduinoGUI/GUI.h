@@ -13,61 +13,74 @@ values.
 #include "Adafruit_ILI9341.h"
 #include <stdint.h>
 
-using GUI_pos  = struct {
+using GUI_elem  = struct  _GUI_elem {
   
-  uint16_t xpos;
-  uint16_t ypos;
-  uint16_t fsize;
+  uint16_t x;
+  uint16_t y;
   uint16_t color;
+  uint16_t fsize;
   uint16_t valsize;
-}
+};
 
-using GUI_value = struct  {
-  float *value;
-  float default;
+using GUI_value = struct  _GUI_value  {
+  const char *name;
+  uint8_t id;
+  float *val;
+  float dval;
+  float dx;
   float min;
   float max;
-  float dx;
-  const char *valfmt;
-}
+  const char *fmt;
+};
 
-using  GUI_item = struct {
+using  GUI_item = struct  _GUI_item   {
   GUI_value val;
-  GUI_pos pos;
-  const char* label;
+  GUI_elem elem;
   float old_value;
-}
+};
+
+using GUI_text = struct  _GUI_text   {
+  const char* val;
+  GUI_elem elem;
+  char old[64];
+};
 
 
 class GUI
 {
     public:
-        GUI(bool invert=false);
+  GUI(bool invert=false);	
+        void addItem(const GUI_value &gui_val,const GUI_elem &elem);
+	void addText(const char *value,const GUI_elem &elem) {}
+	void setup();
+	void update();
+
+	static constexpr uint32_t SPI_DEFAULT_FREQ=20000000;
+	static constexpr uint8_t TFT_DC=10;
+	static constexpr uint8_t TFT_CS= -1;
+	static constexpr uint8_t TFT_MOSI= 11;
+	static constexpr uint8_t TFT_MISO= -1;
+	static constexpr uint8_t TFT_RST= 9;
+	static constexpr uint8_t TFT_CLK= 13;	
+	static constexpr uint8_t TFT_FONTH_1 = 8*1;
+	static constexpr uint8_t TFT_FONTH_2=  8*2;
+	static constexpr uint8_t TFT_FONTH_3 = 8*3;
+	static constexpr uint8_t TFT_FONTW = 6;
+	static constexpr uint8_t TFT_WIDTH= 240;
+	static constexpr uint8_t TFT_HEIGHT= 320 ; 
+	static constexpr uint8_t TFT_THIRD = TFT_WIDTH/3;
+	static constexpr uint8_t TFT_HALF = TFT_WIDTH/2;
 	
-        void addItem(const char* label,const GUI_pos &pos ,const &GUI_value);
-      
-	constexpr uint32_t SPI_DEFAULT_FREQ=20000000;
-	constexpr uint8_t TFT_DC=9;
-	constexpr uint8_t TFT_CS= -1;
-	constexpr uint8_t TFT_MOSI= 11;
-	constexpr uint8_t TFT_MISO= -1;
-	constexpr uint8_t TFT_RST= 10;
-	constexpr uint8_t TFT_CLK= 13;	
-	constexpr uint8_t TFT_FONTH_1 = 8*1;
-	constexpr uint8_t TFT_FONTH_2=  8*2;
-	constexpr uint8_t TFT_FONTH_3 = 8*3;
-	constexpr uint8_t TFT_FONTW = 6;
-	constexpr uint8_t TFT_WIDTH= 240;
-	constexpr uint8_t TFT_HEIGHT= 320 ; 
-	constexpr uint8_t TFT_THIRD = TFT_WIDTH/3;
-	constexpr uint8_t TFT_HALF = TFT_WIDTH/2;
 	
  private:
+	static constexpr uint8_t nItems=16;
+
+	uint16_t _color(uint16_t color);
 	// hold 16 GUI items
-	GUI_item items[16];
-	uint16_t count;
+	GUI_item items[nItems];
 	static Adafruit_ILI9341 tft;
 	bool invert_colors;
+	GUI_text labels;
 };
 
 #endif
