@@ -78,7 +78,7 @@ class ControlGui(QWidget):
 
     updateVersion     = pyqtSignal(str)
     updateArTime      = pyqtSignal(str)
-    updateCycVoLMax   = pyqtSignal(str)
+    updateCycVolMax   = pyqtSignal(str)
     updateCycPipMax   = pyqtSignal(str)
 
     updateAlarmPipMax = pyqtSignal(str)
