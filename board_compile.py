@@ -2,9 +2,10 @@
 from  arduino_tools import cli
 c=cli()
 targets=[
-"ambu_control_flow_cal",
-"ambu_control_superior",
-"nano_control_superior"
+#"ambu_control_flow_cal",
+#"ambu_control_superior",
+"nano_control_superior",
+"AmBuArduinoGUI"
 ]
 
 for t in targets:
