@@ -7,14 +7,16 @@
 
 #define SPI_DEFAULT_FREQ 20000000
 
-static constexpr uint8_t pRR=0;
-static constexpr uint8_t pTH= 1;
-static constexpr uint8_t pIH=  2;
-static constexpr uint8_t pVol= 3;
-static constexpr uint8_t pVmax= 4;
-static constexpr uint8_t pPEEP= 5;
-static constexpr uint8_t pPIP= 6;
-static constexpr uint8_t nParam = 7;
+static constexpr uint8_t pPEEP=0;
+static constexpr uint8_t pPIP= 1;
+static constexpr uint8_t pVol=  2;
+static constexpr uint8_t pRR= 3;
+static constexpr uint8_t pIH= 4;
+static constexpr uint8_t pTH= 5;
+static constexpr uint8_t pVmax= 6;
+static constexpr uint8_t pPmax= 7;
+static constexpr uint8_t pPmin= 8;
+static constexpr uint8_t nParam = 9;
 
 
 //gets data from master
@@ -92,7 +94,7 @@ GUI_value gui_value[nParam]={
    .min=250.0f, 
    .max=1000.0f,
    .fmt="%03d"
-  }
+  },
   {.name="Pmin",  //Threshold where pressure will alarm
    .id=pVmax,
    .val=&parms[pVmax],

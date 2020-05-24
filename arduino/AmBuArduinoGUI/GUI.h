@@ -1,7 +1,11 @@
 /*
 I create a gui parmameter than knows where it is on the screen
 and can be sent parameters to update it as well as adjust the 
-values.
+values. 
+Values can be updated, but labels are assumed to never change.
+Value updates include the number shown and the color to highlight
+the ability to change the set value.
+
 */
 
 #ifndef _GUI_H_
@@ -14,12 +18,12 @@ values.
 #include <stdint.h>
 
 using GUI_elem  = struct  _GUI_elem {
-  
   uint16_t x;
   uint16_t y;
-  uint16_t color;
-  uint16_t fsize;
-  uint16_t valsize;
+  uint16_t label_color;
+  uint16_t label_fsize;
+  uint16_t value_fsize;
+  uint16_t value_color;
 };
 
 using GUI_value = struct  _GUI_value  {
@@ -70,6 +74,7 @@ class GUI
 	static constexpr uint8_t TFT_HEIGHT= 320 ; 
 	static constexpr uint8_t TFT_THIRD = TFT_WIDTH/3;
 	static constexpr uint8_t TFT_HALF = TFT_WIDTH/2;
+	static constexpr uint8_t LABEL_VALUE_YSPACE = 7;
 	
 	
  private:

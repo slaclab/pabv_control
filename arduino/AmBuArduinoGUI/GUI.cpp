@@ -4,11 +4,14 @@
 
 GUI::GUI(bool invert) : invert_colors(invert)
 {
-  for(unsigned int i=0;i<nItems;i++) items[i]={0,0,nullptr,0.0f,0.0f,0.0f,0.0f,0};
+  for(unsigned int i=0;i<nItems;i++) {
+    // This just sets empty GUI items up to nItems=16
+    items[i]={0,0,nullptr,0.0f,0.0f,0.0f,0.0f,0};
+  }
 }
 
 void GUI::addItem(const GUI_value &gui_value,const GUI_elem &elem) {
-  items[gui_value.id]={gui_value,elem};
+  items[gui_value.id]={gui_value, elem};
 }
 
 void GUI::update() {
@@ -17,18 +20,24 @@ void GUI::update() {
     const GUI_item &item=items[i];
     const GUI_value &val=item.val;
     const GUI_elem &elem=item.elem;
-    
-    if(val.name==0) continue;  
-    tft.fillRect(0,30,80,TFT_FONTH_3,ILI9341_BLACK); // optimize me
-    tft.setTextSize(elem.valsize);
-    tft.setTextColor(_color(elem.color));
-    uint16_t y=elem.y+elem.fsize*2*6*1.5;
-    uint16_t x=elem.x;
+    if(val.name==0) {
+      // Skip empty GUI items
+      continue;  
+    }
+    // Get the new value formatted into valstr
+    snprintf(valstr,sizeof(valstr),val.fmt,*val.val);
+    // Need to clear the area behind the changing value:
+    uint16_t y = elem.y + elem.label_fsize*8 + LABEL_VALUE_YSPACE;
+    uint16_t x = elem.x;
+    uint16_t w = strlen(valstr)*6*elem.value_fsize;
+    // Clear the screen behind the value
+    tft.fillRect(x, y, w, elem.value_fsize*8, _color(ILI9341_BLACK));
+    tft.setTextSize(elem.value_fsize);
+    tft.setTextColor(_color(elem.value_color));
     tft.setCursor(x,y);
     snprintf(valstr,sizeof(valstr),val.fmt,*val.val);
     tft.print(valstr);
   }
-
 }
 
 void GUI::setup(){
@@ -38,17 +47,17 @@ void GUI::setup(){
   tft=Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
   SPI.begin();
   tft.begin();
-  tft.setRotation(0);
+  tft.setRotation(3);
   tft.fillScreen(_color(ILI9341_BLACK));
   for(unsigned i=0;i<nItems;i++) {
     const GUI_item &item=items[i];
     const GUI_value &val=item.val;
     const GUI_elem &elem=item.elem;
     if(val.name==0) continue;
-    tft.setTextSize(2);
-    tft.setTextColor(_color(elem.color));
+    tft.setTextSize(elem.label_fsize);
+    tft.setTextColor(_color(elem.label_color));
     tft.setCursor(elem.x,elem.y);
-    tft.print(val.name);    
+    tft.print(val.name);
   }
 }
 
