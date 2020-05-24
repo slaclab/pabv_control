@@ -24,6 +24,8 @@ using GUI_elem  = struct  _GUI_elem {
   uint16_t label_fsize;
   uint16_t value_color;
   uint16_t value_fsize;
+  bool highlight;
+  bool selected;
 };
 
 using GUI_value = struct  _GUI_value  {
@@ -58,6 +60,10 @@ class GUI
 	void addText(const char *value,const GUI_elem &elem) {}
 	void setup();
 	void update();
+	void change_value(uint8_t p ,int8_t c);
+	// hold 16 GUI items
+	static constexpr uint8_t nItems=16;
+	GUI_item items[nItems];
 
 	static constexpr uint32_t SPI_DEFAULT_FREQ=20000000;
 	static constexpr uint8_t TFT_DC=10;
@@ -78,11 +84,10 @@ class GUI
 	
 	
  private:
-	static constexpr uint8_t nItems=16;
+
 
 	uint16_t _color(uint16_t color);
-	// hold 16 GUI items
-	GUI_item items[nItems];
+	
 	static Adafruit_ILI9341 tft;
 	bool invert_colors;
 	GUI_text labels;

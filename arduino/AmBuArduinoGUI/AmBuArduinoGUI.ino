@@ -11,14 +11,7 @@
 #define pin_switch 7
 #define pin_encoderA 6
 #define pin_encoderB 5
-uint8_t encoderVal = 0;
-uint8_t encoderPushes = 0;
-uint8_t gui_selected_p = 0;
-const long encTDeadTime = 50; //millis
-const long encPDeadTime = 500; //millis
-long encLastPTime = 0; //millis
-long encLastTTime = 0; //millis
-bool stateA, stateB;
+
 
 static constexpr uint8_t pPEEP=0;
 static constexpr uint8_t pPIP= 1;
@@ -131,18 +124,18 @@ void setup_display(){
   x =  hspace;
   gui.addItem( gui_value[pPEEP], {x,y,ILI9341_PINK,2,ILI9341_PINK,3});   
   x =  GUI::TFT_THIRD + hspace;
-  gui.addItem(gui_value[pPIP],  {x,y,ILI9341_GREEN,2,ILI9341_GREEN,3});   
+  gui.addItem(gui_value[pPIP],  {x,y,ILI9341_GREENYELLOW,2,ILI9341_GREENYELLOW,3});   
   x =  2*GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pVol], {x,y,ILI9341_CYAN,2,ILI9341_CYAN,3});   
   y =  1 + 8*2 + 8*3 + 7 + vspace;
-  x = hspace;
+  x = 3*hspace;
   gui.addItem( gui_value[pRR], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
   x =  GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pIH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
   x =  2*GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pTH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
   y =  1 + 8*2 + 8*3 + 7 + 14 + 8*2 + 7 + 8*2 + vspace;
-  x = hspace;
+  x = 3*hspace;
   gui.addItem( gui_value[pVmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
   x =  GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pPmin], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
@@ -151,9 +144,11 @@ void setup_display(){
   gui.setup();
 }
 
+
 void update_display() {
   gui.update();
 }
+
 
 double get_rand(double rmin, double rmax){
   unsigned long rand_long = random();
@@ -179,38 +174,88 @@ uint32_t measTime = 0;
 unsigned counter=0;
 char s[64];
 uint32_t curTime;
+int8_t encDT;   // -1 for CCW, +1 for CW
+bool encPushed;
+int8_t guiParamSelected;  //-1 for non and 0... for n
+//int8_t encVal = 0;
+//int8_t encPushes = 0;
+int8_t guiSelectedP = -1;
+const uint32_t guiTimeout = 10000; //millis till gui times out
+uint32_t guiPrevActionTime;
+const uint32_t encTDeadTime = 50; //millis
+const uint32_t encPDeadTime = 500; //millis
+long encLastPTime = 0; //millis
+long encLastTTime = 0; //millis
+bool stateA, stateB;
+
 
 void loop() {
   curTime = millis();
   // Check encoder for update
+  encDT = 0;
+  encPushed = false;
   if ( digitalRead(pin_switch) == false ) {
     if (curTime - encLastPTime > encPDeadTime) {
       encLastPTime = curTime;
       Serial.println("Switched");
-      encoderPushes++;
-      gui_selected_p = encoderPushes % 3;
+      encPushed = true;
       //update_display();
     }
   }
   stateA = digitalRead(pin_encoderA);
   stateB = digitalRead(pin_encoderB);
-  if (stateA == false) {
+  if (stateA == false  &&  encPushed == false) {
+    // Here deal with turned encoder input.
+    // I dont want to process pushes and turns at the same
+    // time since they shouldn't happen in the same cycle. 
     if (curTime - encLastTTime > encTDeadTime) {
       encLastTTime = curTime;
-      //prevStateA = stateA;
-      if (stateB != stateA) {
-        encoderVal++;
-        //update_parameter(1);
+      if (stateB != stateA) encDT--;
+      else encDT++;
+    Serial.println(encDT);
+    }
+  }
+  if (encDT!=0 || encPushed) {
+    // update the timeout timer since some input was recieved
+    guiPrevActionTime == curTime;
+  }
+  // Take actions based on encoder input
+  if ( encDT != 0) { // The encoder was turned in either direction
+    if (guiParamSelected == -1) {
+      // no parameter is selected so select the first
+      guiParamSelected = 3;
+      gui.items[guiParamSelected].elem.highlight = true;
+      
+    }
+    else {
+      // A parameter is activly selected or highlighted
+      if (gui.items[guiParamSelected].elem.highlight) {
+        // the parameter is only highlighted
+        // turning encoder should move to the next parameter
+        guiParamSelected += encDT;
+        // guiParamSelected should always be in the range 3+[0-5]
+        if (guiParamSelected == 2)       guiParamSelected = 8;
+        else if (guiParamSelected == 9)  guiParamSelected = 2;  
       }
-      else {
-        encoderVal--;
-        //update_parameter(-1);
+      else if (gui.items[guiParamSelected].elem.selected) {
+        // the parmater is selected and the value should be changed
+        gui.change_value(guiParamSelected, encDT);
       }
-    Serial.println(encoderVal);
+    }
+  }
+  else if (encPushed) {
+    if (gui.items[guiParamSelected].elem.highlight) {
+      gui.items[guiParamSelected].elem.highlight = false;
+      gui.items[guiParamSelected].elem.selected = true;
+    }
+    else if (gui.items[guiParamSelected].elem.selected) 
+    {
+      gui.items[guiParamSelected].elem.highlight = true;
+      gui.items[guiParamSelected].elem.selected = false;
     }
   }
   
-  // Update cycle parameters:
+  // Update sensor parameters at nominal 1Hz
   if ( (curTime - measTime) > 1000 ){
     // Take a sudo measurments of PEEP/PIP/Vol
     for(unsigned i=0;i<3;i++) {

@@ -14,6 +14,16 @@ void GUI::addItem(const GUI_value &gui_value,const GUI_elem &elem) {
   items[gui_value.id]={gui_value, elem};
 }
 
+void GUI::change_value(uint8_t p, int8_t c) {
+  // I expect dir to be +1 or -1 and we will adjust the value to the
+  // next value by step dval
+  const GUI_item &item = items[p];
+  const GUI_value &val = item.val;
+  *val.val += c*val.dx;
+  if (*val.val > val.max) *val.val=val.max;
+  if (*val.val < val.min) *val.val=val.min;
+}
+
 void GUI::update() {
   for(unsigned i=0;i<nItems;i++) {
     const GUI_item &item=items[i];
@@ -33,10 +43,19 @@ void GUI::update() {
     // Clear the screen behind the value
     tft.fillRect(x, y, w, elem.value_fsize*8, _color(ILI9341_BLACK));
     tft.setTextSize(elem.value_fsize);
-    tft.setTextColor(_color(elem.value_color));
+    if ( elem.selected ) {
+      tft.setTextColor(_color(ILI9341_GREEN));
+    }
+    else tft.setTextColor(_color(elem.value_color));
     tft.setCursor(x,y);
     snprintf(valstr,sizeof(valstr),val.fmt,*val.val);
     tft.print(valstr);
+    if ( elem.highlight ) {
+      tft.setTextColor(_color(ILI9341_GREEN));
+      tft.setCursor(elem.x,elem.y); //location of label
+      tft.print(val.name);
+    }
+    
     /*
     Serial.print(val.name);
     Serial.print("(");
@@ -75,6 +94,7 @@ void GUI::setup(){
     tft.setTextColor(_color(elem.label_color));
     tft.setCursor(elem.x,elem.y);
     tft.print(val.name);    
+    *val.val = val.dval;
     /*
     Serial.print(val.name);
     Serial.print("(");
