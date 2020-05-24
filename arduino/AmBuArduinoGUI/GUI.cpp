@@ -15,7 +15,6 @@ void GUI::addItem(const GUI_value &gui_value,const GUI_elem &elem) {
 }
 
 void GUI::update() {
-  char valstr[64];
   for(unsigned i=0;i<nItems;i++) {
     const GUI_item &item=items[i];
     const GUI_value &val=item.val;
@@ -24,6 +23,7 @@ void GUI::update() {
       // Skip empty GUI items
       continue;  
     }
+    char valstr[64];
     // Get the new value formatted into valstr
     snprintf(valstr,sizeof(valstr),val.fmt,*val.val);
     // Need to clear the area behind the changing value:
@@ -37,6 +37,16 @@ void GUI::update() {
     tft.setCursor(x,y);
     snprintf(valstr,sizeof(valstr),val.fmt,*val.val);
     tft.print(valstr);
+    Serial.print(val.name);
+    Serial.print("(");
+    Serial.print(x);
+    Serial.print(".");
+    Serial.print(y);
+    Serial.print("=");
+    Serial.print(valstr);
+    Serial.print(")");
+    Serial.print("\n");
+    delay(1000);
   }
 }
 
@@ -47,7 +57,7 @@ void GUI::setup(){
   tft=Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
   SPI.begin();
   tft.begin();
-  tft.setRotation(3);
+  tft.setRotation(2);
   tft.fillScreen(_color(ILI9341_BLACK));
   for(unsigned i=0;i<nItems;i++) {
     const GUI_item &item=items[i];

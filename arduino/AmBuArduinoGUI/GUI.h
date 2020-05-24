@@ -52,9 +52,9 @@ using GUI_text = struct  _GUI_text   {
 
 class GUI
 {
-    public:
-  GUI(bool invert=false);	
-        void addItem(const GUI_value &gui_val,const GUI_elem &elem);
+ public:
+  	GUI(bool invert=false);	
+	void addItem(const GUI_value &gui_val,const GUI_elem &elem);
 	void addText(const char *value,const GUI_elem &elem) {}
 	void setup();
 	void update();
