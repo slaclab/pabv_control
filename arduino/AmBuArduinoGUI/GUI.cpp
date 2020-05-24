@@ -37,11 +37,16 @@ void GUI::update() {
     tft.setCursor(x,y);
     snprintf(valstr,sizeof(valstr),val.fmt,*val.val);
     tft.print(valstr);
+    //
     Serial.print(val.name);
     Serial.print("(");
     Serial.print(x);
     Serial.print(".");
     Serial.print(y);
+    Serial.print("x");
+    Serial.print(w);
+    Serial.print(".");
+    Serial.print(elem.value_fsize*8);
     Serial.print("=");
     Serial.print(valstr);
     Serial.print(")");
@@ -59,6 +64,8 @@ void GUI::setup(){
   tft.begin();
   tft.setRotation(2);
   tft.fillScreen(_color(ILI9341_BLACK));
+  delay(5000);
+  Serial.println("Start....");
   for(unsigned i=0;i<nItems;i++) {
     const GUI_item &item=items[i];
     const GUI_value &val=item.val;
@@ -67,7 +74,16 @@ void GUI::setup(){
     tft.setTextSize(elem.label_fsize);
     tft.setTextColor(_color(elem.label_color));
     tft.setCursor(elem.x,elem.y);
-    tft.print(val.name);
+    tft.print(val.name);    
+    //
+    Serial.print(val.name);
+    Serial.print("(");
+    Serial.print(elem.x);
+    Serial.print(".");
+    Serial.print(elem.y);
+    Serial.print(")");
+    Serial.print("\n");
+    delay(1000);
   }
 }
 
@@ -76,7 +92,8 @@ uint16_t GUI::_color(uint16_t color) {
   if(color==ILI9341_MAROON) return ILI9341_PINK ;
   if(color==ILI9341_DARKGREEN) return ILI9341_GREEN;    
   if(color==ILI9341_DARKCYAN) return ILI9341_CYAN;
-  if(color==ILI9341_WHITE) return ILI9341_BLACK;  
+  if(color==ILI9341_WHITE) return ILI9341_BLACK;
+  // Dont we need the opposite functions?
   return color;
 
 }

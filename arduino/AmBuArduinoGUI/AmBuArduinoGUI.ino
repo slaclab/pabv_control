@@ -30,7 +30,7 @@ GUI_value gui_value[nParam]={
    .dx=2.0f, 
    .min=0.0f, 
    .max=30.0f,
-    .fmt="%02.1f"
+   .fmt="%02.1f"
   },
   {.name="PIP",  //last cycle max pressure
    .id=pPIP,
@@ -111,27 +111,29 @@ GUI gui;
 
 void setup_display(){
   //uint8_t fs = 2;
-  uint16_t  y = 1; 
+  uint16_t  y = 10; 
   uint16_t x;
-  x =  3*1.5*6;
-  gui.addItem( gui_value[pPEEP], {x,y,ILI9341_BLUE,2,ILI9341_BLUE,3});   
-  x =  GUI::TFT_THIRD + 3*1.5*6;
+  uint16_t vspace = 25;
+  uint16_t hspace = 5;
+  x =  hspace;
+  gui.addItem( gui_value[pPEEP], {x,y,ILI9341_PINK,2,ILI9341_PINK,3});   
+  x =  GUI::TFT_THIRD + hspace;
   gui.addItem(gui_value[pPIP],  {x,y,ILI9341_GREEN,2,ILI9341_GREEN,3});   
-  x =  2*GUI::TFT_THIRD + 3*1.5*6;
+  x =  2*GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pVol], {x,y,ILI9341_CYAN,2,ILI9341_CYAN,3});   
-  y =  1 + 8*2 + 8*3 + 7 + 14;
-  x = 3*1.5*6;
+  y =  1 + 8*2 + 8*3 + 7 + vspace;
+  x = hspace;
   gui.addItem( gui_value[pRR], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
-  x =  GUI::TFT_THIRD + 3*1.5*6;
+  x =  GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pIH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
-  x =  2*GUI::TFT_THIRD + 3*1.5*6;
+  x =  2*GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pTH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
-  y =  1 + 8*2 + 8*3 + 7 + 14 + 8*2 + 7 + 8*2 + 14;
-  x = 3*1.5*6;
+  y =  1 + 8*2 + 8*3 + 7 + 14 + 8*2 + 7 + 8*2 + vspace;
+  x = hspace;
   gui.addItem( gui_value[pVmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
-  x =  GUI::TFT_THIRD + 3*1.5*6;
+  x =  GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pPmin], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
-  x =  2*GUI::TFT_THIRD + 3*1.5*6;
+  x =  2*GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pPmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
   gui.setup();
 }

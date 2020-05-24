@@ -22,8 +22,8 @@ using GUI_elem  = struct  _GUI_elem {
   uint16_t y;
   uint16_t label_color;
   uint16_t label_fsize;
-  uint16_t value_fsize;
   uint16_t value_color;
+  uint16_t value_fsize;
 };
 
 using GUI_value = struct  _GUI_value  {
