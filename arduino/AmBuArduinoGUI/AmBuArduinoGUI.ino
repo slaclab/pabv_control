@@ -81,7 +81,7 @@ GUI_value gui_value[nParam]={
    .dx=0.1f, 
    .min=-10.0f, 
    .max=30.0f,
-   .fmt="%02.1f"
+   .fmt="% 2.1f"
   },
   {.name="Vmax",  //Threshold where volume will stop IH short
    .id=pVmax,
@@ -99,7 +99,7 @@ GUI_value gui_value[nParam]={
    .dx=2.0f, 
    .min=-10.0f, 
    .max=30.0f,
-   .fmt="%02.1f"
+   .fmt="% 2.1f"
   },
   {.name="Pmax",  //Threshold where pressure will alarm
    .id=pPmax,
@@ -122,25 +122,25 @@ void setup_display(){
   uint16_t vspace = 25;
   uint16_t hspace = 5;
   x =  hspace;
-  gui.addItem( gui_value[pPEEP], {x,y,ILI9341_PINK,2,ILI9341_PINK,3});   
+  gui.addItem( gui_value[pPEEP], {x,y,ILI9341_PINK,3,ILI9341_PINK,3,false,false});   
   x =  GUI::TFT_THIRD + hspace;
-  gui.addItem(gui_value[pPIP],  {x,y,ILI9341_GREENYELLOW,2,ILI9341_GREENYELLOW,3});   
+  gui.addItem(gui_value[pPIP],  {x,y,ILI9341_GREENYELLOW,3,ILI9341_GREENYELLOW,3,false,false});   
   x =  2*GUI::TFT_THIRD + hspace;
-  gui.addItem( gui_value[pVol], {x,y,ILI9341_CYAN,2,ILI9341_CYAN,3});   
-  y =  1 + 8*2 + 8*3 + 7 + vspace;
+  gui.addItem( gui_value[pVol], {x,y,ILI9341_CYAN,3,ILI9341_CYAN,3,false,false});   
+  y =  1 + 8*3 + 8*3 + 7 + vspace;
   x = 3*hspace;
-  gui.addItem( gui_value[pRR], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
+  gui.addItem( gui_value[pRR], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   x =  GUI::TFT_THIRD + hspace;
-  gui.addItem( gui_value[pIH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
+  gui.addItem( gui_value[pIH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   x =  2*GUI::TFT_THIRD + hspace;
-  gui.addItem( gui_value[pTH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
+  gui.addItem( gui_value[pTH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   y =  1 + 8*2 + 8*3 + 7 + 14 + 8*2 + 7 + 8*2 + vspace;
   x = 3*hspace;
-  gui.addItem( gui_value[pVmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
+  gui.addItem( gui_value[pVmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   x =  GUI::TFT_THIRD + hspace;
-  gui.addItem( gui_value[pPmin], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
+  gui.addItem( gui_value[pPmin], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   x =  2*GUI::TFT_THIRD + hspace;
-  gui.addItem( gui_value[pPmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2});
+  gui.addItem( gui_value[pPmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   gui.setup();
 }
 
@@ -174,15 +174,15 @@ uint32_t measTime = 0;
 unsigned counter=0;
 char s[64];
 uint32_t curTime;
-int8_t encDT;   // -1 for CCW, +1 for CW
+int8_t encDT;   // -1 for CCW, +1 for CW turn
 bool encPushed;
-int8_t guiParamSelected;  //-1 for non and 0... for n
+int8_t guiParamSelected = -1;  //-1 for non and 0... for n
 //int8_t encVal = 0;
 //int8_t encPushes = 0;
-int8_t guiSelectedP = -1;
+//int8_t guiSelectedP = -1;
 const uint32_t guiTimeout = 10000; //millis till gui times out
 uint32_t guiPrevActionTime;
-const uint32_t encTDeadTime = 50; //millis
+const uint32_t encTDeadTime = 100; //millis
 const uint32_t encPDeadTime = 500; //millis
 long encLastPTime = 0; //millis
 long encLastTTime = 0; //millis
@@ -191,7 +191,9 @@ bool stateA, stateB;
 
 void loop() {
   curTime = millis();
+  //
   // Check encoder for update
+  //
   encDT = 0;
   encPushed = false;
   if ( digitalRead(pin_switch) == false ) {
@@ -199,7 +201,6 @@ void loop() {
       encLastPTime = curTime;
       Serial.println("Switched");
       encPushed = true;
-      //update_display();
     }
   }
   stateA = digitalRead(pin_encoderA);
@@ -210,39 +211,54 @@ void loop() {
     // time since they shouldn't happen in the same cycle. 
     if (curTime - encLastTTime > encTDeadTime) {
       encLastTTime = curTime;
-      if (stateB != stateA) encDT--;
-      else encDT++;
+      if (stateB != stateA) encDT = -1;
+      else encDT = 1;
     Serial.println(encDT);
     }
   }
   if (encDT!=0 || encPushed) {
     // update the timeout timer since some input was recieved
-    guiPrevActionTime == curTime;
+    guiPrevActionTime = curTime;
   }
+  //
   // Take actions based on encoder input
-  if ( encDT != 0) { // The encoder was turned in either direction
+  //
+  if ( encDT != 0 ) { 
+    Serial.print("guiParamSelected = ");
+    Serial.println(guiParamSelected);
+    // The encoder was turned in either direction
     if (guiParamSelected == -1) {
-      // no parameter is selected so select the first
+      // if no parameter is selected, select the first
       guiParamSelected = 3;
       gui.items[guiParamSelected].elem.highlight = true;
-      
     }
     else {
       // A parameter is activly selected or highlighted
-      if (gui.items[guiParamSelected].elem.highlight) {
+      Serial.println(gui.items[guiParamSelected].elem.highlight);
+      if (gui.items[guiParamSelected].elem.highlight == true) {
         // the parameter is only highlighted
         // turning encoder should move to the next parameter
-        guiParamSelected += encDT;
+        // change the previous selected one to unhighlighted:
+        gui.items[guiParamSelected].elem.highlight = false;
+        guiParamSelected = guiParamSelected + encDT;
+        Serial.println("Increasing incoder");
         // guiParamSelected should always be in the range 3+[0-5]
-        if (guiParamSelected == 2)       guiParamSelected = 8;
-        else if (guiParamSelected == 9)  guiParamSelected = 2;  
+        if (guiParamSelected < 3)       guiParamSelected = 8;
+        else if (guiParamSelected > 8)  guiParamSelected = 3; 
+        // hightlight the new parameter 
+        gui.items[guiParamSelected].elem.highlight = true; 
       }
       else if (gui.items[guiParamSelected].elem.selected) {
+        Serial.println("Change selected parameter block");
         // the parmater is selected and the value should be changed
         gui.change_value(guiParamSelected, encDT);
       }
     }
+    Serial.print("Changed guiParamSelected = ");
+    Serial.println(guiParamSelected);
+    update_display();    
   }
+
   else if (encPushed) {
     if (gui.items[guiParamSelected].elem.highlight) {
       gui.items[guiParamSelected].elem.highlight = false;
@@ -253,6 +269,15 @@ void loop() {
       gui.items[guiParamSelected].elem.highlight = true;
       gui.items[guiParamSelected].elem.selected = false;
     }
+    update_display();
+  }
+
+  // If timeout time is exceeded w/out input reset the selected/highlighted
+  if ( curTime - guiPrevActionTime > guiTimeout && guiParamSelected > 0 ) {
+    gui.items[guiParamSelected].elem.selected = false;
+    gui.items[guiParamSelected].elem.highlight = false;
+    Serial.println("GUI Timeout RESET");
+    guiParamSelected = -1;
   }
   
   // Update sensor parameters at nominal 1Hz

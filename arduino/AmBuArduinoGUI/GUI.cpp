@@ -44,6 +44,7 @@ void GUI::update() {
     tft.fillRect(x, y, w, elem.value_fsize*8, _color(ILI9341_BLACK));
     tft.setTextSize(elem.value_fsize);
     if ( elem.selected ) {
+      // if the item is selected for changing make it green
       tft.setTextColor(_color(ILI9341_GREEN));
     }
     else tft.setTextColor(_color(elem.value_color));
@@ -51,7 +52,13 @@ void GUI::update() {
     snprintf(valstr,sizeof(valstr),val.fmt,*val.val);
     tft.print(valstr);
     if ( elem.highlight ) {
+      // if the item is highlighted make the label green.
       tft.setTextColor(_color(ILI9341_GREEN));
+      tft.setCursor(elem.x,elem.y); //location of label
+      tft.print(val.name);
+    }
+    else {
+      tft.setTextColor(_color(elem.label_color));
       tft.setCursor(elem.x,elem.y); //location of label
       tft.print(val.name);
     }
