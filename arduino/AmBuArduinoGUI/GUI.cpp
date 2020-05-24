@@ -37,7 +37,7 @@ void GUI::update() {
     tft.setCursor(x,y);
     snprintf(valstr,sizeof(valstr),val.fmt,*val.val);
     tft.print(valstr);
-    //
+    /*
     Serial.print(val.name);
     Serial.print("(");
     Serial.print(x);
@@ -52,6 +52,7 @@ void GUI::update() {
     Serial.print(")");
     Serial.print("\n");
     delay(1000);
+    */
   }
 }
 
@@ -64,7 +65,6 @@ void GUI::setup(){
   tft.begin();
   tft.setRotation(2);
   tft.fillScreen(_color(ILI9341_BLACK));
-  delay(5000);
   Serial.println("Start....");
   for(unsigned i=0;i<nItems;i++) {
     const GUI_item &item=items[i];
@@ -75,7 +75,7 @@ void GUI::setup(){
     tft.setTextColor(_color(elem.label_color));
     tft.setCursor(elem.x,elem.y);
     tft.print(val.name);    
-    //
+    /*
     Serial.print(val.name);
     Serial.print("(");
     Serial.print(elem.x);
@@ -84,6 +84,7 @@ void GUI::setup(){
     Serial.print(")");
     Serial.print("\n");
     delay(1000);
+    */
   }
 }
 

@@ -7,6 +7,19 @@
 
 #define SPI_DEFAULT_FREQ 20000000
 
+//encoder
+#define pin_switch 7
+#define pin_encoderA 6
+#define pin_encoderB 5
+uint8_t encoderVal = 0;
+uint8_t encoderPushes = 0;
+uint8_t gui_selected_p = 0;
+const long encTDeadTime = 50; //millis
+const long encPDeadTime = 500; //millis
+long encLastPTime = 0; //millis
+long encLastTTime = 0; //millis
+bool stateA, stateB;
+
 static constexpr uint8_t pPEEP=0;
 static constexpr uint8_t pPIP= 1;
 static constexpr uint8_t pVol=  2;
@@ -152,6 +165,11 @@ void setup() {
   asm(".global _printf_float");
   Serial.begin(9600);
   Serial.print("startup\n");
+  // Encoder Pins
+  pinMode (pin_encoderA, INPUT_PULLUP);
+  pinMode (pin_encoderB, INPUT_PULLUP);
+  pinMode (pin_switch, INPUT_PULLUP);
+
   setup_display();
   delay(2000);
 }
@@ -164,9 +182,38 @@ uint32_t curTime;
 
 void loop() {
   curTime = millis();
-  if ( (curTime - measTime) > 3000 ){
-    // Take a sudo measurments
-    for(unsigned i=0;i<nParam;i++) {
+  // Check encoder for update
+  if ( digitalRead(pin_switch) == false ) {
+    if (curTime - encLastPTime > encPDeadTime) {
+      encLastPTime = curTime;
+      Serial.println("Switched");
+      encoderPushes++;
+      gui_selected_p = encoderPushes % 3;
+      //update_display();
+    }
+  }
+  stateA = digitalRead(pin_encoderA);
+  stateB = digitalRead(pin_encoderB);
+  if (stateA == false) {
+    if (curTime - encLastTTime > encTDeadTime) {
+      encLastTTime = curTime;
+      //prevStateA = stateA;
+      if (stateB != stateA) {
+        encoderVal++;
+        //update_parameter(1);
+      }
+      else {
+        encoderVal--;
+        //update_parameter(-1);
+      }
+    Serial.println(encoderVal);
+    }
+  }
+  
+  // Update cycle parameters:
+  if ( (curTime - measTime) > 1000 ){
+    // Take a sudo measurments of PEEP/PIP/Vol
+    for(unsigned i=0;i<3;i++) {
       parms[i]=get_rand(gui_value[i].min, gui_value[i].max);
     }       
     Serial.print("Measure ");
@@ -179,4 +226,5 @@ void loop() {
     update_display();
     measTime=curTime;
   }
+  
 }
