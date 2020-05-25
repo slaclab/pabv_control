@@ -78,7 +78,8 @@ class ControlGui(QWidget):
 
     updateVersion     = pyqtSignal(str)
     updateArTime      = pyqtSignal(str)
-    updateVoLMax      = pyqtSignal(str)
+    updateCycVolMax   = pyqtSignal(str)
+    updateCycPipMax   = pyqtSignal(str)
 
     updateAlarmPipMax = pyqtSignal(str)
     updateAlarmVolMax = pyqtSignal(str)
@@ -224,11 +225,17 @@ class ControlGui(QWidget):
         self.updateRate.connect(sampRate.setText)
         fl.addRow('Sample Rate:',sampRate)
 
-        volMax = QLineEdit()
-        volMax.setText("0")
-        volMax.setReadOnly(True)
-        self.updateVolMax.connect(volMax.setText)
-        fl.addRow('Max Volume (mL):',volMax)
+        cycVolMax = QLineEdit()
+        cycVolMax.setText("0")
+        cycVolMax.setReadOnly(True)
+        self.updateCycVolMax.connect(cycVolMax.setText)
+        fl.addRow('Max Volume (mL):',cycVolMax)
+
+        cycPipMax = QLineEdit()
+        cycPipMax.setText("0")
+        cycPipMax.setReadOnly(True)
+        self.updateCycPipMax.connect(cycPipMax.setText)
+        fl.addRow('Max Pip (cmH20):',cycPipMax)
 
         timeSinceStart=QLineEdit()
         timeSinceStart.setText("0")
@@ -349,56 +356,64 @@ class ControlGui(QWidget):
         try:
             self.ambu.respRate = float(self.respRate.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setInhTime(self):
         try:
             self.ambu.inhTime = float(self.inhTime.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setVolInhThold(self):
         try:
             self.ambu.volInThold = float(self.volInhThold.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setPipMax(self):
         try:
             self.ambu.pipMax = float(self.pipMax.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setPipOffset(self):
         try:
             self.ambu.pipOffset = float(self.pipOffset.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setPeepMin(self):
         try:
             self.ambu.peepMin = float(self.peepMin.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setVolMax(self):
         try:
             self.ambu.volMax = float(self.volMax.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot()
     def setVolOffset(self):
         try:
             self.ambu.volOffset = float(self.volOffset.text())
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot(int)
     def setState(self,value):
@@ -411,7 +426,8 @@ class ControlGui(QWidget):
                 self.runControl.setChecked(False)
 
         except Exception as e:
-            print(f"Got GUI value error {e}")
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot(bool)
     def setRunState(self,st):
@@ -456,12 +472,13 @@ class ControlGui(QWidget):
 
         self.updateVersion.emit(str(self.ambu.version))
 
-    def dataUpdated(self,inData,count,rate,stime,artime,volMax):
+    def dataUpdated(self,inData,count,rate,stime,artime,volMax,pipMax):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
         self.updateTime.emit(f"{stime:.1f}")
         self.updateArTime.emit(f"{artime:.1f}")
-        self.updateVolMax.emit(f"{volMax:.1f}")
+        self.updateCycVolMax.emit(f"{volMax:.1f}")
+        self.updateCycPipMax.emit(f"{pipMax:.1f}")
 
         try:
             self.plot.axes[0].cla()
@@ -498,4 +515,6 @@ class ControlGui(QWidget):
 
             self.plot.draw()
         except Exception as e:
-            print(f"Got plotting exception {e}")
+            #print(f"Got plotting exception {e}")
+            pass
+

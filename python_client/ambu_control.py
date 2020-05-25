@@ -230,15 +230,16 @@ class AmbuControl(object):
                         self._gotConf = True
                         self._stateCallBack()
 
-                elif self._gotConf and data[0] == 'STATUS' and len(data) == 8:
+                elif self._gotConf and data[0] == 'STATUS' and len(data) == 9:
                     #print(f"Got status: {line.rstrip()}")
                     millis = int(data[1],0)
                     count  = int(data[2],0)
                     alarm  = int(data[3])
                     volMax = float(data[4])
-                    press  = float(data[5])
-                    flow   = float(data[6])
-                    vol    = float(data[7])
+                    pipMax = float(data[5])
+                    press  = float(data[6])
+                    flow   = float(data[7])
+                    vol    = float(data[8])
 
                     doAlarm = (alarm != self._alarm)
                     self._alarm = alarm
@@ -269,25 +270,27 @@ class AmbuControl(object):
                             else:
                                 rate=0
                         except Exception as e:
-                            traceback.print_exc()
-                            print(f"Got error {e}")
-                            print(num_points, self._data.A[0,-1], self._data.get_nextout_time())
+                            #traceback.print_exc()
+                            #print(f"Got error {e}")
+                            #print(num_points, self._data.A[0,-1], self._data.get_nextout_time())
                             rate=0.
 
                         try:
-                            self._dataCallBack(self._data, count, rate, stime, artime, volMax)
+                            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
                             #print(f"Got status: {line.rstrip()}")
                         except Exception as e:
-                            traceback.print_exc()
-                            print("Got callback error {}".format(e))
+                            #traceback.print_exc()
+                            #print("Got callback error {}".format(e))
+                            pass
 
                     if doAlarm and self._stateCallBack is not None:
                         self._stateCallBack()
 
 
             except Exception as e:
-                traceback.print_exc()
-                print(f"Got handleSerial error {e}")
+                #traceback.print_exc()
+                #print(f"Got handleSerial error {e}")
+                pass
 
 
 class npfifo:
@@ -299,7 +302,8 @@ class npfifo:
 
     def append(self, X):
         if len(X) != self._n:
-            print("Wrong number of parameters to append, ignoring")
+            #print("Wrong number of parameters to append, ignoring")
+            return
         # Move the data in the buffer
         self.A[:,:-1] = self.A[:,1:]
         # add the data to the end of the buffer

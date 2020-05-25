@@ -34,6 +34,8 @@ class CycleControl {
       uint32_t cycleCount_;
       double   currVmax_;
       double   prevVmax_;
+      double   currPmax_;
+      double   prevPmax_;
 
    public:
 
