@@ -89,7 +89,7 @@ GUI_value gui_value[nParam]={
    .dval=800.0f, 
    .dx=10.0f, 
    .min=250.0f, 
-   .max=1000.0f,
+   .max=990.0f,
    .fmt="%3.0f"
   },
   {.name="Pmin",  //Threshold where pressure will alarm
@@ -134,7 +134,7 @@ void setup_display(){
   gui.addItem( gui_value[pIH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   x =  2*GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pTH], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
-  y =  1 + 8*2 + 8*3 + 7 + 14 + 8*2 + 7 + 8*2 + vspace;
+  y =  1 + 8*3 + 8*3 + 7 + 14 + 8*2 + 7 + 8*2 + vspace;
   x = 3*hspace;
   gui.addItem( gui_value[pVmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   x =  GUI::TFT_THIRD + hspace;
@@ -143,7 +143,6 @@ void setup_display(){
   gui.addItem( gui_value[pPmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   gui.setup();
 }
-
 
 void update_display() {
   gui.update();
@@ -177,9 +176,6 @@ uint32_t curTime;
 int8_t encDT;   // -1 for CCW, +1 for CW turn
 bool encPushed;
 int8_t guiParamSelected = -1;  //-1 for non and 0... for n
-//int8_t encVal = 0;
-//int8_t encPushes = 0;
-//int8_t guiSelectedP = -1;
 const uint32_t guiTimeout = 10000; //millis till gui times out
 uint32_t guiPrevActionTime;
 const uint32_t encTDeadTime = 100; //millis
@@ -199,7 +195,7 @@ void loop() {
   if ( digitalRead(pin_switch) == false ) {
     if (curTime - encLastPTime > encPDeadTime) {
       encLastPTime = curTime;
-      Serial.println("Switched");
+      //Serial.println("Switched");
       encPushed = true;
     }
   }
@@ -213,7 +209,7 @@ void loop() {
       encLastTTime = curTime;
       if (stateB != stateA) encDT = -1;
       else encDT = 1;
-    Serial.println(encDT);
+    //Serial.println(encDT);
     }
   }
   if (encDT!=0 || encPushed) {
@@ -224,8 +220,6 @@ void loop() {
   // Take actions based on encoder input
   //
   if ( encDT != 0 ) { 
-    Serial.print("guiParamSelected = ");
-    Serial.println(guiParamSelected);
     // The encoder was turned in either direction
     if (guiParamSelected == -1) {
       // if no parameter is selected, select the first
@@ -234,28 +228,23 @@ void loop() {
     }
     else {
       // A parameter is activly selected or highlighted
-      Serial.println(gui.items[guiParamSelected].elem.highlight);
       if (gui.items[guiParamSelected].elem.highlight == true) {
         // the parameter is only highlighted
         // turning encoder should move to the next parameter
         // change the previous selected one to unhighlighted:
         gui.items[guiParamSelected].elem.highlight = false;
         guiParamSelected = guiParamSelected + encDT;
-        Serial.println("Increasing incoder");
-        // guiParamSelected should always be in the range 3+[0-5]
+        // guiParamSelected should always be in the range 3-8
         if (guiParamSelected < 3)       guiParamSelected = 8;
         else if (guiParamSelected > 8)  guiParamSelected = 3; 
         // hightlight the new parameter 
         gui.items[guiParamSelected].elem.highlight = true; 
       }
       else if (gui.items[guiParamSelected].elem.selected) {
-        Serial.println("Change selected parameter block");
         // the parmater is selected and the value should be changed
         gui.change_value(guiParamSelected, encDT);
       }
     }
-    Serial.print("Changed guiParamSelected = ");
-    Serial.println(guiParamSelected);
     update_display();    
   }
 
@@ -276,7 +265,6 @@ void loop() {
   if ( curTime - guiPrevActionTime > guiTimeout && guiParamSelected > 0 ) {
     gui.items[guiParamSelected].elem.selected = false;
     gui.items[guiParamSelected].elem.highlight = false;
-    Serial.println("GUI Timeout RESET");
     guiParamSelected = -1;
   }
   
