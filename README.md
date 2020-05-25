@@ -5,7 +5,9 @@
 and open a Anaconda Prompt
 2. `conda install -y -c conda-forge git pyinstaller pyserial pyqt`
 3. `git clone https://github.com/slaclab/pabv_control`
-4. `cd pabv_control`
+4. `cd pabv_control`  
+5. We now use submodules for various libraries, run this to pull them  
+   `git submodule update --init --recursive`
 ##### Downloading arduin-cli
 5. `bootstrap.py`
 ##### Compiling all sketches
