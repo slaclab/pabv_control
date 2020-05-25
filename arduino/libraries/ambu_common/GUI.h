@@ -11,11 +11,21 @@ the ability to change the set value.
 #ifndef _GUI_H_
 #define _GUI_H_
 
-
-
 #include "Arduino.h"
 #include "Adafruit_ILI9341.h"
 #include <stdint.h>
+
+static inline constexpr uint8_t pPEEP=0;
+static inline constexpr uint8_t pPIP= 1;
+static inline constexpr uint8_t pVol=  2;
+static inline constexpr uint8_t pRR= 3;
+static inline constexpr uint8_t pIH= 4;
+static inline constexpr uint8_t pTH= 5;
+static inline constexpr uint8_t pVmax= 6;
+static inline constexpr uint8_t pPmin= 7;
+static inline constexpr uint8_t pPmax= 8;
+static inline constexpr uint8_t nParam = 9;
+
 
 using GUI_elem  = struct  _GUI_elem {
   uint16_t x;

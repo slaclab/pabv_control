@@ -2,6 +2,7 @@
 #include "GUI.h"
 #include <string.h>
 
+
 GUI::GUI(bool invert) : invert_colors(invert)
 {
   for(unsigned int i=0;i<nItems;i++) {
@@ -123,7 +124,6 @@ uint16_t GUI::_color(uint16_t color) {
   if(color==ILI9341_WHITE) return ILI9341_BLACK;
   // Dont we need the opposite functions?
   return color;
-
 }
 
 

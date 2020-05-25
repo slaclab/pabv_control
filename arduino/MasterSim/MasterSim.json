@@ -1,4 +1,4 @@
 {
-"board" : "arduino:mbed:nano33ble"
+"board" : "arduino:samd:nano_33_iot"
 
 }

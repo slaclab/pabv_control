@@ -3,7 +3,10 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
 #include "GUI.h"
+#include "Comm.h"
 
+
+Comm masterComm;
 
 #define SPI_DEFAULT_FREQ 20000000
 
@@ -12,17 +15,6 @@
 #define pin_encoderA 6
 #define pin_encoderB 5
 
-
-static constexpr uint8_t pPEEP=0;
-static constexpr uint8_t pPIP= 1;
-static constexpr uint8_t pVol=  2;
-static constexpr uint8_t pRR= 3;
-static constexpr uint8_t pIH= 4;
-static constexpr uint8_t pTH= 5;
-static constexpr uint8_t pVmax= 6;
-static constexpr uint8_t pPmin= 7;
-static constexpr uint8_t pPmax= 8;
-static constexpr uint8_t nParam = 9;
 
 
 //gets data from master
@@ -142,7 +134,7 @@ void setup_display(){
   x =  2*GUI::TFT_THIRD + hspace;
   gui.addItem( gui_value[pPmax], {x,y,ILI9341_WHITE,2,ILI9341_WHITE,2,false,false});
   gui.setup();
-}
+} 
 
 void update_display() {
   gui.update();
@@ -157,6 +149,9 @@ double get_rand(double rmin, double rmax){
 
 void setup() {
   asm(".global _printf_float");
+  asm(".global _scanf_float");
+  masterComm.begin();
+
   Serial.begin(9600);
   Serial.print("startup\n");
   // Encoder Pins
@@ -271,18 +266,10 @@ void loop() {
   // Update sensor parameters at nominal 1Hz
   if ( (curTime - measTime) > 1000 ){
     // Take a sudo measurments of PEEP/PIP/Vol
-    for(unsigned i=0;i<3;i++) {
-      parms[i]=get_rand(gui_value[i].min, gui_value[i].max);
-    }       
-    Serial.print("Measure ");
-    for(unsigned int i=0;i<nParam;i++) {
-      sprintf(s, gui_value[i].fmt, *gui_value[i].val);
-      Serial.print(s);
-      Serial.print(" ");
-    }
-    Serial.print("\n");
+   
     update_display();
     measTime=curTime;
   }
+  masterComm.read(parms);
   
 }

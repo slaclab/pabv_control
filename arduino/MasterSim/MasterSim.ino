@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Serial.h>
+
 #include <GUI.h>
 #include <Comm.h>
 Comm displayComm;

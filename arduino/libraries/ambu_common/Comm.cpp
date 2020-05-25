@@ -1,14 +1,39 @@
 
 #include "Arduino.h"
 #include "Comm.h"
+
+// implementatio for MBED and SAMD
+//https://stackoverflow.com/questions/57175348/softwareserial-for-arduino-nano-33-iot
+
+#ifdef ARDUINO_ARCH_MBED
 Comm::Comm() : ser(digitalPinToPinName(5), digitalPinToPinName(6), NC,NC) {
 
   rxCount=0;
   memset(rxBuffer,0,sizeof(rxBuffer));
 }
+#else
+#include "wiring_private.h"
+Comm::Comm()  {
+  rxCount=0;
+  memset(rxBuffer,0,sizeof(rxBuffer));
+}
+void SERCOM0_Handler()
+{
+  Comm::ser.IrqHandler();
+}
+#endif
+#ifdef ARDUINO_ARCH_MBED
 void Comm::begin() {
   ser.begin(9600);
 }
+#else
+void Comm::begin() {
+pinPeripheral(5, PIO_SERCOM_ALT);
+pinPeripheral(6, PIO_SERCOM_ALT);
+ser.begin(9600);
+}
+#endif
+
 void Comm::read(float *data) {
   while (ser.available()) {
     char c= ser.read();  
@@ -41,3 +66,8 @@ void Comm::send(const float *data) {
   }
   ser.print("\n");
 } 
+#ifdef ARDUINO_ARCH_MBED
+
+#else
+Uart Comm::ser = Uart(&sercom0, 5, 6, SERCOM_RX_PAD_1, UART_TX_PAD_0);
+#endif
