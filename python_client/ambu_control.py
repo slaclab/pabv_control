@@ -20,8 +20,8 @@ class AmbuControl(object):
                   'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolOffset' : 6, 'SetVolInThold' : 7,
                   'SetPeepMin'   : 8, 'SetRunState' : 9, 'ClearAlarm'   : 10 }
 
-    # Alarm constants
-    AlarmKey = { 'AlarmPipMax'  : 1, 'AlarmVolMax' : 2, 'Alarm12V' : 3, 'Alarm9V' : 8 }
+    # Status constants
+    StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolMax' : 0x02, 'Alarm12V' : 0x04, 'Alarm9V' : 0x08, 'VolInh' : 0x10 }
 
     def __init__(self, dev):
 
@@ -43,7 +43,7 @@ class AmbuControl(object):
         self._peepMin = 0
         self._runState = 0
 
-        self._alarm = 0
+        self._status = 0
 
         self._stime = 0
         self._smillis = -1
@@ -158,23 +158,27 @@ class AmbuControl(object):
 
     @property
     def alarmVolMax(self):
-        return ((self._alarm & self.AlarmKey['AlarmVolMax']) != 0)
+        return ((self._status & self.StatusKey['AlarmVolMax']) != 0)
 
     @property
     def alarmPipMax(self):
-        return ((self._alarm & self.AlarmKey['AlarmPipMax']) != 0)
+        return ((self._status & self.StatusKey['AlarmPipMax']) != 0)
 
     @property
     def alarm9V(self):
-        return ((self._alarm & self.AlarmKey['Alarm9V']) != 0)
+        return ((self._status & self.StatusKey['Alarm9V']) != 0)
 
     @property
     def alarm12V(self):
-        return ((self._alarm & self.AlarmKey['Alarm12V']) != 0)
+        return ((self._status & self.StatusKey['Alarm12V']) != 0)
+
+    @property
+    def volInhFlag(self):
+        return ((self._status & self.StatusKey['VolInh']) != 0)
 
     def clearAlarm(self):
         self._ser.write(f"CONFIG {self.ConfigKey['ClearAlarm']} 0\n".encode('UTF-8'))
-        self._alarm = 0
+        self._status = 0
 
     def stop(self):
         self._runEn = False
@@ -234,15 +238,15 @@ class AmbuControl(object):
                     #print(f"Got status: {line.rstrip()}")
                     millis = int(data[1],0)
                     count  = int(data[2],0)
-                    alarm  = int(data[3])
+                    status = int(data[3])
                     volMax = float(data[4])
                     pipMax = float(data[5])
                     press  = float(data[6])
                     flow   = float(data[7])
                     vol    = float(data[8])
 
-                    doAlarm = (alarm != self._alarm)
-                    self._alarm = alarm
+                    doStatus = (status != self._status)
+                    self._status = status
 
                     if self._smillis == -1:
                         self._smillis=millis
@@ -283,7 +287,7 @@ class AmbuControl(object):
                             #print("Got callback error {}".format(e))
                             pass
 
-                    if doAlarm and self._stateCallBack is not None:
+                    if doStatus and self._stateCallBack is not None:
                         self._stateCallBack()
 
 

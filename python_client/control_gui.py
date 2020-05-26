@@ -85,6 +85,7 @@ class ControlGui(QWidget):
     updateAlarmVolMax = pyqtSignal(str)
     updateAlarm12V    = pyqtSignal(str)
     updateAlarm9V     = pyqtSignal(str)
+    updateVolInh      = pyqtSignal(str)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -212,6 +213,12 @@ class ControlGui(QWidget):
         alarm9V.setReadOnly(True)
         self.updateAlarm9V.connect(alarm9V.setText)
         fl.addRow('9V Alarm:',alarm9V)
+
+        volInh = QLineEdit()
+        volInh.setText("0")
+        volInh.setReadOnly(True)
+        self.updateVolInh.connect(volInh.setText)
+        fl.addRow('Vol Inh Trigger:',volInh)
 
         cycles = QLineEdit()
         cycles.setText("0")
@@ -469,6 +476,7 @@ class ControlGui(QWidget):
         self.updateAlarmVolMax.emit("{}".format(self.ambu.alarmVolMax))
         self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
         self.updateAlarm9V.emit("{}".format(self.ambu.alarm9V))
+        self.updateVolInh.emit("{}".format(self.ambu.volInFlag))
 
         self.updateVersion.emit(str(self.ambu.version))
 

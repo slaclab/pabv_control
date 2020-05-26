@@ -24,7 +24,7 @@ void CycleControl::setup() {
    cycleCount_ = 0;
 
    state_ = StateOff;
-   alarmState_ = 0;
+   status_ = 0;
 
    pinMode(relayPin_, OUTPUT);
    digitalWrite(relayPin_, RELAY_OFF);
@@ -36,6 +36,9 @@ void CycleControl::setup() {
 }
 
 void CycleControl::update(uint32_t ctime) {
+   uint8_t newState;
+
+   newState = state_;
 
    // Keep track of vmax
    if ( vol_->scaledValue() > currVmax_ ) currVmax_ = vol_->scaledValue();
@@ -43,73 +46,94 @@ void CycleControl::update(uint32_t ctime) {
    // Keep track of pmax
    if ( press_->scaledValue() > currPmax_ ) currPmax_ = press_->scaledValue();
 
-   // Currently relay forced off
-   if ( conf_->getRunState() == conf_->StateForceOff ) {
-      digitalWrite(relayPin_, RELAY_OFF);
-      state_ = StateOff;
-      stateTime_ = ctime;
-   }
-
-   // Currently relay forced on
-   else if ( conf_->getRunState() == conf_->StateForceOn ) {
-      digitalWrite(relayPin_, RELAY_ON);
-      state_ = StateOn;
-      stateTime_ = ctime;
-   }
-
-   // Currently turned off
-   else if ( conf_->getRunState() == conf_->StateRunOff ) {
-      digitalWrite(relayPin_, RELAY_OFF);
-      state_ = StateOff;
-      stateTime_ = ctime;
-   }
-
    // Off portion of the cycle
-   else if ( state_ == StateOff ) {
+   if ( state_ == StateOff ) {
 
-      // Turn on volume threshold exceeded, and we have met min off period
-      if ( ( (press_->scaledValue() < conf_->getVolInThold()) && ((ctime - stateTime_) > MIN_OFF_MILLIS)) ||
+      // Turn on volume threshold exceeded, and we have met min off period, and running is enabled
+      if ( (conf_->getRunState() == conf_->StateRunOn) &&
+           (press_->scaledValue() < conf_->getVolInThold()) &&
+           ((ctime - stateTime_) > MinOffMillis) ) {
 
-           // Off timer has been reached
-           ( (ctime - stateTime_) > conf_->getOffTimeMillis()) ) {
+         newState = StateOn;
+         status_ |= StatusVolInh;
+      }
 
-         digitalWrite(relayPin_, RELAY_ON);
-         stateTime_ = ctime;
-         state_ = StateOn;
-         vol_->reset(ctime);
-         cycleCount_++;
-         prevVmax_ = currVmax_;
-         currVmax_ = 0;
-         prevPmax_ = currPmax_;
-         currPmax_ = 0;
+      // Turn on based upon time
+      else if ( (ctime - stateTime_) > conf_->getOffTimeMillis()) {
+         newState = StateOn;
+         status_ &= (0xFF^StatusVolInh);
       }
    }
 
    // On portion of the cycle
    else {
 
-      // Turn off pressure threshold exceeded
-      if ( press_->scaledValue() > conf_->getAdjPipMax() )  {
-         alarmState_ |= AlarmPipMax;
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateOff;
-      }
+      // Pressure triggers only valid when run is enabled
+      if (conf_->getRunState() == conf_->StateRunOn) {
 
-      // Turn off volume threshold exceeded
-      if ( vol_->scaledValue() > conf_->getAdjVolMax() ) {
-            alarmState_ |= AlarmVolMax;
-            digitalWrite(relayPin_, RELAY_OFF);
-            stateTime_ = ctime;
-            state_ = StateOff;
+         // Turn off pressure threshold exceeded
+         if ( press_->scaledValue() > conf_->getAdjPipMax() )  {
+            status_ |= StatusAlarmPipMax;
+            newState = StateOff;
+         }
+
+         // Turn off volume threshold exceeded
+         if ( vol_->scaledValue() > conf_->getAdjVolMax() ) {
+            status_ |= StatusAlarmVolMax;
+            newState = StateOff;
+         }
       }
 
       // On timer has been reached
       if ((ctime - stateTime_) > conf_->getOnTimeMillis()) {
-         digitalWrite(relayPin_, RELAY_OFF);
-         stateTime_ = ctime;
-         state_ = StateOff;
+         newState = StateOff;
       }
+   }
+
+   // State change
+   if ( newState != state_ ) {
+
+      // Start of a new cycle
+      if ( newState == StateOn ) {
+         vol_->reset(ctime);
+
+         // Clear counters
+         prevVmax_ = currVmax_;
+         currVmax_ = 0;
+         prevPmax_ = currPmax_;
+         currPmax_ = 0;
+
+         // Increment cycle count
+         cycleCount_++;
+      }
+
+      stateTime_ = ctime;
+      state_ = newState;
+   }
+
+   // Currently relay forced off
+   if ( conf_->getRunState() == conf_->StateForceOff ) {
+      digitalWrite(relayPin_, RELAY_OFF);
+   }
+
+   // Currently relay forced on
+   else if ( conf_->getRunState() == conf_->StateForceOn ) {
+      digitalWrite(relayPin_, RELAY_ON);
+   }
+
+   // Currently turned off
+   else if ( conf_->getRunState() == conf_->StateRunOff ) {
+      digitalWrite(relayPin_, RELAY_OFF);
+   }
+
+   // On state
+   else if ( state_ == StateOn ) {
+      digitalWrite(relayPin_, RELAY_ON);
+   }
+
+   // Off state
+   else {
+      digitalWrite(relayPin_, RELAY_OFF);
    }
 }
 
@@ -117,7 +141,7 @@ void CycleControl::sendString() {
    Serial.print(" ");
    Serial.print(cycleCount_);
    Serial.print(" ");
-   Serial.print(alarmState_);
+   Serial.print(status_);
    Serial.print(" ");
    Serial.print(prevVmax_);
    Serial.print(" ");
@@ -126,6 +150,6 @@ void CycleControl::sendString() {
 
 
 void CycleControl::clearAlarm() {
-   alarmState_ = 0;
+   status_ = 0;
 }
 
