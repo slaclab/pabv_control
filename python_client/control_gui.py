@@ -10,10 +10,14 @@ import time
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+from matplotlib import rcParams
 
 import time
 
 git_version="unknown"
+
+rcParams.update({'figure.autolayout': True})
+
 try:
     import version
     git_version=version.version
@@ -705,14 +709,14 @@ class ControlGui(QWidget):
             ambu_data = inData.get_data()
             xa = ambu_data[0,:]
 
-            self.plot.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0)   # press
-            self.plot.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0)       # p-threshold high
-            self.plot.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0)     # p-threshold low
-            self.plot.axes[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0)       # peep min
-
-            self.plot.axes[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0)     # flow
-            self.plot.axes[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0)      # volume
-            self.plot.axes[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0)       # volume threshold
+            self.plot.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
+            self.plot.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
+            self.plot.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
+            self.plot.axes[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0,label="Peep min")       # peep min
+            
+            self.plot.axes[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0,label="Flow")     # flow
+            self.plot.axes[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0,label="Volume")      # volume
+            self.plot.axes[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0,label="V-thresh-high")       # volume threshold
 
             self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
             self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
@@ -730,6 +734,10 @@ class ControlGui(QWidget):
 
             self.plot.axes[2].set_xlabel('Time')
             self.plot.axes[2].set_ylabel('Volume mL')
+
+            self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+            self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+            self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
 
             self.plot.draw()
     
