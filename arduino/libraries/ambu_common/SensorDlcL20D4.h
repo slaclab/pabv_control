@@ -15,7 +15,7 @@ class SensorDlcL20D4 : public GenericSensor {
 
       void setup();
 
-      void update(unsigned int ctime);
+      void update(uint32_t ctime);
 
 };
 

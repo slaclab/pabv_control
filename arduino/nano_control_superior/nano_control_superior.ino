@@ -1,6 +1,6 @@
 
 #include <Wire.h>
-#include <AmbuConfigUno.h>
+#include <AmbuConfigNano.h>
 #include <CycleControl.h>
 #include <SensorDlcL20D4.h>
 #include <SensorSp110Sm02Flow.h>
@@ -10,7 +10,7 @@
 #define RELAY_PIN 4
 #define SENSOR_PERIOD_MILLIS 9
 
-AmbuConfigUno       * conf  = new AmbuConfigUno();
+AmbuConfigNano      * conf  = new AmbuConfigNano();
 SensorDlcL20D4      * press = new SensorDlcL20D4();
 SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow();
 SensorVolume        * vol   = new SensorVolume(flow);

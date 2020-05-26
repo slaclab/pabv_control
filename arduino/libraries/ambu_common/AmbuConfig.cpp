@@ -1,9 +1,9 @@
 
 #include "AmbuConfig.h"
-#include <EEPROM.h>
 
 #include <HardwareSerial.h>
 #include <Arduino.h>
+#include "CycleControl.h"
 
 #ifndef GIT_VERSION
 const char *git_version= "unknown";
@@ -18,51 +18,36 @@ AmbuConfig::AmbuConfig () {
    rxCount_ = 0;
 }
 
-void AmbuConfig::setup() {
-   addr_ = 0;
-
-   EEPROM.get(addr_, period_);
-   addr_ += 4;
-
-   EEPROM.get(addr_, onTime_);
-   addr_ += 4;
-   addr_ += 4; // Old config
-
-   EEPROM.get(addr_, runState_);
-   addr_ += 4;
-   addr_ += 4; // Old config
-
-   EEPROM.get(addr_, startThold_);
-   addr_ += 4;
-
-   EEPROM.get(addr_, stopThold_);
-   addr_ += 4;
-
-   EEPROM.get(addr_, volThold_);
-   addr_ += 4;
-
-   // Just in case the values are bad
-   if ( period_ == 0xFFFF ) period_ = 3000;
-   if ( onTime_ == 0xFFFF ) onTime_ = 1000;
-   if ( runState_ == 0xFFFF ) runState_ = StateRunOn;
-
-   // Cast double locations to int * to check for empty storage locations
-   if ( *((unsigned int *)(&startThold_)) == 0xFFFF ) startThold_ = -10.0;
-   if ( *((unsigned int *)(&stopThold_)) == 0xFFFF ) stopThold_ = 100.0;
-   if ( *((unsigned int *)(&volThold_)) == 0xFFFF ) volThold_ = 200.0;
-
-   storeConfig();
+void AmbuConfig::setup () {
+   conf_.respRate   = 20.0;
+   conf_.inhTime    = 1.0;
+   conf_.pipMax     = 100.0;
+   conf_.pipOffset  = 0.0;
+   conf_.volMax     = 200.0;
+   conf_.volOffset  = 0.0;
+   conf_.volInThold = -10.0;
+   conf_.peepMin    = 0.0;
+   conf_.runState   = StateRunOn;
    confTime_ = millis();
 }
 
-void AmbuConfig::update(unsigned int ctime) {
+void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
+   char mark[50];
+   char scanParam[50];
+   uint32_t param;
+   bool sendConfig;
+
+   int16_t ret;
+   char c;
+
+   sendConfig = false;
 
    // Get serial data
    while (Serial.available()) {
-      if ( rxCount_ == 49 ) rxCount_ = 0;
+      if ( rxCount_ >= 190) rxCount_ = 0;
 
-      c_ = Serial.read();
-      rxBuffer_[rxCount_++] = c_;
+      c = Serial.read();
+      rxBuffer_[rxCount_++] = c;
       rxBuffer_[rxCount_] = '\0';
    }
 
@@ -70,85 +55,188 @@ void AmbuConfig::update(unsigned int ctime) {
    if ( rxCount_ > 7 && rxBuffer_[rxCount_-1] == '\n') {
 
       // Parse string
-      ret_ = sscanf(rxBuffer_,"%s %s %s %s %s %s %s", mark_, scanPeriod_, scanOn_, scanStartThold_, scanRun_, scanStopThold_, scanVolThold_);
+      ret = sscanf(rxBuffer_,"%s %i %s", mark, &param, scanParam);
 
       // Check marker
-      if ( ret_ == 7 && strcmp(mark_,"CONFIG") == 0 ) {
-         period_     = atoi(scanPeriod_);
-         onTime_     = atoi(scanOn_);
-         startThold_ = atof(scanStartThold_);
-         runState_   = atoi(scanRun_);
-         stopThold_  = atof(scanStopThold_);
-         volThold_   = atof(scanVolThold_);
-         storeConfig();
+      if ( ret == 3 && strcmp(mark,"CONFIG") == 0 ) {
+         sendConfig = true;
+
+         switch (param) {
+
+            case SetRespRate:
+               conf_.respRate = atof(scanParam);
+               storeConfig();
+               break;
+
+            case SetInhTime:
+               conf_.inhTime = atof(scanParam);
+               storeConfig();
+               break;
+
+            case SetPipMax:
+               conf_.pipMax = atof(scanParam);
+               storeConfig();
+               break;
+
+            case SetPipOffset:
+               conf_.pipMax = atof(scanParam);
+               storeConfig();
+               break;
+
+            case SetVolMax:
+               conf_.volMax = atof(scanParam);
+               storeConfig();
+               break;
+
+            case SetVolOffset:
+               conf_.volOffset = atof(scanParam);
+               storeConfig();
+               break;
+
+            case SetVolInThold:
+               conf_.volInThold = atof(scanParam);
+               storeConfig();
+               break;
+
+            case SetPeepMin:
+               conf_.peepMin = atof(scanParam);
+               storeConfig();
+               break;
+
+            case SetRunState:
+               conf_.runState = atoi(scanParam);
+               storeConfig();
+               break;
+
+            case ClearAlarm:
+               cycle->clearAlarm();
+               break;
+
+            default:
+               // echo config
+               break;
+         }
       }
       rxCount_ = 0;
    }
 
-   if ((ctime - confTime_) > CONFIG_MILLIS) {
-       Serial.print("CONFIG ");
-       Serial.print(period_);
-       Serial.print(" ");
-       Serial.print(onTime_);
-       Serial.print(" ");
-       Serial.print(startThold_,4);
-       Serial.print(" ");
-       Serial.print(runState_);
-       Serial.print(" ");
-       Serial.print(stopThold_,4);
-       Serial.print(" ");
-       Serial.print(volThold_,4);
-       Serial.print("\n");
+   if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;
+
+   if (sendConfig) {
        Serial.print("VERSION ");
        Serial.print(git_version);
+       Serial.print("\n");
+       Serial.print("CONFIG ");
+       Serial.print(conf_.respRate,4);
+       Serial.print(" ");
+       Serial.print(conf_.inhTime,4);
+       Serial.print(" ");
+       Serial.print(conf_.pipMax,4);
+       Serial.print(" ");
+       Serial.print(conf_.pipOffset,4);
+       Serial.print(" ");
+       Serial.print(conf_.volMax,4);
+       Serial.print(" ");
+       Serial.print(conf_.volOffset,4);
+       Serial.print(" ");
+       Serial.print(conf_.volInThold,4);
+       Serial.print(" ");
+       Serial.print(conf_.peepMin,4);
+       Serial.print(" ");
+       Serial.print(conf_.runState);
+       Serial.print(" ");
        Serial.print("\n");
        confTime_ = ctime;
    }
 }
 
-unsigned int AmbuConfig::getPeriod() {
-   return period_;
+double AmbuConfig::getRespRate() {
+   return conf_.respRate;
 }
 
-unsigned int AmbuConfig::getOnTime() {
-   return onTime_;
+void AmbuConfig::setRespRate(double value) {
+   conf_.respRate = value;
+   storeConfig();
 }
 
-double AmbuConfig::getStartThold() {
-   return startThold_;
+double AmbuConfig::getInhTime() {
+   return conf_.inhTime;
 }
 
-double AmbuConfig::getStopThold() {
-   return stopThold_;
+void AmbuConfig::setInhTime(double value) {
+   conf_.inhTime = value;
+   storeConfig();
 }
 
-double AmbuConfig::getVolThold() {
-   return volThold_;
+double AmbuConfig::getPipMax() {
+   return conf_.pipMax;
 }
 
-unsigned int AmbuConfig::getRunState() {
-   return runState_;
+void AmbuConfig::setPipMax(double value) {
+   conf_.pipMax = value;
+   storeConfig();
 }
 
-void AmbuConfig::storeConfig() {
-   addr_ = 0;
-
-   EEPROM.put(addr_, period_);
-   addr_ += 4;
-
-   EEPROM.put(addr_, onTime_);
-   addr_ += 4;
-   addr_ += 4; // Old config
-
-   EEPROM.put(addr_, runState_);
-   addr_ += 4;
-   addr_ += 4; // Old config
-
-   EEPROM.put(addr_, startThold_);
-   addr_ += 4;
-
-   EEPROM.put(addr_, stopThold_);
-   addr_ += 4;
-
-   EEPROM.put(addr_, volThold_);
+double AmbuConfig::getVolMax() {
+   return conf_.volMax;
 }
+
+void AmbuConfig::setGetVolMax(double value) {
+   conf_.volMax = value;
+   storeConfig();
+}
+
+double AmbuConfig::getVolInThold() {
+   return conf_.volInThold;
+}
+
+void AmbuConfig::setVolInThold(double value) {
+   conf_.volInThold = value;
+   storeConfig();
+}
+
+double AmbuConfig::setPeepMin() {
+   return conf_.peepMin;
+}
+
+void AmbuConfig::setPeepMin(double value) {
+   conf_.peepMin = value;
+   storeConfig();
+}
+
+uint8_t AmbuConfig::getRunState() {
+   return conf_.runState;
+}
+
+void AmbuConfig::setRunState(uint8_t value) {
+   conf_.runState = value;
+   storeConfig();
+}
+
+uint32_t AmbuConfig::getOffTimeMillis() {
+   double period;
+   uint32_t ret;
+
+   period = (1.0 / conf_.respRate) * 60.0;
+
+   ret = uint32_t((period - conf_.inhTime) * 1000.0);
+
+   return ret;
+}
+
+uint32_t AmbuConfig::getOnTimeMillis() {
+   uint32_t ret;
+
+   ret = uint32_t(conf_.inhTime * 1000.0);
+
+   return ret;
+}
+
+double   AmbuConfig::getAdjVolMax() {
+   return (conf_.volMax + conf_.volOffset);
+}
+
+double   AmbuConfig::getAdjPipMax() {
+   return (conf_.pipMax + conf_.pipOffset);
+}
+

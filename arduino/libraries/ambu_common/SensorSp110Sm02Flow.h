@@ -8,13 +8,11 @@
 
 class SensorSp110Sm02Flow : public SensorSp110Sm02 {
 
-      double sign_;
-
    public:
 
       SensorSp110Sm02Flow ();
 
-      void update(unsigned int ctime);
+      void update(uint32_t ctime);
 
 };
 

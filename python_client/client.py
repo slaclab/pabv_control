@@ -22,6 +22,6 @@ appTop = QApplication(sys.argv)
 guiTop = control_gui.ControlGui(ambu=ambu)
 guiTop.show()
 
+ambu.start()
 appTop.exec_()
-
 ambu.stop()
