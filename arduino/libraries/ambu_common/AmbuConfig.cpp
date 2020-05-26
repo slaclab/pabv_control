@@ -32,9 +32,9 @@ void AmbuConfig::setup () {
 }
 
 void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
-   char mark[10];
-   char scanParam[10];
-   uint16_t param;
+   char mark[50];
+   char scanParam[50];
+   uint32_t param;
    bool sendConfig;
 
    int16_t ret;
@@ -44,7 +44,7 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
 
    // Get serial data
    while (Serial.available()) {
-      if ( rxCount_ == 49 ) rxCount_ = 0;
+      if ( rxCount_ >= 190) rxCount_ = 0;
 
       c = Serial.read();
       rxBuffer_[rxCount_++] = c;
@@ -123,6 +123,9 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
    if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;
 
    if (sendConfig) {
+       Serial.print("VERSION ");
+       Serial.print(git_version);
+       Serial.print("\n");
        Serial.print("CONFIG ");
        Serial.print(conf_.respRate,4);
        Serial.print(" ");
@@ -142,9 +145,6 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
        Serial.print(" ");
        Serial.print(conf_.runState);
        Serial.print(" ");
-       Serial.print("\n");
-       Serial.print("VERSION ");
-       Serial.print(git_version);
        Serial.print("\n");
        confTime_ = ctime;
    }
