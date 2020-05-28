@@ -6,7 +6,6 @@
 
 #define RELAY_ON  HIGH
 #define RELAY_OFF LOW
-#define MIN_OFF_MILLIS 10000
 
 class AmbuConfig;
 class GenericSensor;
@@ -17,11 +16,15 @@ class CycleControl {
       static const uint8_t StateOff = 0;
       static const uint8_t StateOn  = 1;
 
-      // Alarm Bits
-      static const uint8_t AlarmPipMax  = 1;
-      static const uint8_t AlarmVolMax  = 2;
-      static const uint8_t Alarm12V     = 4;
-      static const uint8_t Alarm9V      = 8;
+      // Statis Bits
+      static const uint8_t StatusAlarmPipMax  = 0x01;
+      static const uint8_t StatusAlarmVolMax  = 0x02;
+      static const uint8_t StatusAlarm12V     = 0x04;
+      static const uint8_t StatusAlarm9V      = 0x08;
+      static const uint8_t StatusVolInh       = 0x10;
+
+      // Min off period
+      static const uint32_t MinOffMillis = 1000;
 
       AmbuConfig * conf_;
       GenericSensor * press_;
@@ -30,7 +33,7 @@ class CycleControl {
       uint8_t  state_;
       uint32_t stateTime_;
       uint8_t  relayPin_;
-      uint8_t  alarmState_;
+      uint8_t  status_;
       uint32_t cycleCount_;
       double   currVmax_;
       double   prevVmax_;
