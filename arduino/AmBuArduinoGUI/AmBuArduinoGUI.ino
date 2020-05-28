@@ -6,7 +6,7 @@
 #include "Comm.h"
 
 
-Comm masterComm;
+Comm masterComm(5,6);
 
 #define SPI_DEFAULT_FREQ 20000000
 
@@ -150,7 +150,7 @@ double get_rand(double rmin, double rmax){
 void setup() {
   asm(".global _printf_float");
   asm(".global _scanf_float");
-  masterComm.begin();
+  masterComm.begin(9600);
 
   Serial.begin(9600);
   Serial.print("startup\n");
@@ -270,6 +270,7 @@ void loop() {
     update_display();
     measTime=curTime;
   }
-  masterComm.read(parms);
+  Message msg;
+  masterComm.read(msg);
   
 }
