@@ -12,6 +12,7 @@ void loop() {
      Message m;
      m.writeData(Message::DATA,cycle,5,floats,2,uints);
      Serial.print(m.getBuffer());
-
+     m.writeString(Message::VERSION,cycle,"Hello World");
+     Serial.print(m.getBuffer());
      delay(1000);          
 }

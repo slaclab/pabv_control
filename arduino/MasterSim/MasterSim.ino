@@ -117,6 +117,7 @@ void loop() {
     }       
     Message msg;
     msg.writeData(Message::DATA,curTime,3,parms,0,0);
+    Serial.print(msg.getBuffer());
     displayComm.send(msg);
     measTime=curTime;
   }

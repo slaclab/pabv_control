@@ -266,11 +266,15 @@ void loop() {
   // Update sensor parameters at nominal 1Hz
   if ( (curTime - measTime) > 1000 ){
     // Take a sudo measurments of PEEP/PIP/Vol
-   
+    Message msg;
+     masterComm.read(msg);
+     int n=msg.nFloat();
+     Serial.println(msg.status());
+     if(msg.nFloat()==3) {
+       msg.getFloat(parms);
+     }
     update_display();
     measTime=curTime;
   }
-  Message msg;
-  masterComm.read(msg);
-  
+   
 }

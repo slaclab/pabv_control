@@ -38,7 +38,7 @@ void Comm::read(Message &msg) {
     if(c=='-') {
       char c1=ser.read();
       char c2=ser.read();
-      rxBuffer[rxCount] = '\0';    
+      rxBuffer[rxCount] = '\0';
       if(c1=='-' && c2=='-') {
         msg.decode(rxCount,rxBuffer);
       } else {
@@ -46,11 +46,12 @@ void Comm::read(Message &msg) {
       }
       rxCount=0;      
     } else {
-      if(rxCount<sizeof(rxBuffer))
+      if(rxCount<sizeof(rxBuffer)) {
 	rxBuffer[rxCount++] = c;
-      else
+      } else {
         _err_overflow++;
 	rxCount=0;
+      }
     }
   }
 }
