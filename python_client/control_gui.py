@@ -32,6 +32,16 @@ class MplCanvas(FigureCanvasQTAgg):
         super(MplCanvas, self).__init__(fig)
         fig.tight_layout(pad=3.0)
 
+class MplCanvas2(FigureCanvasQTAgg):
+    
+    def __init__(self, parent=None, width=10, height=10, dpi=100):
+        fig2 = Figure(figsize=(width, height), dpi=dpi)
+        self.axes2 = [fig2.add_subplot(311), fig2.add_subplot(312), fig2.add_subplot(313)]
+        super(MplCanvas2, self).__init__(fig2)
+        fig2.tight_layout(pad=3.0)
+
+
+
 class PowerSwitch(QPushButton):
     def __init__(self, parent = None):
         super().__init__(parent)
@@ -90,7 +100,6 @@ class ControlGui(QWidget):
     updateAlarmVolMax = pyqtSignal(str)
     updateAlarm12V    = pyqtSignal(str)
     updateAlarm9V     = pyqtSignal(str)
-    updateVolInh      = pyqtSignal(str)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -198,47 +207,12 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
 
-        alarmPipMax = QLineEdit()
-        alarmPipMax.setText("0")
-        alarmPipMax.setReadOnly(True)
-        self.updateAlarmPipMax.connect(alarmPipMax.setText)
-        fl.addRow('Pip Max Alarm:',alarmPipMax)
-
-        alarmVolMax = QLineEdit()
-        alarmVolMax.setText("0")
-        alarmVolMax.setReadOnly(True)
-        self.updateAlarmVolMax.connect(alarmVolMax.setText)
-        fl.addRow('Vol Max Alarm:',alarmVolMax)
-
-        alarm12V = QLineEdit()
-        alarm12V.setText("0")
-        alarm12V.setReadOnly(True)
-        self.updateAlarm12V.connect(alarm12V.setText)
-        fl.addRow('12V Alarm:',alarm12V)
-
-        alarm9V = QLineEdit()
-        alarm9V.setText("0")
-        alarm9V.setReadOnly(True)
-        self.updateAlarm9V.connect(alarm9V.setText)
-        fl.addRow('9V Alarm:',alarm9V)
-
-        volInh = QLineEdit()
-        volInh.setText("0")
-        volInh.setReadOnly(True)
-        self.updateVolInh.connect(volInh.setText)
-        fl.addRow('Vol Inh Trigger:',volInh)
-
-        cycles = QLineEdit()
-        cycles.setText("0")
-        cycles.setReadOnly(True)
-        self.updateCount.connect(cycles.setText)
-        fl.addRow('Breaths:',cycles)
-
-        sampRate = QLineEdit()
-        sampRate.setText("0")
-        sampRate.setReadOnly(True)
-        self.updateRate.connect(sampRate.setText)
-        fl.addRow('Sample Rate:',sampRate)
+        alarmStatus = QLineEdit()
+        alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
+        alarmStatus.setText("Clear")
+        alarmStatus.setReadOnly(True)
+        #this will be a switch that will display true and turn red if any of the alarm conditions are met.  Hovering or looking at expert page will say which.  maybe even alarms settings page? or just alarm settings group box on expert page?
+        fl.addRow('Alarm Status:',alarmStatus)
 
         cycVolMax = QLineEdit()
         cycVolMax.setText("0")
@@ -252,31 +226,35 @@ class ControlGui(QWidget):
         self.updateCycPipMax.connect(cycPipMax.setText)
         fl.addRow('Max Pip (cmH20):',cycPipMax)
 
-        timeSinceStart=QLineEdit()
-        timeSinceStart.setText("0")
-        timeSinceStart.setReadOnly(True)
-        self.updateTime.connect(timeSinceStart.setText)
-        fl.addRow('Seconds since start:',timeSinceStart)
+        cycleRunTime=QLineEdit()
+        cycleRunTime.setText("0")
+        cycleRunTime.setReadOnly(True)
+        # I think we want the time since they last clicked to start a cycle. there are a lot of times, I’ll try to find a way to make this less confusing.
+        fl.addRow('Cycle run time:',cycleRunTime)
+    
+    
+        cycles = QLineEdit()
+        cycles.setText("0")
+        cycles.setReadOnly(True)
+        self.updateCount.connect(cycles.setText)
+        fl.addRow('Breaths:',cycles)
+        # I think we want breaths since cycle start rather than software start?
 
-        arduinoUptime=QLineEdit()
-        arduinoUptime.setText("0")
-        arduinoUptime.setReadOnly(True)
-        self.updateArTime.connect(arduinoUptime.setText)
-        fl.addRow('Arduino uptime (s):',arduinoUptime)
-
-        guiVersion = QLineEdit()
-        guiVersion.setText(git_version)
-        guiVersion.setReadOnly(True)
-        fl.addRow('GUI version:',guiVersion)
 
     def setupPageTwo(self):
 
         top = QHBoxLayout()
         self.tab2.setLayout(top)
+        
+        left = QVBoxLayout()
+        top.addLayout(left)
+        
+        right = QVBoxLayout()
+        top.addLayout(right)
 
         # Period Control
         gb = QGroupBox('GUI Control')
-        top.addWidget(gb)
+        left.addWidget(gb)
 
         vl = QVBoxLayout()
         gb.setLayout(vl)
@@ -339,9 +317,86 @@ class ControlGui(QWidget):
         self.vMaxValue.setText("800")
         fl.addRow('Vol Max Value:',self.vMaxValue)
 
+        # moved from front page
+        # Status
+        gb = QGroupBox('Status')
+        right.addWidget(gb)
+        
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
+        
+        alarmPipMax = QLineEdit()
+        alarmPipMax.setText("0")
+        alarmPipMax.setReadOnly(True)
+        self.updateAlarmPipMax.connect(alarmPipMax.setText)
+        fl.addRow('Pip Max Alarm:',alarmPipMax)
+        
+        alarmVolMax = QLineEdit()
+        alarmVolMax.setText("0")
+        alarmVolMax.setReadOnly(True)
+        self.updateAlarmVolMax.connect(alarmVolMax.setText)
+        fl.addRow('Vol Max Alarm:',alarmVolMax)
+        
+        alarm12V = QLineEdit()
+        alarm12V.setText("0")
+        alarm12V.setReadOnly(True)
+        self.updateAlarm12V.connect(alarm12V.setText)
+        fl.addRow('12V Alarm:',alarm12V)
+        
+        alarm9V = QLineEdit()
+        alarm9V.setText("0")
+        alarm9V.setReadOnly(True)
+        self.updateAlarm9V.connect(alarm9V.setText)
+        fl.addRow('9V Alarm:',alarm9V)
+        
+        cycles = QLineEdit()
+        cycles.setText("0")
+        cycles.setReadOnly(True)
+        self.updateCount.connect(cycles.setText)
+        fl.addRow('Breaths:',cycles)
+        
+        sampRate = QLineEdit()
+        sampRate.setText("0")
+        sampRate.setReadOnly(True)
+        self.updateRate.connect(sampRate.setText)
+        fl.addRow('Sample Rate:',sampRate)
+        
+        cycVolMax = QLineEdit()
+        cycVolMax.setText("0")
+        cycVolMax.setReadOnly(True)
+        self.updateCycVolMax.connect(cycVolMax.setText)
+        fl.addRow('Max Volume (mL):',cycVolMax)
+        
+        cycPipMax = QLineEdit()
+        cycPipMax.setText("0")
+        cycPipMax.setReadOnly(True)
+        self.updateCycPipMax.connect(cycPipMax.setText)
+        fl.addRow('Max Pip (cmH20):',cycPipMax)
+        
+        timeSinceStart=QLineEdit()
+        timeSinceStart.setText("0")
+        timeSinceStart.setReadOnly(True)
+        self.updateTime.connect(timeSinceStart.setText)
+        fl.addRow('Seconds since start:',timeSinceStart)
+        
+        arduinoUptime=QLineEdit()
+        arduinoUptime.setText("0")
+        arduinoUptime.setReadOnly(True)
+        self.updateArTime.connect(arduinoUptime.setText)
+        fl.addRow('Arduino uptime (s):',arduinoUptime)
+        
+        guiVersion = QLineEdit()
+        guiVersion.setText(git_version)
+        guiVersion.setReadOnly(True)
+        fl.addRow('GUI version:',guiVersion)
+        
+
         # Log File
         gb = QGroupBox('Log File')
-        top.addWidget(gb)
+        right.addWidget(gb)
 
         vl = QVBoxLayout()
         gb.setLayout(vl)
@@ -351,15 +406,21 @@ class ControlGui(QWidget):
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
         vl.addLayout(fl)
+        
 
+        
         self.logFile = QLineEdit()
+        pb = QPushButton('Select output File')
+        pb.clicked.connect(self.selectFile)
+        vl.addWidget(pb)
+        
         fl.addRow('Log File:',self.logFile)
 
-        pb = QPushButton('Open File')
+        pb = QPushButton('Begin Recording Data')
         pb.clicked.connect(self.openPressed)
         vl.addWidget(pb)
 
-        pb = QPushButton('Close File')
+        pb = QPushButton('Stop Recording Data')
         pb.clicked.connect(self.closePressed)
         vl.addWidget(pb)
 
@@ -677,6 +738,13 @@ class ControlGui(QWidget):
     @pyqtSlot()
     def closePressed(self):
         self.ambu.closeLog()
+    
+    @pyqtSlot()
+    def selectFile(self):
+        dlg = QFileDialog()
+        self.logFile=dlg.getSaveFileName(self, 'Save ventillator data:')
+
+    
 
     def stateUpdated(self):
         self.updateRespRate.emit("{:0.1f}".format(self.ambu.respRate))
@@ -698,7 +766,6 @@ class ControlGui(QWidget):
         self.updateAlarmVolMax.emit("{}".format(self.ambu.alarmVolMax))
         self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
         self.updateAlarm9V.emit("{}".format(self.ambu.alarm9V))
-        self.updateVolInh.emit("{}".format(self.ambu.volInFlag))
 
         self.updateVersion.emit(str(self.ambu.version))
 
@@ -746,8 +813,43 @@ class ControlGui(QWidget):
             self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
             self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
             self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-
+            
+            
             self.plot.draw()
+
+            self.plot2.axes2[0].cla()
+            self.plot2.axes2[1].cla()
+            self.plot2.axes2[2].cla()
+            #ambu_data = inData.get_data()
+            #xa = ambu_data[0,:]
+            
+            self.plot2.axes2[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
+            self.plot2.axes2[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
+            self.plot2.axes2[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
+            self.plot2.axes2[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0,label="Peep min")       # peep min
+            
+            self.plot2.axes2[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0,label="Flow")     # flow
+            self.plot2.axes2[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0,label="Volume")      # volume
+            self.plot2.axes2[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0,label="V-thresh-high")       # volume threshold
+            
+            self.plot2.axes2[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
+            self.plot2.axes2[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
+            self.plot2.axes2[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
+            
+            self.plot2.axes2[0].set_xlabel('Time')
+            
+            self.plot2.axes2[1].set_xlabel('Time')
+            self.plot2.axes2[1].set_ylabel('Flow L/Min')
+            
+            self.plot2.axes2[2].set_xlabel('Time')
+            self.plot2.axes2[2].set_ylabel('Volume mL')
+
+            self.plot2.axes2[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+            self.plot2.axes2[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+            self.plot2.axes2[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+
+            self.plot2.draw()
+        
     
         except Exception as e:
             #print(f"Got plotting exception {e}")
