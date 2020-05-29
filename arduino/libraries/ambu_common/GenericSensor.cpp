@@ -1,6 +1,6 @@
 #include "GenericSensor.h"
 #include <Arduino.h>
-GenericSensor::GenericSensor (uint8_t addr, HardwareSerial *serial) {
+GenericSensor::GenericSensor (uint8_t addr, Stream *serial) {
    addr_   = addr;
    scaled_ = 0.0;
    serial_ = serial;

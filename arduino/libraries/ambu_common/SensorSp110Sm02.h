@@ -13,7 +13,7 @@ class SensorSp110Sm02 : public GenericSensor {
 
    public:
 
-      SensorSp110Sm02 (HardwareSerial *serial);
+      SensorSp110Sm02 (Stream *serial);
 
       void setup();
 

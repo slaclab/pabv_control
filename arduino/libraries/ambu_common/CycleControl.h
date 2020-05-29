@@ -3,6 +3,7 @@
 #define __RELAY_CONTROL_H__
 
 #include <Arduino.h>
+#include <HardwareSerial.h>
 
 #define RELAY_ON  HIGH
 #define RELAY_OFF LOW
@@ -40,7 +41,7 @@ class CycleControl {
       double   currPmax_;
       double   prevPmax_;
 
-      HardwareSerial *serial_;
+      Stream *serial_;
 
    public:
 
@@ -48,7 +49,7 @@ class CycleControl {
                     GenericSensor *press,
                     GenericSensor *vol,
                     uint8_t relayPin,
-                    HardwareSerial *serial);
+                    Stream *serial);
 
       void setup();
 

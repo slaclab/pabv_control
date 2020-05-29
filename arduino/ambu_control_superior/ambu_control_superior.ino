@@ -6,6 +6,7 @@
 #include <SensorSp110Sm02Flow.h>
 #include <SensorVolume.h>
 #include <stdint.h>
+#include <HardwareSerial.h>
 
 #define RELAY_PIN 4
 #define SENSOR_PERIOD_MILLIS 9

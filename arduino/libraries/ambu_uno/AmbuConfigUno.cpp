@@ -6,7 +6,7 @@
 #include <Arduino.h>
 
 
-AmbuConfigUno::AmbuConfigUno (HardwareSerial *serial) : AmbuConfig (serial) { }
+AmbuConfigUno::AmbuConfigUno (Stream *serial) : AmbuConfig (serial) { }
 
 void AmbuConfigUno::setup() {
    uint32_t csum;

@@ -6,11 +6,12 @@
 #include <SensorSp110Sm02Flow.h>
 #include <SensorVolume.h>
 #include <stdint.h>
+#include <HardwareSerial.h>
 
 #define RELAY_PIN 4
 #define SENSOR_PERIOD_MILLIS 9
-#define SerialPort Serial
-//#define SerialPort Serial1
+//#define SerialPort Serial
+#define SerialPort Serial1
 
 AmbuConfigNano      * conf  = new AmbuConfigNano(&SerialPort);
 SensorDlcL20D4      * press = new SensorDlcL20D4(&SerialPort);
@@ -68,4 +69,3 @@ void loop() {
    conf->update(currTime,relay);
 
 }
-

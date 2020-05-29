@@ -9,7 +9,7 @@ CycleControl::CycleControl (AmbuConfig *conf,
                             GenericSensor *press,
                             GenericSensor *vol,
                             uint8_t relayPin,
-                            HardwareSerial *serial) {
+                            Stream *serial) {
    conf_  = conf;
    press_ = press;
    vol_   = vol;

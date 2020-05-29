@@ -11,7 +11,7 @@ class SensorDlcL20D4 : public GenericSensor {
 
    public:
 
-      SensorDlcL20D4 (HardwareSerial *serial);
+      SensorDlcL20D4 (Stream *serial);
 
       void setup();
 

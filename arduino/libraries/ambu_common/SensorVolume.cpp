@@ -6,7 +6,7 @@
 
 #include <HardwareSerial.h>
 
-SensorVolume::SensorVolume(GenericSensor *flow, HardwareSerial *serial) : GenericSensor(0,serial) {
+SensorVolume::SensorVolume(GenericSensor *flow, Stream *serial) : GenericSensor(0,serial) {
    flow_ = flow;
 }
 

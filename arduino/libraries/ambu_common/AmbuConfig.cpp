@@ -13,7 +13,7 @@ const char *git_version= "unknown";
 const char *git_version=QUOTE(GIT_VERSION);
 #endif
 
-AmbuConfig::AmbuConfig (HardwareSerial *serial) {
+AmbuConfig::AmbuConfig (Stream *serial) {
    memset(rxBuffer_,0,20);
    rxCount_ = 0;
    serial_ = serial;

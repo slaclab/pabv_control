@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <SensorHaf50Slpm.h>
 #include <SensorSp110Sm02.h>
+#include <HardwareSerial.h>
 
 #define SENSOR_PERIOD_MILLIS 9
 #define SerialPort Serial
