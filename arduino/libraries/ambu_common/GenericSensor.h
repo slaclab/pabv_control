@@ -10,9 +10,11 @@ class GenericSensor {
       uint8_t addr_;
       double  scaled_;
 
+      HardwareSerial *serial_;
+
    public:
 
-      GenericSensor (uint8_t addr);
+      GenericSensor (uint8_t addr, HardwareSerial *serial);
 
       virtual void setup();
 

@@ -10,7 +10,7 @@ class SensorSp110Sm02Flow : public SensorSp110Sm02 {
 
    public:
 
-      SensorSp110Sm02Flow ();
+      SensorSp110Sm02Flow (HardwareSerial *serial);
 
       void update(uint32_t ctime);
 

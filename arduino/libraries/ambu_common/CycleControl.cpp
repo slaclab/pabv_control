@@ -8,10 +8,12 @@
 CycleControl::CycleControl (AmbuConfig *conf,
                             GenericSensor *press,
                             GenericSensor *vol,
-                            uint8_t relayPin) {
+                            uint8_t relayPin,
+                            HardwareSerial *serial) {
    conf_  = conf;
    press_ = press;
    vol_   = vol;
+   serial_ = serial;
 
    relayPin_ = relayPin;
 
@@ -138,14 +140,14 @@ void CycleControl::update(uint32_t ctime) {
 }
 
 void CycleControl::sendString() {
-   Serial.print(" ");
-   Serial.print(cycleCount_);
-   Serial.print(" ");
-   Serial.print(status_);
-   Serial.print(" ");
-   Serial.print(prevVmax_);
-   Serial.print(" ");
-   Serial.print(prevPmax_);
+   serial_->print(" ");
+   serial_->print(cycleCount_);
+   serial_->print(" ");
+   serial_->print(status_);
+   serial_->print(" ");
+   serial_->print(prevVmax_);
+   serial_->print(" ");
+   serial_->print(prevPmax_);
 }
 
 

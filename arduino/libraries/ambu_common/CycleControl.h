@@ -40,12 +40,15 @@ class CycleControl {
       double   currPmax_;
       double   prevPmax_;
 
+      HardwareSerial *serial_;
+
    public:
 
       CycleControl (AmbuConfig *conf,
                     GenericSensor *press,
                     GenericSensor *vol,
-                    uint8_t relayPin);
+                    uint8_t relayPin,
+                    HardwareSerial *serial);
 
       void setup();
 

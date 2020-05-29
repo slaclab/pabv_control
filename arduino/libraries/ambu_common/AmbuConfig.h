@@ -55,9 +55,11 @@ class AmbuConfig {
 
       virtual void storeConfig() = 0;
 
+      HardwareSerial *serial_;
+
    public:
 
-      AmbuConfig ();
+      AmbuConfig (HardwareSerial *serial);
 
       virtual void setup();
 

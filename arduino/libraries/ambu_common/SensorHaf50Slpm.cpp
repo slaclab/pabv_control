@@ -6,7 +6,7 @@
 
 #include <HardwareSerial.h>
 
-SensorHaf50Slpm::SensorHaf50Slpm () : GenericSensor(HAF_50SLPM_ADDR) { }
+SensorHaf50Slpm::SensorHaf50Slpm (HardwareSerial *serial) : GenericSensor(HAF_50SLPM_ADDR,serial) { }
 
 
 void SensorHaf50Slpm::update(uint32_t ctime) {

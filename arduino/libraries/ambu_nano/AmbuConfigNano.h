@@ -8,7 +8,7 @@ class AmbuConfigNano : public AmbuConfig {
 
    public:
 
-      AmbuConfigNano ();
+      AmbuConfigNano (HardwareSerial *serial);
 
       virtual void setup();
 
