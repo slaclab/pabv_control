@@ -1,15 +1,12 @@
 #!/usr/bin/env python
+import json
 from  arduino_tools import cli
 c=cli()
-targets=[
-("ambu_control_flow_cal", "arduino:avr:uno" ),
-("ambu_control_superior", "arduino:avr:uno" ),
-("nano_control_superior", "arduino:samd:nano_33_iot"   ),
-("AmBuArduinoGUI", "arduino:mbed:nano33ble" ),
-("MasterSim", "arduino:mbed:nano33ble" ),
-("test_base64", "arduino:mbed:nano33ble" ),
-]
+data=None
+with open('targets.json') as f:
+    data = json.load(f)
 
-for t in targets:
-    c.compile(t[0],t[1])
+
+for t in data:
+    c.compile(t,data[t])
 

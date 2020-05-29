@@ -65,13 +65,8 @@ class cli:
         cmd='compile -b %s --build-properties "compiler.cpp.extra_flags=-DGIT_VERSION=%s" --libraries arduino/libraries -o %s %s' \
             % (board,git_version.tag,_hex,_base)        
         self.call(cmd)
-    def upload(self,com,sketch):
+    def upload(self,com,sketch,board):
         _hex="arduino/%s/%s.hex" % (sketch,sketch)
-        _config="arduino/%s/%s.json" % (sketch,sketch)
-        _data=None
-        with open(_config) as f:
-            _data = json.load(f)
-        board=_data["board"]
         _dir="arduino/%s" % sketch
         cmd="upload -b %s -p %s -i %s %s" %(board,com,_hex,_dir)
         self.call(cmd)
