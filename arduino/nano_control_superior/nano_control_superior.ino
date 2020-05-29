@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <HardwareSerial.h>
 
-#define RELAY_PIN 4
+#define RELAY_PIN 8
 #define SENSOR_PERIOD_MILLIS 9
 //#define SerialPort Serial
 #define SerialPort Serial1
