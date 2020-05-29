@@ -10,7 +10,7 @@ class SensorHaf50Slpm : public GenericSensor {
 
    public:
 
-      SensorHaf50Slpm ();
+      SensorHaf50Slpm (Stream *serial);
 
       void update(uint32_t ctime);
 

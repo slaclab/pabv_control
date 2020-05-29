@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 
-AmbuConfigNano::AmbuConfigNano() : AmbuConfig () { }
+AmbuConfigNano::AmbuConfigNano(Stream *serial) : AmbuConfig (serial) { }
 
 void AmbuConfigNano::setup() {
 

@@ -3,6 +3,7 @@
 #define __RELAY_CONTROL_H__
 
 #include <Arduino.h>
+#include <HardwareSerial.h>
 
 #define RELAY_ON  HIGH
 #define RELAY_OFF LOW
@@ -40,12 +41,15 @@ class CycleControl {
       double   currPmax_;
       double   prevPmax_;
 
+      Stream *serial_;
+
    public:
 
       CycleControl (AmbuConfig *conf,
                     GenericSensor *press,
                     GenericSensor *vol,
-                    uint8_t relayPin);
+                    uint8_t relayPin,
+                    Stream *serial);
 
       void setup();
 

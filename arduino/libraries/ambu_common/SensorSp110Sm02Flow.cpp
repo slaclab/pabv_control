@@ -6,7 +6,7 @@
 
 #include <HardwareSerial.h>
 
-SensorSp110Sm02Flow::SensorSp110Sm02Flow() : SensorSp110Sm02() {}
+SensorSp110Sm02Flow::SensorSp110Sm02Flow(Stream *serial) : SensorSp110Sm02(serial) {}
 
 void SensorSp110Sm02Flow::update(uint32_t ctime) {
    SensorSp110Sm02::update(ctime);

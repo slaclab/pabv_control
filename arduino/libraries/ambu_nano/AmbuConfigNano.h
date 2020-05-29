@@ -8,7 +8,7 @@ class AmbuConfigNano : public AmbuConfig {
 
    public:
 
-      AmbuConfigNano ();
+      AmbuConfigNano (Stream *serial);
 
       virtual void setup();
 

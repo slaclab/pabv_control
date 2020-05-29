@@ -6,29 +6,33 @@
 #include <SensorSp110Sm02Flow.h>
 #include <SensorVolume.h>
 #include <stdint.h>
+#include <HardwareSerial.h>
 
-#define RELAY_PIN 4
+#define RELAY_PIN 8
 #define SENSOR_PERIOD_MILLIS 9
+//#define SerialPort Serial
+#define SerialPort Serial1
 
-AmbuConfigNano      * conf  = new AmbuConfigNano();
-SensorDlcL20D4      * press = new SensorDlcL20D4();
-SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow();
-SensorVolume        * vol   = new SensorVolume(flow);
-CycleControl        * relay = new CycleControl(conf,press,vol,RELAY_PIN);
+AmbuConfigNano      * conf  = new AmbuConfigNano(&SerialPort);
+SensorDlcL20D4      * press = new SensorDlcL20D4(&SerialPort);
+SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow(&SerialPort);
+SensorVolume        * vol   = new SensorVolume(flow,&SerialPort);
+CycleControl        * relay = new CycleControl(conf,press,vol,RELAY_PIN,&SerialPort);
 
 uint32_t sensorTime;
 
 void setup() {
 
-   Serial.begin(57600);
-   Serial.print("DEBUG Booted\n");
+   SerialPort.begin(57600);
+   SerialPort.begin(57600);
+   SerialPort.print("DEBUG Booted\n");
 
    Wire.begin();
 
    relay->setup();
 
    // Wait 5 seconds for pressure to settle
-   Serial.print("DEBUG Wait 5 seconds\n");
+   SerialPort.print("DEBUG Wait 5 seconds\n");
    delay(5000);
 
    conf->setup();
@@ -37,7 +41,7 @@ void setup() {
    vol->setup();
 
    sensorTime = millis();
-   Serial.print("DEBUG setup done\n");
+   SerialPort.print("DEBUG setup done\n");
 }
 
 void loop() {
@@ -51,13 +55,13 @@ void loop() {
       flow->update(currTime);
       vol->update(currTime);
       // Generate serial output
-      Serial.print("STATUS ");
-      Serial.print(currTime);
+      SerialPort.print("STATUS ");
+      SerialPort.print(currTime);
       relay->sendString();
       press->sendString();
       flow->sendString();
       vol->sendString();
-      Serial.print("\n");
+      SerialPort.print("\n");
       sensorTime = currTime;
    }
 
@@ -65,4 +69,3 @@ void loop() {
    conf->update(currTime,relay);
 
 }
-

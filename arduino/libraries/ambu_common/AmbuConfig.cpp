@@ -13,9 +13,10 @@ const char *git_version= "unknown";
 const char *git_version=QUOTE(GIT_VERSION);
 #endif
 
-AmbuConfig::AmbuConfig () {
+AmbuConfig::AmbuConfig (Stream *serial) {
    memset(rxBuffer_,0,20);
    rxCount_ = 0;
+   serial_ = serial;
 }
 
 void AmbuConfig::setup () {
@@ -43,10 +44,10 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
    sendConfig = false;
 
    // Get serial data
-   while (Serial.available()) {
+   while (serial_->available()) {
       if ( rxCount_ >= 190) rxCount_ = 0;
 
-      c = Serial.read();
+      c = serial_->read();
       rxBuffer_[rxCount_++] = c;
       rxBuffer_[rxCount_] = '\0';
    }
@@ -123,29 +124,29 @@ void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
    if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;
 
    if (sendConfig) {
-       Serial.print("VERSION ");
-       Serial.print(git_version);
-       Serial.print("\n");
-       Serial.print("CONFIG ");
-       Serial.print(conf_.respRate,4);
-       Serial.print(" ");
-       Serial.print(conf_.inhTime,4);
-       Serial.print(" ");
-       Serial.print(conf_.pipMax,4);
-       Serial.print(" ");
-       Serial.print(conf_.pipOffset,4);
-       Serial.print(" ");
-       Serial.print(conf_.volMax,4);
-       Serial.print(" ");
-       Serial.print(conf_.volOffset,4);
-       Serial.print(" ");
-       Serial.print(conf_.volInThold,4);
-       Serial.print(" ");
-       Serial.print(conf_.peepMin,4);
-       Serial.print(" ");
-       Serial.print(conf_.runState);
-       Serial.print(" ");
-       Serial.print("\n");
+       serial_->print("VERSION ");
+       serial_->print(git_version);
+       serial_->print("\n");
+       serial_->print("CONFIG ");
+       serial_->print(conf_.respRate,4);
+       serial_->print(" ");
+       serial_->print(conf_.inhTime,4);
+       serial_->print(" ");
+       serial_->print(conf_.pipMax,4);
+       serial_->print(" ");
+       serial_->print(conf_.pipOffset,4);
+       serial_->print(" ");
+       serial_->print(conf_.volMax,4);
+       serial_->print(" ");
+       serial_->print(conf_.volOffset,4);
+       serial_->print(" ");
+       serial_->print(conf_.volInThold,4);
+       serial_->print(" ");
+       serial_->print(conf_.peepMin,4);
+       serial_->print(" ");
+       serial_->print(conf_.runState);
+       serial_->print(" ");
+       serial_->print("\n");
        confTime_ = ctime;
    }
 }

@@ -5,6 +5,7 @@
 #define CONFIG_MILLIS 1000
 
 #include <stdint.h>
+#include <HardwareSerial.h>
 
 class CycleControl;
 
@@ -55,9 +56,11 @@ class AmbuConfig {
 
       virtual void storeConfig() = 0;
 
+      Stream *serial_;
+
    public:
 
-      AmbuConfig ();
+      AmbuConfig (Stream *serial);
 
       virtual void setup();
 
