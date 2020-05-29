@@ -2,7 +2,11 @@
 
 #include <GUI.h>
 #include <Comm.h>
-Comm displayComm(5,6);
+#ifdef ARDUINO_ARCH_MBED
+UART uart(digitalPinToPinName(5), digitalPinToPinName(6), NC,NC);
+#endif
+
+Comm displayComm(uart);
 float parms[nParam]={0.f};
 
 GUI_value gui_value[nParam]={

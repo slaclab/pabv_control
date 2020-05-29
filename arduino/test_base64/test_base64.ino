@@ -1,5 +1,9 @@
 #include <Arduino.h>
 #include <Message.h>
+#include <Comm.h>
+Comm comm(Serial);
+
+
 void setup() {
  
   Serial.begin(57600);
@@ -11,8 +15,8 @@ void loop() {
      uint32_t uints[3]={ 1,2,3};
      Message m;
      m.writeData(Message::DATA,cycle,5,floats,2,uints);
-     Serial.print(m.getBuffer());
+     comm.send(m);
      m.writeString(Message::VERSION,cycle,"Hello World");
-     Serial.print(m.getBuffer());
+     comm.send(m);
      delay(1000);          
 }

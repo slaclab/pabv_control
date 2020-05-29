@@ -7,20 +7,24 @@
 #else
 #include <HardwareSerial.h>
 #endif
+//#ifdef ARDUINO_ARCH_MBED
+//using SerialType=UART;
+//#elif ARDUINO_ARCH_SAMD
+//using SerialType=Uart;
+//#else
+using SerialType=HardwareSerial;
+//#endif
+
+
+
 class Comm {
  public:
-  Comm(uint8_t rx,uint8_t tx);
-
+  Comm(SerialType &s);
   void begin(uint32_t baud);
   void read(Message &msg);
   void send(const Message &msg);
-#ifdef ARDUINO_ARCH_MBED
-  UART ser;  
-#elif ARDUINO_ARCH_SAMD
-  static Uart ser;
-#else
-  HardwareSerial &ser;
-#endif
+  SerialType &ser;
+
  private:
 char rxBuffer[256];
 uint16_t rxCount;
