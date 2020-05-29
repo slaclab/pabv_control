@@ -2,28 +2,17 @@
 #define _COMM_H_
 #include <Arduino.h>
 #include <Message.h>
-#ifdef ARDUINO_ARCH_MBED
-#elif  ARDUINO_ARCH_SAMD
-#else
-#include <HardwareSerial.h>
-#endif
-//#ifdef ARDUINO_ARCH_MBED
-//using SerialType=UART;
-//#elif ARDUINO_ARCH_SAMD
-//using SerialType=Uart;
-//#else
-using SerialType=HardwareSerial;
-//#endif
+
 
 
 
 class Comm {
  public:
-  Comm(SerialType &s);
+  Comm(Stream &s);
   void begin(uint32_t baud);
   void read(Message &msg);
   void send(const Message &msg);
-  SerialType &ser;
+  Stream &ser;
 
  private:
 char rxBuffer[256];

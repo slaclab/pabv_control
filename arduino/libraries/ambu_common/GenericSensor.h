@@ -2,6 +2,7 @@
 #define __GENERIC_SENSOR_H__
 
 #include <stdint.h>
+#include <Arduino.h>
 #include <HardwareSerial.h>
 
 class GenericSensor {

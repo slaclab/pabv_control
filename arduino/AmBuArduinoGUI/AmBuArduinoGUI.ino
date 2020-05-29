@@ -152,7 +152,7 @@ double get_rand(double rmin, double rmax){
 void setup() {
   asm(".global _printf_float");
   asm(".global _scanf_float");
-  masterComm.begin(9600);
+  uart.begin(9600);
 
   Serial.begin(9600);
   Serial.print("startup\n");

@@ -98,7 +98,7 @@ void setup() {
   asm(".global _printf_float");
   asm(".global _scanf_float");
   Serial.begin(9600);
-  displayComm.begin(9600);
+  uart.begin(9600);
   for(unsigned i=0;i<nParam;i++) 
     parms[i]=gui_value[i].dval;
 }

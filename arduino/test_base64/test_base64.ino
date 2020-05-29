@@ -6,7 +6,7 @@ Comm comm(Serial1);
 
 void setup() {
  
-  comm.begin(57600);
+  Serial1.begin(57600);
 }
  
 void loop() {

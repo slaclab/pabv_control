@@ -2,7 +2,7 @@
 #define _MESSAGE_H_
 
 #include <stdint.h>
-#include <Base64.h>
+
 class Message {
  public: 
   Message();
