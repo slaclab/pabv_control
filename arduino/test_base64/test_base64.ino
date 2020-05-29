@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include <Message.h>
 #include <Comm.h>
-Comm comm(Serial);
+Comm comm(Serial1);
 
 
 void setup() {
  
-  Serial.begin(57600);
+  comm.begin(57600);
 }
  
 void loop() {
