@@ -6,6 +6,7 @@ Comm comm(Serial1);
 
 void setup() {
  
+  Serial.begin(57600);
   Serial1.begin(57600);
 }
  
@@ -18,5 +19,9 @@ void loop() {
      comm.send(m);
      m.writeString(Message::VERSION,cycle,"Hello World");
      comm.send(m);
+     comm.read(m);
+     Serial.println(m.nFloat());
+     Serial.println(m.getString());
+     Serial.println(m.status());
      delay(1000);          
 }

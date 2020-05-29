@@ -31,6 +31,7 @@ class Message {
   uint8_t status() const {return _status;}
   void getFloat(float *f) {for (unsigned i=0;i<_nFloat;i++) f[i]=_tempFloat[i]; }
   void getInt(uint32_t *d)  {for (unsigned i=0;i<_nInt;i++) d[i]=_tempInt[i];   }
+  const char *getString() const { return _tempStr; }
  private:
   uint16_t  _fletcher16(const uint8_t *data,uint8_t len);
   template <typename T> inline void _write(T value,uint8_t &index);

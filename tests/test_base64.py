@@ -23,8 +23,16 @@ while(True):
            m.decode(l)        
            print(m.string)
            print(m.floatData)
+           m=message.Message()
+           data=m.writeData(0xc1,0,(3.4,2.3),(1,2))
+           ser.write(data)
+           data=m.writeString(0xc8,0,b"Hello")
+           ser.write(data)
+           #m_send=message.Message(0xc8,"test")
+           #ser.write(m_send)
+
         l=''
-           
+    
 
         
 
