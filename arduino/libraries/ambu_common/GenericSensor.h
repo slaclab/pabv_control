@@ -2,6 +2,7 @@
 #define __GENERIC_SENSOR_H__
 
 #include <stdint.h>
+#include <HardwareSerial.h>
 
 class GenericSensor {
 
@@ -10,9 +11,11 @@ class GenericSensor {
       uint8_t addr_;
       double  scaled_;
 
+      Stream *serial_;
+
    public:
 
-      GenericSensor (uint8_t addr);
+      GenericSensor (uint8_t addr, Stream *serial);
 
       virtual void setup();
 

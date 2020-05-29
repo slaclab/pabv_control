@@ -2,31 +2,34 @@
 #include <Wire.h>
 #include <SensorHaf50Slpm.h>
 #include <SensorSp110Sm02.h>
+#include <HardwareSerial.h>
 
 #define SENSOR_PERIOD_MILLIS 9
+#define SerialPort Serial
+//#define SerialPort Serial1
 
-SensorHaf50Slpm * ref  = new SensorHaf50Slpm();
-SensorSp110Sm02 * flow = new SensorSp110Sm02();
+SensorHaf50Slpm * ref  = new SensorHaf50Slpm(&SerialPort);
+SensorSp110Sm02 * flow = new SensorSp110Sm02(&SerialPort);
 
 uint32_t sensorTime;
 uint32_t cycleCount;
 
 void setup() {
 
-   Serial.begin(57600);
-   Serial.print("DEBUG Booted\n");
+   SerialPort.begin(57600);
+   SerialPort.print("DEBUG Booted\n");
 
    Wire.begin();
 
    // Wait 5 seconds for pressure to settle
-   Serial.print("DEBUG Wait 5 seconds\n");
+   SerialPort.print("DEBUG Wait 5 seconds\n");
    delay(5000);
 
    ref->setup();
    flow->setup();
 
    sensorTime = millis();
-   Serial.print("DEBUG setup done\n");
+   SerialPort.print("DEBUG setup done\n");
 
    cycleCount = 0;
 }
@@ -43,11 +46,13 @@ void loop() {
       flow->update(currTime);
 
       // Generate serial output
-      Serial.print("STATUS ");
-      Serial.print(cycleCount / 100);
+      SerialPort.print("STATUS ");
+      SerialPort.print(currTime);
+      SerialPort.print(cycleCount / 100);
+      SerialPort.print(" 0 0 0"); // alarm, volmax, pip max
       ref->sendString();
       flow->sendString();
-      Serial.print(" 0\n");
+      SerialPort.print(" 0\n"); // volume
       sensorTime = currTime;
       cycleCount += 1;
    }

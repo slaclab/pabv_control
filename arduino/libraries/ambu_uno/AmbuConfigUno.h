@@ -8,7 +8,7 @@ class AmbuConfigUno : public AmbuConfig {
 
    public:
 
-      AmbuConfigUno ();
+      AmbuConfigUno (Stream *serial);
 
       virtual void setup();
 

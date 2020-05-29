@@ -5,7 +5,7 @@
 
 #include <HardwareSerial.h>
 
-SensorDlcL20D4::SensorDlcL20D4 () : GenericSensor(DLC_L20D4_ADDR) { }
+SensorDlcL20D4::SensorDlcL20D4 (Stream *serial) : GenericSensor(DLC_L20D4_ADDR,serial) { }
 
 void SensorDlcL20D4::setup() {
 
