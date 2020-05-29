@@ -4,9 +4,11 @@
 #include "Adafruit_ILI9341.h"
 #include "GUI.h"
 #include "Comm.h"
+#ifdef ARDUINO_ARCH_MBED
+UART uart(digitalPinToPinName(5), digitalPinToPinName(6), NC,NC);
+#endif
 
-
-Comm masterComm;
+Comm masterComm(uart);
 
 #define SPI_DEFAULT_FREQ 20000000
 
@@ -150,7 +152,7 @@ double get_rand(double rmin, double rmax){
 void setup() {
   asm(".global _printf_float");
   asm(".global _scanf_float");
-  masterComm.begin();
+  uart.begin(9600);
 
   Serial.begin(9600);
   Serial.print("startup\n");
@@ -266,10 +268,15 @@ void loop() {
   // Update sensor parameters at nominal 1Hz
   if ( (curTime - measTime) > 1000 ){
     // Take a sudo measurments of PEEP/PIP/Vol
-   
+    Message msg;
+     masterComm.read(msg);
+     int n=msg.nFloat();
+     Serial.println(msg.status());
+     if(msg.nFloat()==3) {
+       msg.getFloat(parms);
+     }
     update_display();
     measTime=curTime;
   }
-  masterComm.read(parms);
-  
+   
 }

@@ -5,6 +5,7 @@
 #define CONFIG_MILLIS 1000
 
 #include <stdint.h>
+#include <Arduino.h>
 #include <HardwareSerial.h>
 
 class CycleControl;

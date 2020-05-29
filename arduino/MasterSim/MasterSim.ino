@@ -2,7 +2,11 @@
 
 #include <GUI.h>
 #include <Comm.h>
-Comm displayComm;
+#ifdef ARDUINO_ARCH_MBED
+UART uart(digitalPinToPinName(5), digitalPinToPinName(6), NC,NC);
+#endif
+
+Comm displayComm(uart);
 float parms[nParam]={0.f};
 
 GUI_value gui_value[nParam]={
@@ -94,7 +98,7 @@ void setup() {
   asm(".global _printf_float");
   asm(".global _scanf_float");
   Serial.begin(9600);
-  displayComm.begin();
+  uart.begin(9600);
   for(unsigned i=0;i<nParam;i++) 
     parms[i]=gui_value[i].dval;
 }
@@ -115,7 +119,10 @@ void loop() {
     for(unsigned i=0;i<3;i++) {
       parms[i]=get_rand(gui_value[i].min, gui_value[i].max);
     }       
-    displayComm.send(parms);
+    Message msg;
+    msg.writeData(Message::DATA,curTime,3,parms,0,0);
+    Serial.print(msg.getBuffer());
+    displayComm.send(msg);
     measTime=curTime;
   }
 }
