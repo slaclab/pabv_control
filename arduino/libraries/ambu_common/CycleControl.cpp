@@ -8,14 +8,16 @@
 CycleControl::CycleControl (AmbuConfig *conf,
                             GenericSensor *press,
                             GenericSensor *vol,
-                            uint8_t relayPin,
+                            uint8_t relayAPin,
+                            uint8_t relayBPin,
                             Stream *serial) {
    conf_  = conf;
    press_ = press;
    vol_   = vol;
    serial_ = serial;
 
-   relayPin_ = relayPin;
+   relayAPin_ = relayAPin;
+   relayBPin_ = relayBPin;
 
    stateTime_ = 0;
    cycleCount_ = 0;
@@ -28,8 +30,10 @@ void CycleControl::setup() {
    state_ = StateOff;
    status_ = 0;
 
-   pinMode(relayPin_, OUTPUT);
-   digitalWrite(relayPin_, RELAY_OFF);
+   pinMode(relayAPin_, OUTPUT);
+   pinMode(relayBPin_, OUTPUT);
+   digitalWrite(relayAPin_, RELAY_OFF);
+   digitalWrite(relayBPin_, RELAY_OFF);
 
    currVmax_ = 0;
    prevVmax_ = 0;
@@ -68,7 +72,7 @@ void CycleControl::update(uint32_t ctime) {
    }
 
    // On portion of the cycle
-   else {
+   else if ( state_ == StateOn ) {
 
       // Pressure triggers only valid when run is enabled
       if (conf_->getRunState() == conf_->StateRunOn) {
@@ -76,20 +80,25 @@ void CycleControl::update(uint32_t ctime) {
          // Turn off pressure threshold exceeded
          if ( press_->scaledValue() > conf_->getAdjPipMax() )  {
             status_ |= StatusAlarmPipMax;
-            newState = StateOff;
+            newState = StateHold;
          }
 
          // Turn off volume threshold exceeded
          if ( vol_->scaledValue() > conf_->getAdjVolMax() ) {
             status_ |= StatusAlarmVolMax;
-            newState = StateOff;
+            newState = StateHold;
          }
       }
 
       // On timer has been reached
-      if ((ctime - stateTime_) > conf_->getOnTimeMillis()) {
-         newState = StateOff;
-      }
+      if ((ctime - stateTime_) > conf_->getOnTimeMillis()) newState = StateOff;
+   }
+
+   // Hold
+   else {
+
+      // On timer has been reached
+      if ((ctime - stateTime_) > conf_->getOnTimeMillis()) newState = StateOff;
    }
 
    // State change
@@ -97,6 +106,7 @@ void CycleControl::update(uint32_t ctime) {
 
       // Start of a new cycle
       if ( newState == StateOn ) {
+         stateTime_ = ctime;
          vol_->reset(ctime);
 
          // Clear counters
@@ -109,33 +119,48 @@ void CycleControl::update(uint32_t ctime) {
          cycleCount_++;
       }
 
-      stateTime_ = ctime;
+      // Going to off
+      else if ( newState == StateOff ) {
+         stateTime_ = ctime;
+      }
+
       state_ = newState;
    }
 
-   // Currently relay forced off
+   // Currently forced off, paddle up
    if ( conf_->getRunState() == conf_->StateForceOff ) {
-      digitalWrite(relayPin_, RELAY_OFF);
+      digitalWrite(relayAPin_, RELAY_OFF);
+      digitalWrite(relayBPin_, RELAY_ON);
    }
 
-   // Currently relay forced on
+   // Currently orced on, paddle down
    else if ( conf_->getRunState() == conf_->StateForceOn ) {
-      digitalWrite(relayPin_, RELAY_ON);
+      digitalWrite(relayAPin_, RELAY_ON);
+      digitalWrite(relayBPin_, RELAY_ON);
    }
 
-   // Currently turned off
+   // Currently off, paddle up
    else if ( conf_->getRunState() == conf_->StateRunOff ) {
-      digitalWrite(relayPin_, RELAY_OFF);
+      digitalWrite(relayAPin_, RELAY_OFF);
+      digitalWrite(relayBPin_, RELAY_ON);
    }
 
-   // On state
+   // On state, paddle down
    else if ( state_ == StateOn ) {
-      digitalWrite(relayPin_, RELAY_ON);
+      digitalWrite(relayAPin_, RELAY_ON);
+      digitalWrite(relayBPin_, RELAY_OFF);
    }
 
-   // Off state
+   // Off state, paddle up
+   else if ( state_ == StateOn ) {
+      digitalWrite(relayAPin_, RELAY_OFF);
+      digitalWrite(relayBPin_, RELAY_ON);
+   }
+
+   // Hold state
    else {
-      digitalWrite(relayPin_, RELAY_OFF);
+      digitalWrite(relayAPin_, RELAY_OFF);
+      digitalWrite(relayBPin_, RELAY_OFF);
    }
 }
 
