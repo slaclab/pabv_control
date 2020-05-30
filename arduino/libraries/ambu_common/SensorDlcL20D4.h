@@ -11,11 +11,11 @@ class SensorDlcL20D4 : public GenericSensor {
 
    public:
 
-      SensorDlcL20D4 ();
+      SensorDlcL20D4 (Stream *serial);
 
       void setup();
 
-      void update(unsigned int ctime);
+      void update(uint32_t ctime);
 
 };
 

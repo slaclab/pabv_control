@@ -1,36 +1,37 @@
 
 #include <Wire.h>
-#include <AmbuConfig.h>
-#include <RelayControl.h>
+#include <AmbuConfigUno.h>
+#include <CycleControl.h>
 #include <SensorDlcL20D4.h>
 #include <SensorSp110Sm02Flow.h>
 #include <SensorVolume.h>
 #include <stdint.h>
+#include <HardwareSerial.h>
 
 #define RELAY_PIN 4
 #define SENSOR_PERIOD_MILLIS 9
+#define SerialPort Serial
+//#define SerialPort Serial1
 
-AmbuConfig          * conf  = new AmbuConfig();
-SensorDlcL20D4      * press = new SensorDlcL20D4();
-SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow();
-SensorVolume        * vol   = new SensorVolume(flow);
-RelayControl        * relay = new RelayControl(conf,press,vol,RELAY_PIN);
+AmbuConfigUno       * conf  = new AmbuConfigUno(&SerialPort);
+SensorDlcL20D4      * press = new SensorDlcL20D4(&SerialPort);
+SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow(&SerialPort);
+SensorVolume        * vol   = new SensorVolume(flow,&SerialPort);
+CycleControl        * relay = new CycleControl(conf,press,vol,RELAY_PIN,&SerialPort);
 
 uint32_t sensorTime;
-uint32_t currTime;
-
 
 void setup() {
 
-   Serial.begin(57600);
-   Serial.print("DEBUG Booted\n");
+   SerialPort.begin(57600);
+   SerialPort.print("DEBUG Booted\n");
 
    Wire.begin();
 
    relay->setup();
 
    // Wait 5 seconds for pressure to settle
-   Serial.print("DEBUG Wait 5 seconds\n");
+   SerialPort.print("DEBUG Wait 5 seconds\n");
    delay(5000);
 
    conf->setup();
@@ -39,10 +40,11 @@ void setup() {
    vol->setup();
 
    sensorTime = millis();
-   Serial.print("DEBUG setup done\n");
+   SerialPort.print("DEBUG setup done\n");
 }
 
 void loop() {
+   uint32_t currTime;
 
    currTime = millis();
 
@@ -52,18 +54,18 @@ void loop() {
       flow->update(currTime);
       vol->update(currTime);
       // Generate serial output
-      Serial.print("STATUS ");
-      Serial.print(currTime);
+      SerialPort.print("STATUS ");
+      SerialPort.print(currTime);
       relay->sendString();
       press->sendString();
       flow->sendString();
       vol->sendString();
-      Serial.print("\n");
+      SerialPort.print("\n");
       sensorTime = currTime;
    }
 
    relay->update(currTime);
-   conf->update(currTime);
+   conf->update(currTime,relay);
 
 }
 

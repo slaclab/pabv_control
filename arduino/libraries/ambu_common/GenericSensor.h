@@ -1,26 +1,28 @@
-
 #ifndef __GENERIC_SENSOR_H__
 #define __GENERIC_SENSOR_H__
+
+#include <stdint.h>
+#include <Arduino.h>
+#include <HardwareSerial.h>
 
 class GenericSensor {
 
    protected:
 
-      unsigned char addr_;
-      unsigned char data_[10];
-      unsigned int x_;
-      double raw_;
-      double scaled_;
+      uint8_t addr_;
+      double  scaled_;
+
+      Stream *serial_;
 
    public:
 
-      GenericSensor (unsigned char addr);
+      GenericSensor (uint8_t addr, Stream *serial);
 
       virtual void setup();
 
-      virtual void update(unsigned int ctime);
+      virtual void update(uint32_t ctime);
 
-      virtual void reset(unsigned int ctime);
+      virtual void reset(uint32_t ctime);
 
       void sendString();
 

@@ -1,5 +1,7 @@
 *~
+\#*
 *.hex
+*.bin
 *.elf
 bin/
 data/
@@ -8,4 +10,5 @@ dist/
 __pycache__/
 .cache/
 arduino/libraries/ambu_common/version.h
-client_version.py
+python_client/version.py
+*.pyc

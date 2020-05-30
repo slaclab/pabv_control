@@ -7,12 +7,12 @@ import platform
 import subprocess
 import glob
 import sys
+import json
+sys.path.insert(0,"python_client")
+import git_version
 
 class cli:
-    def __init__(self,board):
-        self.board=board
-        avr=board.split(":")
-        self.avr="%s:%s"%(avr[0],avr[1])
+    def __init__(self):
         self.__exe__= {
             "Windows-64bit": ".exe",
             "Windows-32bit": ".exe",
@@ -31,10 +31,11 @@ class cli:
     def call(self,command):
         cmd=[ 'bin/arduino-cli'+self.__exe__[self.target] ,'--config-file','etc/arduino-cli.yaml' ]
         cmd=cmd+command.split(" ")
+        print(*cmd)
         process = subprocess.run(cmd,
                                    stdout=sys.stdout, stderr=sys.stderr)
 
-    def install(self):
+    def install(self,platform):
         destdir="bin"
         datadir="data"
         try:
@@ -52,19 +53,22 @@ class cli:
             zipfile.extractall(path=destdir)
         self.call("cache clean")
         self.call("core update-index")
-        self.call("core install "+self.avr)
+        for p in platform:            
+            self.call("core install "+p)
 
-    def compile(self):
+
+    def compile(self,sketch,board):
         label = subprocess.check_output(["git", "describe","--tags"]).strip()
-        dirs=glob.glob("arduino/ambu*")
-        for d in dirs:
-            bn=os.path.basename(d)
-            cmd="compile -b %s --libraries arduino/libraries -o %s/%s.hex %s" % (self.board,d,bn,d)
-            self.call(cmd)
-    def upload(self,com,sketch):
-        hex="arduino/%s/%s.hex" % (sketch,sketch)
-        dir="arduino/%s" % sketch
-        cmd="upload -b %s -p %s -i %s %s" %(self.board,com,hex,dir)
+        _base='arduino/'+sketch
+        _config=_base+'/'+sketch+'.json'
+        _hex=_base+'/'+sketch+'.hex'
+        cmd='compile -b %s --build-properties "compiler.cpp.extra_flags=-DGIT_VERSION=%s" --libraries arduino/libraries -o %s %s' \
+            % (board,git_version.tag,_hex,_base)        
+        self.call(cmd)
+    def upload(self,com,sketch,board):
+        _hex="arduino/%s/%s.hex" % (sketch,sketch)
+        _dir="arduino/%s" % sketch
+        cmd="upload -b %s -p %s -i %s %s" %(board,com,_hex,_dir)
         self.call(cmd)
     def list(self):
         self.call("board list")

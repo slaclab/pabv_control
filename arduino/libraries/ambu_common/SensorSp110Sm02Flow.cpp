@@ -6,15 +6,17 @@
 
 #include <HardwareSerial.h>
 
-SensorSp110Sm02Flow::SensorSp110Sm02Flow() : SensorSp110Sm02() {}
+SensorSp110Sm02Flow::SensorSp110Sm02Flow(Stream *serial) : SensorSp110Sm02(serial) {}
 
-void SensorSp110Sm02Flow::update(unsigned int ctime) {
+void SensorSp110Sm02Flow::update(uint32_t ctime) {
    SensorSp110Sm02::update(ctime);
 
-   if ( scaled_ < 0 ) sign_ = -1.0;
-   else sign_ = 1.0;
+   double sign;
 
-   scaled_ = sign_ * FLOW_BETA * sqrt(abs(scaled_));
+   if ( scaled_ < 0 ) sign = -1.0;
+   else sign = 1.0;
+
+   scaled_ = sign * FLOW_BETA * sqrt(abs(scaled_));
 
 }
 

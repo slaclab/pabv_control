@@ -4,63 +4,96 @@
 
 #define CONFIG_MILLIS 1000
 
-class AmbuConfig {
+#include <stdint.h>
+#include <Arduino.h>
+#include <HardwareSerial.h>
 
+class CycleControl;
+
+class AmbuParameters {
+   public:
+      double respRate;
+      double inhTime;
+      double pipMax;
+      double pipOffset;
+      double volMax;
+      double volOffset;
+      double volInThold;
+      double peepMin;
+
+      uint8_t runState;
+};
+
+class AmbuConfig {
    public:
 
-      const unsigned int StateForceOff = 0;
-      const unsigned int StateForceOn  = 1;
-      const unsigned int StateRunOff   = 2;
-      const unsigned int StateRunOn    = 3;
+      // Run states
+      static const uint8_t StateForceOff = 0;
+      static const uint8_t StateForceOn  = 1;
+      static const uint8_t StateRunOff   = 2;
+      static const uint8_t StateRunOn    = 3;
 
-   private:
+      // Set parameter Constants
+      static const uint8_t GetConfig     = 0;
+      static const uint8_t SetRespRate   = 1;
+      static const uint8_t SetInhTime    = 2;
+      static const uint8_t SetPipMax     = 3;
+      static const uint8_t SetPipOffset  = 4;
+      static const uint8_t SetVolMax     = 5;
+      static const uint8_t SetVolOffset  = 6;
+      static const uint8_t SetVolInThold = 7;
+      static const uint8_t SetPeepMin    = 8;
+      static const uint8_t SetRunState   = 9;
+      static const uint8_t ClearAlarm    = 10;
+
+   protected:
 
       char rxBuffer_[100];
-      char mark_[10];
+      uint16_t rxCount_;
 
-      unsigned int rxCount_;
-      unsigned int addr_;
+      uint32_t confTime_;
 
-      int ret_;
-      char c_;
+      AmbuParameters conf_;
 
-      unsigned int confTime_;
-      unsigned int period_;
-      unsigned int onTime_;
-      unsigned int runState_;
+      virtual void storeConfig() = 0;
 
-      double startThold_;
-      double stopThold_;
-      double volThold_;
-
-      char scanPeriod_[10];
-      char scanOn_[10];
-      char scanRun_[10];
-      char scanStartThold_[10];
-      char scanStopThold_[10];
-      char scanVolThold_[10];
-
-      void storeConfig();
+      Stream *serial_;
 
    public:
 
-      AmbuConfig ();
+      AmbuConfig (Stream *serial);
 
       virtual void setup();
 
-      virtual void update(unsigned int ctime);
+      void update(uint32_t ctime, CycleControl *cycle);
 
-      unsigned int getPeriod();
+      // Set/Get Parameters
+      double getRespRate();
+      void setRespRate(double value);
 
-      unsigned int getOnTime();
+      double getInhTime();
+      void setInhTime(double value);
 
-      double getStartThold();
+      double getPipMax();
+      void setPipMax(double value);
 
-      double getStopThold();
+      double getVolMax();
+      void setGetVolMax(double value);
 
-      double getVolThold();
+      double getVolInThold();
+      void setVolInThold(double value);
 
-      unsigned int getRunState();
+      double setPeepMin();
+      void setPeepMin(double value);
+
+      uint8_t getRunState();
+      void setRunState(uint8_t value);
+
+      // Unused only by internal engine
+      uint32_t getOffTimeMillis();
+      uint32_t getOnTimeMillis();
+      double   getAdjVolMax();
+      double   getAdjPipMax();
 
 };
 

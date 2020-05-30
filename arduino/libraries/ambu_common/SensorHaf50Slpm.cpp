@@ -6,19 +6,22 @@
 
 #include <HardwareSerial.h>
 
-SensorHaf50Slpm::SensorHaf50Slpm () : GenericSensor(HAF_50SLPM_ADDR) { }
+SensorHaf50Slpm::SensorHaf50Slpm (Stream *serial) : GenericSensor(HAF_50SLPM_ADDR,serial) { }
 
 
-void SensorHaf50Slpm::update(unsigned int ctime) {
+void SensorHaf50Slpm::update(uint32_t ctime) {
+   uint8_t data[2];
+   uint16_t x;
+   double raw;
 
    // Read value
    Wire.requestFrom(addr_, byte(2));
-   for (x_=0; x_ < 2; x_++) data_[x_] = Wire.read();
+   for (x=0; x < 2; x++) data[x] = Wire.read();
 
-   raw_ = (double)((data_[0] << 8) | data_[1]);
+   raw = (double)((data[0] << 8) | data[1]);
 
    // Scaled value
-   scaled_ = 50.0 * (((raw_ / 16384.0) - 0.1) / 0.8);
+   scaled_ = 50.0 * (((raw / 16384.0) - 0.1) / 0.8);
 }
 
 

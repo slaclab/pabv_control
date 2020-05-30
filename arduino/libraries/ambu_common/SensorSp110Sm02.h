@@ -13,11 +13,11 @@ class SensorSp110Sm02 : public GenericSensor {
 
    public:
 
-      SensorSp110Sm02 ();
+      SensorSp110Sm02 (Stream *serial);
 
       void setup();
 
-      virtual void update(unsigned int ctime);
+      virtual void update(uint32_t ctime);
 
 };
 
