@@ -152,7 +152,7 @@ void CycleControl::update(uint32_t ctime) {
    }
 
    // Off state, paddle up
-   else if ( state_ == StateOn ) {
+   else if ( state_ == StateOff ) {
       digitalWrite(relayAPin_, RELAY_OFF);
       digitalWrite(relayBPin_, RELAY_ON);
    }
