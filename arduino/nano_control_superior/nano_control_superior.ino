@@ -7,41 +7,69 @@
 #include <SensorVolume.h>
 #include <stdint.h>
 #include <HardwareSerial.h>
+#include <Comm.h>
 
 #define RELAY_PIN 8
 #define SENSOR_PERIOD_MILLIS 9
 //#define SerialPort Serial
 #define SerialPort Serial1
 
-AmbuConfigNano      * conf  = new AmbuConfigNano(&SerialPort);
-SensorDlcL20D4      * press = new SensorDlcL20D4(&SerialPort);
-SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow(&SerialPort);
-SensorVolume        * vol   = new SensorVolume(flow,&SerialPort);
-CycleControl        * relay = new CycleControl(conf,press,vol,RELAY_PIN,&SerialPort);
+// Uart on pin D9/10 for display communication
+// https://stackoverflow.com/questions/57175348/softwareserial-for-arduino-nano-33-iot
+#ifdef ARDUINO_ARCH_MBED
+UART uart(digitalPinToPinName(9), digitalPinToPinName(10), NC,NC);
+#elif  ARDUINO_ARCH_SAMD
+#include "wiring_private.h"
+Uart uart (&sercom0, 9, 10, SERCOM_RX_PAD_1, UART_TX_PAD_0);
+// Attach the interrupt handler to the SERCOM
+void SERCOM0_Handler()
+{
+    uart.IrqHandler();
+}
+#else
+#error Unsupported Hardware
+#endif
+
+Comm displayComm(uart);
+Comm serComm(SerialPort);
+
+AmbuConfigNano conf(serComm);
+SensorDlcL20D4 press;
+SensorSp110Sm02Flow flow;
+SensorVolume vol(flow);
+CycleControl relay(conf,press,vol,RELAY_PIN);
 
 uint32_t sensorTime;
 
 void setup() {
 
    SerialPort.begin(57600);
-   SerialPort.begin(57600);
-   SerialPort.print("DEBUG Booted\n");
+#ifdef  ARDUINO_ARCH_SAMD
+   pinPeripheral(9, PIO_SERCOM_ALT);
+   pinPeripheral(10, PIO_SERCOM_ALT);
+#endif
+   uart.begin(9600);
+   Message m;
+   m.writeString(Message::DEBUG,millis(),"Booted");
+   serComm.send(m);
 
    Wire.begin();
 
-   relay->setup();
+   relay.setup();
 
    // Wait 5 seconds for pressure to settle
-   SerialPort.print("DEBUG Wait 5 seconds\n");
+   m.writeString(Message::DEBUG,millis(),"Wait 5 seconds");
+   serComm.send(m);
    delay(5000);
 
-   conf->setup();
-   press->setup();
-   flow->setup();
-   vol->setup();
+   conf.setup();
+   press.setup();
+   flow.setup();
+   vol.setup();
 
    sensorTime = millis();
-   SerialPort.print("DEBUG setup done\n");
+   m.writeString(Message::DEBUG,millis(),"Setup Done");
+   serComm.send(m);
 }
 
 void loop() {
@@ -51,21 +79,30 @@ void loop() {
 
    if ((currTime - sensorTime) > SENSOR_PERIOD_MILLIS ) {
 
-      press->update(currTime);
-      flow->update(currTime);
-      vol->update(currTime);
-      // Generate serial output
-      SerialPort.print("STATUS ");
-      SerialPort.print(currTime);
-      relay->sendString();
-      press->sendString();
-      flow->sendString();
-      vol->sendString();
-      SerialPort.print("\n");
+      press.update(currTime);
+      flow.update(currTime);
+      vol.update(currTime);
+      float sendFloat[5];
+      uint32_t sendInt[2];
+      sendFloat[0]=relay.prevVmax();
+      sendFloat[1]=relay.prevPmax();
+      sendFloat[2]=press.scaledValue();
+      sendFloat[3]=flow.scaledValue();
+      sendFloat[4]=vol.scaledValue();
+      sendInt[0]=relay.cycleCount();
+      sendInt[1]=relay.status();
+      // Update display every second
+      Message m;
+      if((currTime%1000)==0) {	
+	m.writeData(Message::DATA,currTime,3,sendFloat,0,0);
+	displayComm.send(m);
+      }    
+      m.writeData(Message::DATA,currTime,5,sendFloat,2,sendInt);
+      serComm.send(m);
       sensorTime = currTime;
    }
 
-   relay->update(currTime);
-   conf->update(currTime,relay);
+   relay.update(currTime);
+   conf.update(currTime,relay);
 
 }

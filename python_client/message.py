@@ -4,10 +4,15 @@ import struct
 
 class Message():
     def __init__(self):
-        self.MSGID_DATA=0xc1;
-        self.MSGID_CONFIG=0xc2;
-        self.MSGID_DEBUG=0xc3;
-        self.MSGID_VERSION=0xc8; 
+        self.DATA  = 0xc1
+        self.CONFIG  = 0xc2
+        self.PARAM_INTEGER  = 0xc3
+        self.PARAM_FLOAT  = 0xc4
+        self.PARAM_SET  = 0xc5
+        self.CPU_ID  = 0xc6 
+        self.VERSION  = 0xc8
+        self.DEBUG   = 0xc9
+
         self.ERR_OK=0x0;
         self.ERR_LENGTH=0xe1;
         self.ERR_HEADER=0xe2;
@@ -22,6 +27,7 @@ class Message():
         self.intData=None
         self.status=self.ERR_OK
         self.string=None
+        self.millis=0
 
     def decode(self,msg):
         dec=base64.b64decode(msg)
@@ -31,6 +37,7 @@ class Message():
         header=struct.unpack("<BIB",dec[:6])
         l=header[-1]
         self.id=header[0]
+        self.millis=header[1]
         data=None
         if((self.id&0xc0)!=0xc0):
             self.status=self.ERR_HEADER

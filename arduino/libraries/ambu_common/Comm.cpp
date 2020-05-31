@@ -31,7 +31,6 @@ void Comm::read(Message &msg) {
       char c1=ser.read();
       char c2=ser.read();
       rxBuffer[rxCount] = '\0';
-      Serial.println(rxBuffer);
       if(c1=='-' && c2=='-') {
         msg.decode(rxCount,rxBuffer);
       } else {

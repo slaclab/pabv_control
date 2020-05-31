@@ -8,6 +8,7 @@ Message::Message() {
   _nInt=0;
   _tempStr[0]='\0';
   _status=ERR_OK;
+  _id=0;
 
 } 
  
@@ -53,7 +54,7 @@ void Message::decode(uint8_t rxCount,const char *rxBuffer) {
   _nInt=0;
   _tempStr[0]='\0';
   _status=ERR_OK;
-  
+  _id=0;
   int len=base64_decode((char *)_tx,rxBuffer,rxCount);
 
   uint8_t index=0;
@@ -80,11 +81,13 @@ void Message::decode(uint8_t rxCount,const char *rxBuffer) {
     _nFloat= float_len;
     _nInt=int_len;
     _tempStr[0]='\0';
+    _id=id;
   } else {
     _nFloat=0;
     _nInt=0;
     _read(msg_len,_tempStr,index);
     _tempStr[msg_len]='\0';
+    _id=id;
   }
   uint16_t checksum;
   uint16_t checksum_sent;

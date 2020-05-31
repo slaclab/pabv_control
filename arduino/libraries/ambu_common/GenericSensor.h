@@ -12,19 +12,16 @@ class GenericSensor {
       uint8_t addr_;
       double  scaled_;
 
-      Stream *serial_;
 
    public:
 
-      GenericSensor (uint8_t addr, Stream *serial);
+      GenericSensor (uint8_t addr);
 
       virtual void setup();
 
       virtual void update(uint32_t ctime);
 
       virtual void reset(uint32_t ctime);
-
-      void sendString();
 
       double scaledValue();
 };
