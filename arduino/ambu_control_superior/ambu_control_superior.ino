@@ -8,7 +8,8 @@
 #include <stdint.h>
 #include <HardwareSerial.h>
 
-#define RELAY_PIN 4
+#define RELAYA_PIN 4
+#define RELAYB_PIN 5
 #define SENSOR_PERIOD_MILLIS 9
 #define SerialPort Serial
 //#define SerialPort Serial1
@@ -17,7 +18,7 @@ AmbuConfigUno       * conf  = new AmbuConfigUno(&SerialPort);
 SensorDlcL20D4      * press = new SensorDlcL20D4(&SerialPort);
 SensorSp110Sm02Flow * flow  = new SensorSp110Sm02Flow(&SerialPort);
 SensorVolume        * vol   = new SensorVolume(flow,&SerialPort);
-CycleControl        * relay = new CycleControl(conf,press,vol,RELAY_PIN,&SerialPort);
+CycleControl        * relay = new CycleControl(conf,press,vol,RELAYA_PIN,RELAYB_PIN,&SerialPort);
 
 uint32_t sensorTime;
 

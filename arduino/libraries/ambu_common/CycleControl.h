@@ -14,8 +14,9 @@ class GenericSensor;
 class CycleControl {
 
       // States
-      static const uint8_t StateOff = 0;
-      static const uint8_t StateOn  = 1;
+      static const uint8_t StateOff  = 0;
+      static const uint8_t StateOn   = 1;
+      static const uint8_t StateHold = 2;
 
       // Statis Bits
       static const uint8_t StatusAlarmPipMax  = 0x01;
@@ -33,7 +34,8 @@ class CycleControl {
 
       uint8_t  state_;
       uint32_t stateTime_;
-      uint8_t  relayPin_;
+      uint8_t  relayAPin_;
+      uint8_t  relayBPin_;
       uint8_t  status_;
       uint32_t cycleCount_;
       double   currVmax_;
@@ -48,7 +50,8 @@ class CycleControl {
       CycleControl (AmbuConfig *conf,
                     GenericSensor *press,
                     GenericSensor *vol,
-                    uint8_t relayPin,
+                    uint8_t relayAPin,
+                    uint8_t relayBPin,
                     Stream *serial);
 
       void setup();
