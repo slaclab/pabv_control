@@ -7,6 +7,7 @@ import sys
 import traceback
 import numpy
 import message
+import serial.tools.list_ports
 
 
 class AmbuControl(object):
@@ -22,9 +23,9 @@ class AmbuControl(object):
     # Status constants
     StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolMax' : 0x02, 'Alarm12V' : 0x04, 'Alarm9V' : 0x08, 'VolInh' : 0x10 }
 
-    def __init__(self, dev):
+    def __init__(self):
 
-        self._ser = serial.Serial(port=dev, baudrate=57600, timeout=1.0)
+        self._ser = None #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
         self._stateCallBack = None
@@ -83,7 +84,7 @@ class AmbuControl(object):
         self._respRate = value
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._respRate),(self.ConfigKey['SetRespRate']));
-        self._ser.write(data)
+        self._write(data)
 
     @property
     def inhTime(self):
@@ -94,7 +95,7 @@ class AmbuControl(object):
         self._inhTime = value
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._inhTime),(self.ConfigKey['SetInhTime']));
-        self._ser.write(data)
+        self._write(data)
 
     @property
     def pipMax(self):
@@ -105,7 +106,7 @@ class AmbuControl(object):
         self._pipMax = value
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._pipMax),(self.ConfigKey['SetPipMax']));
-        self._ser.write(data)
+        self._write(data)
 
     @property
     def pipOffset(self):
@@ -116,7 +117,7 @@ class AmbuControl(object):
         self._pipOffset = value
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._pipOffset),(self.ConfigKey['SetPipMaxOffset']))
-        self._ser.write(data)
+        self._write(data)
 
     @property
     def volMax(self):
@@ -127,7 +128,7 @@ class AmbuControl(object):
         self._volMax = value
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._pipOffset),(self.ConfigKey['SetPipMaxOffset']))
-        self._ser.write(data)
+        self._write(data)
     
 
     @property
@@ -139,7 +140,7 @@ class AmbuControl(object):
         self._volOffset = value
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._volMax),(self.ConfigKey['SetVolMax']))
-        self._ser.write(data)
+        self._write(data)
 
     @property
     def volInThold(self):
@@ -150,7 +151,7 @@ class AmbuControl(object):
         self._volInThold = value
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._volInThold),(self.ConfigKey['SetVolInThold']))
-        self._ser.write(data)
+        self._write(data)
 
     @property
     def peepMin(self):
@@ -161,7 +162,7 @@ class AmbuControl(object):
         self._peepMin = value
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._peepMin),(self.ConfigKey['SetPeepMin']))
-        self._ser.write(data)
+        self._write(data)
 
     @property
     def runState(self):
@@ -172,7 +173,7 @@ class AmbuControl(object):
         self._runState = value
         m=Message.message()
         data=m.writeData(m.PARAM_INTEGER,0,(),(self.ConfigKey['SetRunState'],self._runState))
-        self._ser.write(data)
+        self._write(data)
 
     @property
     def alarmVolMax(self):
@@ -197,7 +198,7 @@ class AmbuControl(object):
     def clearAlarm(self):
         m=Message.message()
         data=m.writeData(m.PARAM_SET,0,(),())
-        self._ser.write(data)
+        self._write(data)
         self._status = 0
 
     def stop(self):
@@ -211,9 +212,17 @@ class AmbuControl(object):
         self.requestConfig()
 
     def requestConfig(self):
-        self._ser.write(f"CONFIG {self.ConfigKey['GetConfig']} 0\n".encode('UTF-8'))
+        self._write(f"CONFIG {self.ConfigKey['GetConfig']} 0\n".encode('UTF-8'))
+
+    def _write(self,data):
+        if self._ser is not None:
+            try:
+                self._write(data)
+            except:
+                self._ser=None
 
     def _readPacket(self):
+        if(self._ser is None): return None
         l=''
         while(True):
             try:
@@ -228,13 +237,47 @@ class AmbuControl(object):
                     else:
                         return None
             except:
-                traceback()
+                self._ser=None
                 return None
+    def _connect(self):    
+        ports = list(serial.tools.list_ports.comports())
+        for port_no, description, address in ports:      
+            if 'USB-Serial' in description:
+                ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)                
+                for i in range(1000):                
+                    try:
+                        m=message.Message()
+                        self._ser=ser
+                        line=self._readPacket()
+                        self._ser=None         
+                        if line is None: continue                                
+                        m.decode(line)
+                        if(m.status!=m.ERR_OK): continue
+                        if(m.id==m.CPU_ID and m.nInt==4):
+                            new_cpuid=m.intData
+                            if(self._cpuid!=new_cpuid): 
+                                pass #put some code her for new connection
+                            else:
+                                pass # resume old connection
+                            self._ser=ser
+                            break
+                    except: 
+                        ser.close()
+                        self._ser=None
+                        break                    
+            if self._ser: return
+        
+                
+                
+                    
+            
 
     def _handleSerial(self):
         counter=0
         while self._runEn:
             try:
+                if self._ser is None:
+                    self._connect()
                 line=self._readPacket()                
                 if(line is None): continue
                 ts = time.time()
