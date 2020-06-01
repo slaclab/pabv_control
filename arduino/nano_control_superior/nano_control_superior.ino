@@ -9,7 +9,8 @@
 #include <HardwareSerial.h>
 #include <Comm.h>
 
-#define RELAY_PIN 8
+#define RELAYA_PIN 8
+#define RELAYB_PIN 7
 #define SENSOR_PERIOD_MILLIS 9
 //#define SerialPort Serial
 #define SerialPort Serial1
@@ -37,7 +38,8 @@ AmbuConfigNano conf(serComm);
 SensorDlcL20D4 press;
 SensorSp110Sm02Flow flow;
 SensorVolume vol(flow);
-CycleControl relay(conf,press,vol,RELAY_PIN);
+CycleControl relay(conf,press,vol,RELAYA_PIN,RELAYB_PIN);
+
 
 uint32_t sensorTime;
 
