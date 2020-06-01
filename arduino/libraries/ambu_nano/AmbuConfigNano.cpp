@@ -34,10 +34,10 @@ void AmbuConfigNano::deviceID(cpuId &id) {
 #define SERIAL_NUMBER_WORD_2	*(volatile uint32_t*)(0x0080A044)
 #define SERIAL_NUMBER_WORD_3	*(volatile uint32_t*)(0x0080A048)
   // https://cdn.sparkfun.com/assets/6/3/d/d/2/Atmel-42181-SAM-D21_Datasheet.pdf
-  cpuId[0] = SERIAL_NUMBER_WORD_0;
-  cpuId[1] = SERIAL_NUMBER_WORD_1;
-  cpuId[2] = SERIAL_NUMBER_WORD_2;
-  cpuId[3] = SERIAL_NUMBER_WORD_3;
+  id[0] = SERIAL_NUMBER_WORD_0;
+  id[1] = SERIAL_NUMBER_WORD_1;
+  id[2] = SERIAL_NUMBER_WORD_2;
+  id[3] = SERIAL_NUMBER_WORD_3;
 #else
   #error Unsupported platform
 #endif
