@@ -129,7 +129,7 @@ class AmbuControl(object):
         m=Message.message()
         data=m.writeData(m.PARAM_FLOAT,0,(self._pipOffset),(self.ConfigKey['SetPipMaxOffset']))
         self._write(data)
-    
+
 
     @property
     def volOffset(self):
@@ -227,7 +227,7 @@ class AmbuControl(object):
         while(True):
             try:
                 c = self._ser.read().decode('UTF-8')
-                if(c!='-'): 
+                if(c!='-'):
                     l=l+c
                 else:
                     c1= self._ser.read().decode('UTF-8')
@@ -239,38 +239,38 @@ class AmbuControl(object):
             except:
                 self._ser=None
                 return None
-    def _connect(self):    
+    def _connect(self):
         ports = list(serial.tools.list_ports.comports())
-        for port_no, description, address in ports:      
-            if 'USB-Serial' in description:
-                ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)                
-                for i in range(1000):                
+        for port_no, description, address in ports:
+            if 'USB-Serial' in description or 'USB-to-Serial' in description:
+                ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)
+                for i in range(1000):
                     try:
                         m=message.Message()
                         self._ser=ser
                         line=self._readPacket()
-                        self._ser=None         
-                        if line is None: continue                                
+                        self._ser=None
+                        if line is None: continue
                         m.decode(line)
                         if(m.status!=m.ERR_OK): continue
                         if(m.id==m.CPU_ID and m.nInt==4):
                             new_cpuid=m.intData
-                            if(self._cpuid!=new_cpuid): 
+                            if(self._cpuid!=new_cpuid):
                                 pass #put some code her for new connection
                             else:
                                 pass # resume old connection
                             self._ser=ser
                             break
-                    except: 
+                    except:
                         ser.close()
                         self._ser=None
-                        break                    
+                        break
             if self._ser: return
-        
-                
-                
-                    
-            
+
+
+
+
+
 
     def _handleSerial(self):
         counter=0
@@ -278,19 +278,19 @@ class AmbuControl(object):
             try:
                 if self._ser is None:
                     self._connect()
-                line=self._readPacket()                
+                line=self._readPacket()
                 if(line is None): continue
                 ts = time.time()
-                m=message.Message()    
+                m=message.Message()
                 try:
                     m.decode(line)
                 except:
-                    pass      
-                if(m.status!=m.ERR_OK): continue             
-                if(m.id == m.VERSION):                    
-                    self._version=m.string            
+                    pass
+                if(m.status!=m.ERR_OK): continue
+                if(m.id == m.VERSION):
+                    self._version=m.string
                 if(m.id == m.CPU_ID and m.nInt==4):
-                    self._cpuid=m.intData        
+                    self._cpuid=m.intData
                 elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==1:
                     data=m.floatData
                     state=m.intData
@@ -419,4 +419,3 @@ class npfifo:
 
     def get_nextout_time(self):
         return self.A[0, -(self.get_n()-1)]
-
