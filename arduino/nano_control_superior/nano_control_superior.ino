@@ -12,6 +12,7 @@
 #define RELAYA_PIN 8
 #define RELAYB_PIN 7
 #define SENSOR_PERIOD_MILLIS 9
+#define DISPLAY_PERIOD_MILLIS 999
 //#define SerialPort Serial
 #define SerialPort Serial1
 
@@ -42,7 +43,7 @@ CycleControl relay(conf,press,vol,RELAYA_PIN,RELAYB_PIN);
 
 
 uint32_t sensorTime;
-
+uint32_t displayTime;
 void setup() {
 #ifdef  ARDUINO_ARCH_SAMD
      pinPeripheral(11, PIO_SERCOM);
@@ -74,10 +75,8 @@ void setup() {
 }
 
 void loop() {
-   uint32_t currTime;
-
-   currTime = millis();
-
+   uint32_t currTime=millis();
+  
    if ((currTime - sensorTime) > SENSOR_PERIOD_MILLIS ) {
 
       press.update(currTime);
@@ -94,14 +93,23 @@ void loop() {
       sendInt[1]=relay.status();
       // Update display every second
       Message m;
-      if((currTime%1000)==0) {	
-	m.writeData(Message::DATA,currTime,3,sendFloat,0,0);
-	displayComm.send(m);
-      }    
       m.writeData(Message::DATA,currTime,5,sendFloat,2,sendInt);
       serComm.send(m);
       sensorTime = currTime;
+   } 
+   // Update display every second
+   if ((currTime - displayTime) > DISPLAY_PERIOD_MILLIS )  {
+     Message m;
+      float sendFloat[3];
+      sendFloat[0]=relay.prevVmax();
+      sendFloat[1]=relay.prevPmax();
+      sendFloat[2]=press.scaledValue();
+     m.writeData(Message::DATA,currTime,3,sendFloat,0,0);
+     displayComm.send(m);
+     displayTime=currTime;
    }
+
+
 
    relay.update(currTime);
    conf.update(currTime,relay);
