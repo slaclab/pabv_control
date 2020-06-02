@@ -239,10 +239,16 @@ class AmbuControl(object):
             except:
                 self._ser=None
                 return None
+
     def _connect(self):
         ports = list(serial.tools.list_ports.comports())
         for port_no, description, address in ports:
-            if 'USB-Serial' in description or 'USB-to-Serial' in description:
+            if ( 
+                    'USB-Serial' in description or 
+                    'USB-to-Serial' in description or 
+                    'USB Serial' in description 
+                ):
+                print("Found USB-Serial at %s"%port_no)
                 ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)
                 for i in range(1000):
                     try:
@@ -266,11 +272,6 @@ class AmbuControl(object):
                         self._ser=None
                         break
             if self._ser: return
-
-
-
-
-
 
     def _handleSerial(self):
         counter=0
