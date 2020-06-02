@@ -56,7 +56,7 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
        else if(param==SetPeepMin)    conf_.peepMin = f;
        storeConfig();
      } else if (id==Message::PARAM_INTEGER  && m.nInt()==2) {
-       uint32_t d=m.getInt()[2];
+       uint32_t d=m.getInt()[1];
        if(param==SetRunState)        conf_.runState = d;
        storeConfig();
      } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
