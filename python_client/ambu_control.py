@@ -110,7 +110,7 @@ class AmbuControl(object):
 
     @property
     def pipOffset(self):
-        return self._pipOffset7
+        return self._pipOffset
 
     @pipOffset.setter
     def pipOffset(self,value):
