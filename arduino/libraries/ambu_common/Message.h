@@ -15,9 +15,13 @@ class Message {
   // binary data messages 0xc1 - 0xc7
   static constexpr uint8_t DATA  = 0xc1;
   static constexpr uint8_t CONFIG  = 0xc2;
-  static constexpr uint8_t DEBUG   = 0xc3;
+  static constexpr uint8_t PARAM_INTEGER  = 0xc3;
+  static constexpr uint8_t PARAM_FLOAT  = 0xc4;
+  static constexpr uint8_t PARAM_SET  = 0xc5;
+  static constexpr uint8_t CPU_ID  = 0xc6; 
   // string messages 0xc8-0xcf
   static constexpr uint8_t VERSION  = 0xc8;
+  static constexpr uint8_t DEBUG   = 0xc9;
 
   // errors
   static constexpr uint8_t ERR_OK=0x0;
@@ -29,8 +33,11 @@ class Message {
   uint8_t nFloat() const {return _nFloat;}
   uint8_t nInt() const {return _nInt;}
   uint8_t status() const {return _status;}
+  uint8_t id() const { return _id;}
   void getFloat(float *f) {for (unsigned i=0;i<_nFloat;i++) f[i]=_tempFloat[i]; }
   void getInt(uint32_t *d)  {for (unsigned i=0;i<_nInt;i++) d[i]=_tempInt[i];   }
+  const float *getFloat() {return _tempFloat;}
+  const uint32_t *getInt() {return _tempInt;}
   const char *getString() const { return _tempStr; }
  private:
   uint16_t  _fletcher16(const uint8_t *data,uint8_t len);
@@ -46,6 +53,7 @@ class Message {
   uint8_t _len;
   uint8_t _nFloat;
   uint8_t _nInt;
+  uint8_t _id;
   float _tempFloat[16];
   uint32_t _tempInt[16];
   char _tempStr[64];

@@ -14,8 +14,9 @@ class GenericSensor;
 class CycleControl {
 
       // States
-      static const uint8_t StateOff = 0;
-      static const uint8_t StateOn  = 1;
+      static const uint8_t StateOff  = 0;
+      static const uint8_t StateOn   = 1;
+      static const uint8_t StateHold = 2;
 
       // Statis Bits
       static const uint8_t StatusAlarmPipMax  = 0x01;
@@ -27,13 +28,14 @@ class CycleControl {
       // Min off period
       static const uint32_t MinOffMillis = 1000;
 
-      AmbuConfig * conf_;
-      GenericSensor * press_;
-      GenericSensor * vol_;
+      AmbuConfig &conf_;
+      GenericSensor &press_;
+      GenericSensor &vol_;
 
       uint8_t  state_;
       uint32_t stateTime_;
-      uint8_t  relayPin_;
+      uint8_t  relayAPin_;
+      uint8_t  relayBPin_;
       uint8_t  status_;
       uint32_t cycleCount_;
       double   currVmax_;
@@ -41,23 +43,25 @@ class CycleControl {
       double   currPmax_;
       double   prevPmax_;
 
-      Stream *serial_;
-
    public:
 
-      CycleControl (AmbuConfig *conf,
-                    GenericSensor *press,
-                    GenericSensor *vol,
-                    uint8_t relayPin,
-                    Stream *serial);
+      CycleControl (AmbuConfig &conf,
+                    GenericSensor &press,
+                    GenericSensor &vol,
+                    uint8_t relayAPin,
+		    uint8_t relayBPin);
 
       void setup();
 
       void update(uint32_t ctime);
 
-      void sendString();
 
       void clearAlarm();
+
+      uint32_t status() { return status_;}
+      uint32_t cycleCount() { return cycleCount_;}
+      float prevPmax() {return prevPmax_;}
+      float prevVmax() {return prevVmax_;}
 };
 
 #endif

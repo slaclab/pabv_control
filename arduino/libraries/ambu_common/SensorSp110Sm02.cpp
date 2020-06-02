@@ -6,7 +6,7 @@
 
 #include <HardwareSerial.h>
 
-SensorSp110Sm02::SensorSp110Sm02 (Stream *serial) : GenericSensor(SP11_SM02_ADDR,serial) { }
+SensorSp110Sm02::SensorSp110Sm02 () : GenericSensor(SP11_SM02_ADDR) { }
 
 void SensorSp110Sm02::setup() {
 

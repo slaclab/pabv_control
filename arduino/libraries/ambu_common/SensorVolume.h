@@ -6,12 +6,12 @@
 
 class SensorVolume : public GenericSensor {
 
-      GenericSensor *flow_;
+      GenericSensor &flow_;
       uint32_t lTime_;
 
    public:
 
-      SensorVolume (GenericSensor *flow, Stream *serial);
+      SensorVolume (GenericSensor &flow);
 
       void reset(uint32_t ctime);
       void update(uint32_t ctime);

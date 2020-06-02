@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include <HardwareSerial.h>
-
+#include "Comm.h"
 class CycleControl;
 
 class AmbuParameters {
@@ -26,7 +26,7 @@ class AmbuParameters {
 
 class AmbuConfig {
    public:
-
+      using cpuId=uint32_t[4];
       // Run states
       static const uint8_t StateForceOff = 0;
       static const uint8_t StateForceOn  = 1;
@@ -56,16 +56,17 @@ class AmbuConfig {
       AmbuParameters conf_;
 
       virtual void storeConfig() = 0;
+      Comm &serial_;
 
-      Stream *serial_;
+      cpuId cpuId_;
 
    public:
 
-      AmbuConfig (Stream *serial);
-
+      AmbuConfig (Comm &serial);
+      virtual void deviceID(cpuId &id) = 0;     
       virtual void setup();
 
-      void update(uint32_t ctime, CycleControl *cycle);
+      void update(uint32_t ctime, CycleControl &cycle);
 
       // Set/Get Parameters
       double getRespRate();

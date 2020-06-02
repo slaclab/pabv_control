@@ -4,6 +4,16 @@
 #include <Comm.h>
 #ifdef ARDUINO_ARCH_MBED
 UART uart(digitalPinToPinName(5), digitalPinToPinName(6), NC,NC);
+#elif  ARDUINO_ARCH_SAMD
+#include "wiring_private.h"
+Uart uart (&sercom1, 12, 11, SERCOM_RX_PAD_3, UART_TX_PAD_0);
+// Attach the interrupt handler to the SERCOM
+void SERCOM1_Handler()
+{
+    uart.IrqHandler();
+}
+#else
+#error Unsupported Hardware
 #endif
 
 Comm displayComm(uart);
@@ -97,7 +107,12 @@ GUI_value gui_value[nParam]={
 void setup() {
   asm(".global _printf_float");
   asm(".global _scanf_float");
-  Serial.begin(9600);
+ 
+#ifdef  ARDUINO_ARCH_SAMD
+     pinPeripheral(11, PIO_SERCOM);
+     pinPeripheral(12, PIO_SERCOM);
+#endif
+Serial.begin(9600);
   uart.begin(9600);
   for(unsigned i=0;i<nParam;i++) 
     parms[i]=gui_value[i].dval;

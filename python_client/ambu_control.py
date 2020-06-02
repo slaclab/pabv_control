@@ -6,8 +6,8 @@ import math
 import sys
 import traceback
 import numpy
-import random
-
+import message
+import serial.tools.list_ports
 
 
 class AmbuControl(object):
@@ -23,9 +23,9 @@ class AmbuControl(object):
     # Status constants
     StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolMax' : 0x02, 'Alarm12V' : 0x04, 'Alarm9V' : 0x08, 'VolInh' : 0x10 }
 
-    def __init__(self, dev):
+    def __init__(self):
 
-        self._ser = serial.Serial(port=dev, baudrate=57600, timeout=1.0)
+        self._ser = None #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
         self._stateCallBack = None
@@ -49,6 +49,7 @@ class AmbuControl(object):
         self._smillis = -1
         self._refresh = time.time()
         self._version='unknown'
+        self._cpuid=[0]*4
         self.artime = 0
 
         self._data = npfifo(9,6000)
@@ -81,7 +82,9 @@ class AmbuControl(object):
     @respRate.setter
     def respRate(self,value):
         self._respRate = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetRespRate']} {self._respRate:.2f}\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._respRate],[self.ConfigKey['SetRespRate']]);
+        self._write(data)
 
     @property
     def inhTime(self):
@@ -90,7 +93,9 @@ class AmbuControl(object):
     @inhTime.setter
     def inhTime(self,value):
         self._inhTime = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetInhTime']} {self._inhTime:.2f}\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._inhTime],[self.ConfigKey['SetInhTime']]);      
+        self._write(data)
 
     @property
     def pipMax(self):
@@ -99,16 +104,20 @@ class AmbuControl(object):
     @pipMax.setter
     def pipMax(self,value):
         self._pipMax = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetPipMax']} {self._pipMax:.2f}\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._pipMax],[self.ConfigKey['SetPipMax']]);
+        self._write(data)
 
     @property
     def pipOffset(self):
-        return self._pipOffset
+        return self._pipOffset7
 
     @pipOffset.setter
     def pipOffset(self,value):
         self._pipOffset = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetPipOffset']} {self._pipOffset:.2f}\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._pipOffset],[self.ConfigKey['SetPipMaxOffset']])
+        self._write(data)
 
     @property
     def volMax(self):
@@ -117,7 +126,10 @@ class AmbuControl(object):
     @volMax.setter
     def volMax(self,value):
         self._volMax = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetVolMax']} {self._volMax:.2f}\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._volMax],[self.ConfigKey['SetVolMax']])
+        self._write(data)
+
 
     @property
     def volOffset(self):
@@ -126,7 +138,9 @@ class AmbuControl(object):
     @volOffset.setter
     def volOffset(self,value):
         self._volOffset = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetVolOffset']} {self._volOffset:.2f}\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._volOffset],(self.ConfigKey['SetVolOffset']))
+        self._write(data)
 
     @property
     def volInThold(self):
@@ -135,7 +149,9 @@ class AmbuControl(object):
     @volInThold.setter
     def volInThold(self,value):
         self._volInThold = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetVolInThold']} {self._volInThold:.2f}\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._volInThold],[self.ConfigKey['SetVolInThold']])
+        self._write(data)
 
     @property
     def peepMin(self):
@@ -144,7 +160,9 @@ class AmbuControl(object):
     @peepMin.setter
     def peepMin(self,value):
         self._peepMin = value
-        self._ser.write(f"CONFIG {self.ConfigKey['SetPeepMin']} {self._peepMin:.2f}\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._peepMin],[self.ConfigKey['SetPeepMin']])
+        self._write(data)
 
     @property
     def runState(self):
@@ -153,8 +171,9 @@ class AmbuControl(object):
     @runState.setter
     def runState(self,value):
         self._runState = value
-        msg = f"CONFIG {self.ConfigKey['SetRunState']} {self._runState}\n"
-        self._ser.write(msg.encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_INTEGER,0,[],[self.ConfigKey['SetRunState'],self._runState])
+        self._write(data)
 
     @property
     def alarmVolMax(self):
@@ -177,7 +196,9 @@ class AmbuControl(object):
         return ((self._status & self.StatusKey['VolInh']) != 0)
 
     def clearAlarm(self):
-        self._ser.write(f"CONFIG {self.ConfigKey['ClearAlarm']} 0\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['ClearAlarm']  ])
+        self._write(data)
         self._status = 0
 
     def stop(self):
@@ -191,39 +212,98 @@ class AmbuControl(object):
         self.requestConfig()
 
     def requestConfig(self):
-        self._ser.write(f"CONFIG {self.ConfigKey['GetConfig']} 0\n".encode('UTF-8'))
+        m=message.Message()
+        data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['GetConfig']])
+        self._write(data)
+        
+    def _write(self,data):
+        if self._ser is not None:
+            try:
+                self._ser.write(data)
+            except:
+                self._ser=None
+
+    def _readPacket(self):
+        if(self._ser is None): return None
+        l=''
+        while(True):
+            try:
+                c = self._ser.read().decode('UTF-8')
+                if(c!='-'):
+                    l=l+c
+                else:
+                    return l
+            except:
+                self._ser=None
+                return None
+
+    def _connect(self):
+        ports = list(serial.tools.list_ports.comports())
+        for port_no, description, address in ports:
+            if ( 
+                    'USB-Serial' in description or 
+                    'USB-to-Serial' in description or 
+                    'USB Serial' in description 
+                ):               
+                ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)
+                for i in range(1000):
+                    try:
+                        m=message.Message()
+                        self._ser=ser
+                        line=self._readPacket()
+                        self._ser=None
+                        if line is None: continue
+                        m.decode(line)
+                        if(m.status!=m.ERR_OK): continue
+                        if(m.id==m.CPU_ID and m.nInt==4):
+                            new_cpuid=m.intData
+                            if(self._cpuid!=new_cpuid):
+                                pass #put some code her for new connection
+                            else:
+                                pass # resume old connection
+                            self._ser=ser
+                            break
+                    except:
+                        ser.close()
+                        self._ser=None
+                        break
+            if self._ser: return
 
     def _handleSerial(self):
         counter=0
         while self._runEn:
             try:
-                raw = self._ser.readline()
-                line = raw.decode('UTF-8')
-                data = line.rstrip().split(' ')
+                if self._ser is None:
+                    self._connect()
+                line=self._readPacket()
+                if(line is None): continue
                 ts = time.time()
-
-                if data[0] == 'DEBUG':
-                    #print(f"Got debug: {line.rstrip()}")
+                m=message.Message()
+                try:
+                    m.decode(line)
+                except:
                     pass
-
-                elif data[0] == 'VERSION' and len(data)==2:
-                    #print(f"Got version: {line.rstrip()}")
-                    self._version=data[1]
-
-                elif data[0] == 'CONFIG' and len(data) == 10:
+                if(m.status!=m.ERR_OK): continue
+                if(m.id == m.VERSION):
+                    self._version=m.string
+                if(m.id == m.CPU_ID and m.nInt==4):
+                    self._cpuid=m.intData
+                elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==1:
+                    data=m.floatData
+                    state=m.intData
                     #print(f"Got config: {line.rstrip()}")
                     doNotify = False
                     nconf = {}
 
-                    nconf['_respRate']    = float(data[1])
-                    nconf['_inhTime']     = float(data[2])
-                    nconf['_pipMax']      = float(data[3])
-                    nconf['_pipOffset']   = float(data[4])
-                    nconf['_volMax']      = float(data[5])
-                    nconf['_volOffset']   = float(data[6])
-                    nconf['_volInThold']  = float(data[7])
-                    nconf['_peepMin']     = float(data[8])
-                    nconf['_runState']    = int(data[9],0)
+                    nconf['_respRate']    = data[0]
+                    nconf['_inhTime']     = data[1]
+                    nconf['_pipMax']      = data[2]
+                    nconf['_pipOffset']   = data[3]
+                    nconf['_volMax']      = data[4]
+                    nconf['_volOffset']   = data[5]
+                    nconf['_volInThold']  = data[6]
+                    nconf['_peepMin']     = data[7]
+                    nconf['_runState']    = state
 
                     for k,v in nconf.items():
                         if v != getattr(self,k):
@@ -234,16 +314,18 @@ class AmbuControl(object):
                         self._gotConf = True
                         self._stateCallBack()
 
-                elif self._gotConf and data[0] == 'STATUS' and len(data) == 9:
+                elif self._gotConf and m.id == m.DATA  and m.nFloat==5 and m.nInt==2:
                     #print(f"Got status: {line.rstrip()}")
-                    millis = int(data[1],0)
-                    count  = int(data[2],0)
-                    status = int(data[3])
-                    volMax = float(data[4])
-                    pipMax = float(data[5])
-                    press  = float(data[6])
-                    flow   = float(data[7])
-                    vol    = float(data[8])
+                    millis = m.millis
+                    data=  m.floatData
+                    idata  = m.intData
+                    count  = idata[0]
+                    status = idata[1]
+                    volMax = data[0]
+                    pipMax = data[1]
+                    press  = data[2]
+                    flow   = data[3]
+                    vol    = data[4]
 
                     doStatus = (status != self._status)
                     self._status = status
@@ -334,4 +416,3 @@ class npfifo:
 
     def get_nextout_time(self):
         return self.A[0, -(self.get_n()-1)]
-
