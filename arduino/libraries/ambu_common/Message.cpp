@@ -99,9 +99,7 @@ void Message::decode(uint8_t rxCount,const char *rxBuffer) {
 
 void Message::_writeTrailer(uint8_t &index)
 {
-  for(unsigned i=0;i<3;i++) {
-	_base64[index++]='-';
-  }
+  _base64[index++]='-';
   _base64[index]='\0';
   _len=index;
 }

@@ -28,11 +28,13 @@ void Comm::read(Message &msg) {
   while (ser.available()) {
     char c= ser.read();  
     if(c=='-') {
-      char c1=ser.read();
-      char c2=ser.read();
       rxBuffer[rxCount] = '\0';
-      if(c1=='-' && c2=='-') {
+      if(1) {
         msg.decode(rxCount,rxBuffer);
+	Serial.println(msg.nInt());
+	Serial.println(msg.nFloat());
+	for(unsigned i=0;i<msg.nInt();i++) Serial.println(msg.getInt()[i]);
+	for(unsigned i=0;i<msg.nFloat();i++) Serial.println(msg.getFloat()[i]);
       } else {
         _err_trailer++;
       }

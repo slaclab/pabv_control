@@ -79,7 +79,7 @@ class Message():
         checksum=self._fletcher16(data)
         data=data+struct.pack("H",checksum)
         en=base64.b64encode(data)
-        en=en+b'---'
+        en=en+b'-'
         return en
     def writeString(self,id,timestamp,s):
         l=len(s)
@@ -93,7 +93,7 @@ class Message():
         checksum=self._fletcher16(data)
         data=data+struct.pack("H",checksum)
         en=base64.b64encode(data)
-        en=en+b'---'
+        en=en+b'-'
         return en
 
     def _fletcher16(self,data):

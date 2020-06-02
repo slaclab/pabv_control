@@ -51,6 +51,7 @@ void setup() {
 #endif
    SerialPort.begin(57600);
    uart.begin(9600);
+   Serial.begin(57600);
    Message m;
    m.writeString(Message::DEBUG,millis(),"Booted");
    serComm.send(m);

@@ -37,8 +37,12 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
    Message m;
    serial_.read(m);
    uint8_t id=m.id();
+  
    if(  (m.status()==Message::ERR_OK) && (m.nInt()>0)) {
-     uint32_t param=m.getInt()[0];     
+     uint32_t param=m.getInt()[0]; 
+     Serial.print("Param=");
+     Serial.print(id);
+     Serial.print("\n");
      sendConfig = true;
      if(id==Message::PARAM_FLOAT && m.nFloat()==1) {
        float f=m.getFloat()[0];

@@ -82,8 +82,8 @@ class AmbuControl(object):
     @respRate.setter
     def respRate(self,value):
         self._respRate = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_FLOAT,0,(self._respRate),(self.ConfigKey['SetRespRate']));
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._respRate],[self.ConfigKey['SetRespRate']]);
         self._write(data)
 
     @property
@@ -93,8 +93,8 @@ class AmbuControl(object):
     @inhTime.setter
     def inhTime(self,value):
         self._inhTime = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_FLOAT,0,(self._inhTime),(self.ConfigKey['SetInhTime']));
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._inhTime],[self.ConfigKey['SetInhTime']]);      
         self._write(data)
 
     @property
@@ -104,8 +104,8 @@ class AmbuControl(object):
     @pipMax.setter
     def pipMax(self,value):
         self._pipMax = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_FLOAT,0,(self._pipMax),(self.ConfigKey['SetPipMax']));
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._pipMax],[self.ConfigKey['SetPipMax']]);
         self._write(data)
 
     @property
@@ -115,8 +115,8 @@ class AmbuControl(object):
     @pipOffset.setter
     def pipOffset(self,value):
         self._pipOffset = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_FLOAT,0,(self._pipOffset),(self.ConfigKey['SetPipMaxOffset']))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._pipOffset],[self.ConfigKey['SetPipMaxOffset']])
         self._write(data)
 
     @property
@@ -126,8 +126,8 @@ class AmbuControl(object):
     @volMax.setter
     def volMax(self,value):
         self._volMax = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_FLOAT,0,(self._pipOffset),(self.ConfigKey['SetPipMaxOffset']))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._volMax],[self.ConfigKey['SetVolMax']])
         self._write(data)
 
 
@@ -138,8 +138,8 @@ class AmbuControl(object):
     @volOffset.setter
     def volOffset(self,value):
         self._volOffset = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_FLOAT,0,(self._volMax),(self.ConfigKey['SetVolMax']))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._volOffset],(self.ConfigKey['SetVolOffset']))
         self._write(data)
 
     @property
@@ -149,8 +149,8 @@ class AmbuControl(object):
     @volInThold.setter
     def volInThold(self,value):
         self._volInThold = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_FLOAT,0,(self._volInThold),(self.ConfigKey['SetVolInThold']))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._volInThold],[self.ConfigKey['SetVolInThold']])
         self._write(data)
 
     @property
@@ -160,8 +160,8 @@ class AmbuControl(object):
     @peepMin.setter
     def peepMin(self,value):
         self._peepMin = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_FLOAT,0,(self._peepMin),(self.ConfigKey['SetPeepMin']))
+        m=message.Message()
+        data=m.writeData(m.PARAM_FLOAT,0,[self._peepMin],[self.ConfigKey['SetPeepMin']])
         self._write(data)
 
     @property
@@ -171,8 +171,8 @@ class AmbuControl(object):
     @runState.setter
     def runState(self,value):
         self._runState = value
-        m=Message.message()
-        data=m.writeData(m.PARAM_INTEGER,0,(),(self.ConfigKey['SetRunState'],self._runState))
+        m=message.Message()
+        data=m.writeData(m.PARAM_INTEGER,0,[],[self.ConfigKey['SetRunState'],self._runState])
         self._write(data)
 
     @property
@@ -196,8 +196,8 @@ class AmbuControl(object):
         return ((self._status & self.StatusKey['VolInh']) != 0)
 
     def clearAlarm(self):
-        m=Message.message()
-        data=m.writeData(m.PARAM_SET,0,(),())
+        m=message.Message()
+        data=m.writeData(m.PARAM_SET,0,[],[self.StatusKey['ClearAlarm']  ])
         self._write(data)
         self._status = 0
 
@@ -212,12 +212,14 @@ class AmbuControl(object):
         self.requestConfig()
 
     def requestConfig(self):
-        self._write(f"CONFIG {self.ConfigKey['GetConfig']} 0\n".encode('UTF-8'))
-
+        m=message.Message()
+        data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['GetConfig']])
+        self._write(data)
+        
     def _write(self,data):
         if self._ser is not None:
             try:
-                self._write(data)
+                self._ser.write(data)
             except:
                 self._ser=None
 
@@ -230,12 +232,7 @@ class AmbuControl(object):
                 if(c!='-'):
                     l=l+c
                 else:
-                    c1= self._ser.read().decode('UTF-8')
-                    c2= self._ser.read().decode('UTF-8')
-                    if(c1 == '-' and c2 =='-'):
-                        return l
-                    else:
-                        return None
+                    return l
             except:
                 self._ser=None
                 return None
