@@ -28,9 +28,9 @@ class CycleControl {
       // Min off period
       static const uint32_t MinOffMillis = 1000;
 
-      AmbuConfig * conf_;
-      GenericSensor * press_;
-      GenericSensor * vol_;
+      AmbuConfig &conf_;
+      GenericSensor &press_;
+      GenericSensor &vol_;
 
       uint8_t  state_;
       uint32_t stateTime_;
@@ -43,24 +43,25 @@ class CycleControl {
       double   currPmax_;
       double   prevPmax_;
 
-      Stream *serial_;
-
    public:
 
-      CycleControl (AmbuConfig *conf,
-                    GenericSensor *press,
-                    GenericSensor *vol,
+      CycleControl (AmbuConfig &conf,
+                    GenericSensor &press,
+                    GenericSensor &vol,
                     uint8_t relayAPin,
-                    uint8_t relayBPin,
-                    Stream *serial);
+		    uint8_t relayBPin);
 
       void setup();
 
       void update(uint32_t ctime);
 
-      void sendString();
 
       void clearAlarm();
+
+      uint32_t status() { return status_;}
+      uint32_t cycleCount() { return cycleCount_;}
+      float prevPmax() {return prevPmax_;}
+      float prevVmax() {return prevVmax_;}
 };
 
 #endif

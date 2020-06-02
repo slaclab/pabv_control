@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include "CycleControl.h"
 
+
 #ifndef GIT_VERSION
 const char *git_version= "unknown";
 #else
@@ -13,10 +14,8 @@ const char *git_version= "unknown";
 const char *git_version=QUOTE(GIT_VERSION);
 #endif
 
-AmbuConfig::AmbuConfig (Stream *serial) {
+AmbuConfig::AmbuConfig (Comm &serial) : rxCount_(0),serial_(serial) {
    memset(rxBuffer_,0,20);
-   rxCount_ = 0;
-   serial_ = serial;
 }
 
 void AmbuConfig::setup () {
@@ -32,122 +31,68 @@ void AmbuConfig::setup () {
    confTime_ = millis();
 }
 
-void AmbuConfig::update(uint32_t ctime, CycleControl *cycle) {
-   char mark[50];
-   char scanParam[50];
-   uint32_t param;
+void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
    bool sendConfig;
-
-   int16_t ret;
-   char c;
-
    sendConfig = false;
-
-   // Get serial data
-   while (serial_->available()) {
-      if ( rxCount_ >= 190) rxCount_ = 0;
-
-      c = serial_->read();
-      rxBuffer_[rxCount_++] = c;
-      rxBuffer_[rxCount_] = '\0';
+   Message m;
+   serial_.read(m);
+   uint8_t id=m.id();
+  
+   if(  (m.status()==Message::ERR_OK) && (m.nInt()>0)) {
+     uint32_t param=m.getInt()[0];    
+     sendConfig = true;
+     if(id==Message::PARAM_FLOAT && m.nFloat()==1) {       
+       float f=m.getFloat()[0];
+       Serial.print("Param: ");
+       Serial.println(param,HEX);
+       Serial.print("Value: ");
+       Serial.println(f);
+       if(     param==SetRespRate)        conf_.respRate = f;
+       else if(param==SetInhTime)    conf_.inhTime = f;
+       else if(param==SetPipMax)     conf_.pipMax = f;
+       else if(param==SetPipOffset)  conf_.pipMax = f; // TODO: check
+       else if(param==SetVolMax)     conf_.volMax = f;
+       else if(param==SetVolOffset)  conf_.volOffset = f;
+       else if(param==SetVolInThold) conf_.volInThold = f;
+       else if(param==SetPeepMin)    conf_.peepMin = f;
+       storeConfig();
+     } else if (id==Message::PARAM_INTEGER  && m.nInt()==2) {
+       uint32_t d=m.getInt()[1];
+       Serial.print("Param: ");
+       Serial.println(param,HEX);
+       Serial.print("Value: ");
+       Serial.println(d);
+       if(param==SetRunState)        conf_.runState = d;
+       storeConfig();
+     } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
+       if(param==ClearAlarm) {
+	 cycle.clearAlarm();
+	 Serial.println("Clear Alarm");
+       }
+     }
    }
-
-   // Check for incoming message
-   if ( rxCount_ > 7 && rxBuffer_[rxCount_-1] == '\n') {
-
-      // Parse string
-      ret = sscanf(rxBuffer_,"%s %i %s", mark, &param, scanParam);
-
-      // Check marker
-      if ( ret == 3 && strcmp(mark,"CONFIG") == 0 ) {
-         sendConfig = true;
-
-         switch (param) {
-
-            case SetRespRate:
-               conf_.respRate = atof(scanParam);
-               storeConfig();
-               break;
-
-            case SetInhTime:
-               conf_.inhTime = atof(scanParam);
-               storeConfig();
-               break;
-
-            case SetPipMax:
-               conf_.pipMax = atof(scanParam);
-               storeConfig();
-               break;
-
-            case SetPipOffset:
-               conf_.pipMax = atof(scanParam);
-               storeConfig();
-               break;
-
-            case SetVolMax:
-               conf_.volMax = atof(scanParam);
-               storeConfig();
-               break;
-
-            case SetVolOffset:
-               conf_.volOffset = atof(scanParam);
-               storeConfig();
-               break;
-
-            case SetVolInThold:
-               conf_.volInThold = atof(scanParam);
-               storeConfig();
-               break;
-
-            case SetPeepMin:
-               conf_.peepMin = atof(scanParam);
-               storeConfig();
-               break;
-
-            case SetRunState:
-               conf_.runState = atoi(scanParam);
-               storeConfig();
-               break;
-
-            case ClearAlarm:
-               cycle->clearAlarm();
-               break;
-
-            default:
-               // echo config
-               break;
-         }
-      }
-      rxCount_ = 0;
-   }
-
    if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;
-
+   
    if (sendConfig) {
-       serial_->print("VERSION ");
-       serial_->print(git_version);
-       serial_->print("\n");
-       serial_->print("CONFIG ");
-       serial_->print(conf_.respRate,4);
-       serial_->print(" ");
-       serial_->print(conf_.inhTime,4);
-       serial_->print(" ");
-       serial_->print(conf_.pipMax,4);
-       serial_->print(" ");
-       serial_->print(conf_.pipOffset,4);
-       serial_->print(" ");
-       serial_->print(conf_.volMax,4);
-       serial_->print(" ");
-       serial_->print(conf_.volOffset,4);
-       serial_->print(" ");
-       serial_->print(conf_.volInThold,4);
-       serial_->print(" ");
-       serial_->print(conf_.peepMin,4);
-       serial_->print(" ");
-       serial_->print(conf_.runState);
-       serial_->print(" ");
-       serial_->print("\n");
-       confTime_ = ctime;
+     Message m;
+     float config[8];
+     uint32_t stat;
+     config[0]=conf_.respRate;
+     config[1]=conf_.inhTime;
+     config[2]=conf_.pipMax;
+     config[3]=conf_.pipOffset;
+     config[4]=conf_.volMax;
+     config[5]=conf_.volOffset;
+     config[6]=conf_.volInThold;
+     config[7]=conf_.peepMin;
+     stat=conf_.runState;
+     m.writeData(Message::CONFIG,ctime,8,config,1,&stat);
+     serial_.send(m);
+     m.writeString(Message::VERSION,ctime,git_version);
+     serial_.send(m);
+     m.writeData(Message::CPU_ID,ctime,0,0,4,cpuId_);
+     serial_.send(m);
+     confTime_ = ctime;
    }
 }
 

@@ -4,11 +4,9 @@
 #include "Adafruit_ILI9341.h"
 #include "GUI.h"
 #include "Comm.h"
-#ifdef ARDUINO_ARCH_MBED
-UART uart(digitalPinToPinName(5), digitalPinToPinName(6), NC,NC);
-#endif
 
-Comm masterComm(uart);
+#define SerialPort Serial1
+Comm masterComm(SerialPort);
 
 #define SPI_DEFAULT_FREQ 20000000
 
@@ -152,8 +150,7 @@ double get_rand(double rmin, double rmax){
 void setup() {
   asm(".global _printf_float");
   asm(".global _scanf_float");
-  uart.begin(9600);
-
+  SerialPort.begin(9600);
   Serial.begin(9600);
   Serial.print("startup\n");
   // Encoder Pins

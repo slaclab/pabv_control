@@ -3,15 +3,16 @@
 #define __AMBU_CONFIG_NANO_H__
 
 #include <AmbuConfig.h>
+#include "Comm.h"
 
 class AmbuConfigNano : public AmbuConfig {
 
    public:
 
-      AmbuConfigNano (Stream *serial);
+   AmbuConfigNano (Comm &serial);
 
       virtual void setup();
-
+      virtual void deviceID(cpuId &id);
  private:
       virtual void storeConfig();
 

@@ -1,8 +1,5 @@
 {
-"ambu_control_flow_cal" : "arduino:avr:uno" ,
-"ambu_control_superior" : "arduino:avr:uno" ,
 "nano_control_superior" : "arduino:samd:nano_33_iot"  ,
-"AmBuArduinoGUI" : "arduino:mbed:nano33ble" ,
-"MasterSim" : "arduino:mbed:nano33ble" ,
-"test_base64" : "arduino:mbed:nano33ble" 
+"AmBuArduinoGUI" : "arduino:samd:nano_33_iot",
+"MasterSim" : "arduino:samd:nano_33_iot"
 }
