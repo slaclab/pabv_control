@@ -151,7 +151,6 @@ void setup() {
   asm(".global _printf_float");
   asm(".global _scanf_float");
   SerialPort.begin(9600);
-
   Serial.begin(9600);
   Serial.print("startup\n");
   // Encoder Pins

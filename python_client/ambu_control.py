@@ -229,7 +229,7 @@ class AmbuControl(object):
                 c = self._ser.read().decode('UTF-8')
                 if(c!='-'): 
                     l=l+c
-                else:         
+                else:
                     c1= self._ser.read().decode('UTF-8')
                     c2= self._ser.read().decode('UTF-8')
                     if(c1 == '-' and c2 =='-'):

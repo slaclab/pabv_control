@@ -18,12 +18,12 @@
 // Uart on pin D9/10 for display communication
 // https://stackoverflow.com/questions/57175348/softwareserial-for-arduino-nano-33-iot
 #ifdef ARDUINO_ARCH_MBED
-UART uart(digitalPinToPinName(9), digitalPinToPinName(10), NC,NC);
+UART uart(digitalPinToPinName(5), digitalPinToPinName(6), NC,NC);
 #elif  ARDUINO_ARCH_SAMD
 #include "wiring_private.h"
-Uart uart (&sercom0, 9, 10, SERCOM_RX_PAD_1, UART_TX_PAD_0);
+Uart uart (&sercom1, 12, 11, SERCOM_RX_PAD_3, UART_TX_PAD_0);
 // Attach the interrupt handler to the SERCOM
-void SERCOM0_Handler()
+void SERCOM1_Handler()
 {
     uart.IrqHandler();
 }
@@ -44,12 +44,11 @@ CycleControl relay(conf,press,vol,RELAYA_PIN,RELAYB_PIN);
 uint32_t sensorTime;
 
 void setup() {
-
-   SerialPort.begin(57600);
 #ifdef  ARDUINO_ARCH_SAMD
-   pinPeripheral(9, PIO_SERCOM_ALT);
-   pinPeripheral(10, PIO_SERCOM_ALT);
+     pinPeripheral(11, PIO_SERCOM);
+     pinPeripheral(12, PIO_SERCOM);
 #endif
+   SerialPort.begin(57600);
    uart.begin(9600);
    Message m;
    m.writeString(Message::DEBUG,millis(),"Booted");
