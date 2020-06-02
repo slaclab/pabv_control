@@ -197,7 +197,7 @@ class AmbuControl(object):
 
     def clearAlarm(self):
         m=message.Message()
-        data=m.writeData(m.PARAM_SET,0,[],[self.StatusKey['ClearAlarm']  ])
+        data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['ClearAlarm']  ])
         self._write(data)
         self._status = 0
 
