@@ -31,10 +31,6 @@ void Comm::read(Message &msg) {
       rxBuffer[rxCount] = '\0';
       if(1) {
         msg.decode(rxCount,rxBuffer);
-	Serial.println(msg.nInt());
-	Serial.println(msg.nFloat());
-	for(unsigned i=0;i<msg.nInt();i++) Serial.println(msg.getInt()[i]);
-	for(unsigned i=0;i<msg.nFloat();i++) Serial.println(msg.getFloat()[i]);
       } else {
         _err_trailer++;
       }

@@ -39,13 +39,14 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
    uint8_t id=m.id();
   
    if(  (m.status()==Message::ERR_OK) && (m.nInt()>0)) {
-     uint32_t param=m.getInt()[0]; 
-     Serial.print("Param=");
-     Serial.print(id);
-     Serial.print("\n");
+     uint32_t param=m.getInt()[0];    
      sendConfig = true;
-     if(id==Message::PARAM_FLOAT && m.nFloat()==1) {
+     if(id==Message::PARAM_FLOAT && m.nFloat()==1) {       
        float f=m.getFloat()[0];
+       Serial.print("Param: ");
+       Serial.println(param,HEX);
+       Serial.print("Value: ");
+       Serial.println(f);
        if(     param==SetRespRate)        conf_.respRate = f;
        else if(param==SetInhTime)    conf_.inhTime = f;
        else if(param==SetPipMax)     conf_.pipMax = f;
@@ -57,10 +58,17 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
        storeConfig();
      } else if (id==Message::PARAM_INTEGER  && m.nInt()==2) {
        uint32_t d=m.getInt()[1];
+       Serial.print("Param: ");
+       Serial.println(param,HEX);
+       Serial.print("Value: ");
+       Serial.println(d);
        if(param==SetRunState)        conf_.runState = d;
        storeConfig();
      } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
-       if(param==ClearAlarm) cycle.clearAlarm();
+       if(param==ClearAlarm) {
+	 cycle.clearAlarm();
+	 Serial.println("Clear Alarm");
+       }
      }
    }
    if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;

@@ -244,8 +244,7 @@ class AmbuControl(object):
                     'USB-Serial' in description or 
                     'USB-to-Serial' in description or 
                     'USB Serial' in description 
-                ):
-                print("Found USB-Serial at %s"%port_no)
+                ):               
                 ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)
                 for i in range(1000):
                     try:
