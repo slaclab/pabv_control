@@ -50,7 +50,7 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
        if(     param==SetRespRate)        conf_.respRate = f;
        else if(param==SetInhTime)    conf_.inhTime = f;
        else if(param==SetPipMax)     conf_.pipMax = f;
-       else if(param==SetPipOffset)  conf_.pipMax = f; // TODO: check
+       else if(param==SetPipOffset)  conf_.pipOffset = f;
        else if(param==SetVolMax)     conf_.volMax = f;
        else if(param==SetVolOffset)  conf_.volOffset = f;
        else if(param==SetVolInThold) conf_.volInThold = f;
