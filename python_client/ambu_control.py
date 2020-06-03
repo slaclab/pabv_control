@@ -116,7 +116,7 @@ class AmbuControl(object):
     def pipOffset(self,value):
         self._pipOffset = value
         m=message.Message()
-        data=m.writeData(m.PARAM_FLOAT,0,[self._pipOffset],[self.ConfigKey['SetPipMaxOffset']])
+        data=m.writeData(m.PARAM_FLOAT,0,[self._pipOffset],[self.ConfigKey['SetPipOffset']])
         self._write(data)
 
     @property
