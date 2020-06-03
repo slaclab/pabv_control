@@ -290,7 +290,7 @@ class AmbuControl(object):
                     self._cpuid=m.intData
                 elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==1:
                     data=m.floatData
-                    state=m.intData
+                    state=m.intData[0]
                     #print(f"Got config: {line.rstrip()}")
                     doNotify = False
                     nconf = {}
@@ -304,7 +304,6 @@ class AmbuControl(object):
                     nconf['_volInThold']  = data[6]
                     nconf['_peepMin']     = data[7]
                     nconf['_runState']    = state
-
                     for k,v in nconf.items():
                         if v != getattr(self,k):
                             doNotify = True
