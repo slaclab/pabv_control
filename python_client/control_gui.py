@@ -215,18 +215,42 @@ class ControlGui(QWidget):
         fl.addRow('Alarm Status:',alarmStatus)
 
         cycVolMax = QLineEdit()
+        cycVolMax.setStyleSheet("""QLineEdit { background-color: lightgrey; color: black }""")
         cycVolMax.setText("0")
         cycVolMax.setReadOnly(True)
         self.updateCycVolMax.connect(cycVolMax.setText)
         fl.addRow('Max Volume (mL):',cycVolMax)
 
         cycPipMax = QLineEdit()
+        cycPipMax.setStyleSheet("""QLineEdit { background-color: lightgrey; color: black }""")
         cycPipMax.setText("0")
         cycPipMax.setReadOnly(True)
         self.updateCycPipMax.connect(cycPipMax.setText)
         fl.addRow('Max Pip (cmH20):',cycPipMax)
 
+        cycPeepMin = QLineEdit()
+        cycPeepMin.setStyleSheet("""QLineEdit { background-color: lightgrey; color: black }""")
+        cycPeepMin.setText("0")
+        cycPeepMin.setReadOnly(True)
+        #self.updateCycPipMax.connect(cycPeepMin.setText)
+        fl.addRow('Min Peep (cmH20):',cycPeepMin)
+
+        cycBPM = QLineEdit()
+        cycBPM.setStyleSheet("""QLineEdit { background-color: lightgrey; color: black }""")
+        cycBPM.setText("0")
+        cycBPM.setReadOnly(True)
+        #self.updateCycPipMax.connect(cycBPM.setText)
+        fl.addRow('BPM:',cycBPM)
+
+        cycIE = QLineEdit()
+        cycIE.setStyleSheet("""QLineEdit { background-color: lightgrey; color: black }""")
+        cycIE.setText("0")
+        cycIE.setReadOnly(True)
+        #self.updateCycIE.connect(cycIE.setText)
+        fl.addRow('IE Ratio:',cycIE)
+
         cycleRunTime=QLineEdit()
+        cycleRunTime.setStyleSheet("""QLineEdit { background-color: lightgrey; color: black }""")
         cycleRunTime.setText("0")
         cycleRunTime.setReadOnly(True)
         # I think we want the time since they last clicked to start a cycle. there are a lot of times, I’ll try to find a way to make this less confusing.
@@ -234,11 +258,16 @@ class ControlGui(QWidget):
     
     
         cycles = QLineEdit()
+        cycles.setStyleSheet("""QLineEdit { background-color: lightgrey; color: black }""")
         cycles.setText("0")
         cycles.setReadOnly(True)
         self.updateCount.connect(cycles.setText)
         fl.addRow('Breaths:',cycles)
         # I think we want breaths since cycle start rather than software start?
+
+        resetBreaths = QPushButton("Reset")
+        resetBreaths.pressed.connect(self.clearAlarm)
+        fl.addRow('Reset # breaths',resetBreaths)
 
 
     def setupPageTwo(self):
