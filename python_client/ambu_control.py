@@ -139,7 +139,7 @@ class AmbuControl(object):
     def volOffset(self,value):
         self._volOffset = value
         m=message.Message()
-        data=m.writeData(m.PARAM_FLOAT,0,[self._volOffset],(self.ConfigKey['SetVolOffset']))
+        data=m.writeData(m.PARAM_FLOAT,0,[self._volOffset],[self.ConfigKey['SetVolOffset']])
         self._write(data)
 
     @property
