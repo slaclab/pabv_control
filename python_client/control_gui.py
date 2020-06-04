@@ -751,7 +751,7 @@ class ControlGui(QWidget):
     def selectFile(self):
         dlg = QFileDialog()
         f=dlg.getSaveFileName(self, 'Save ventillator data:')[0]
-        self.openLog.beginLog.setEnabled(True)
+        self.beginLog.setEnabled(True)
         self.logFile.setText(f)
     
 
