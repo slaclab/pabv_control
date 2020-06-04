@@ -417,14 +417,18 @@ class ControlGui(QWidget):
 
         pb = QPushButton('Begin Recording Data')
         pb.clicked.connect(self.openPressed)
+        self.beginLog=pb
         vl.addWidget(pb)
 
         pb = QPushButton('Stop Recording Data')
         pb.clicked.connect(self.closePressed)
+        self.endLog=pb
         vl.addWidget(pb)
 
         self.plotData = []
         self.rTime = time.time()
+        self.beginLog.setEnabled(True)
+        self.endLog.setEnabled(False)
 
     def setupPageThree(self):
         self.timeoutabort=0
@@ -733,10 +737,15 @@ class ControlGui(QWidget):
     def openPressed(self):
         f = self.logFile.text()
         self.ambu.openLog(f)
+        self.beginLog.setEnabled(False)
+        self.endLog.setEnabled(True)
+        
 
     @pyqtSlot()
     def closePressed(self):
         self.ambu.closeLog()
+        self.endLog.setEnabled(False)
+        self.beginLog.setEnabled(True)
     
     @pyqtSlot()
     def selectFile(self):
