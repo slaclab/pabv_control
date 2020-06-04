@@ -427,7 +427,7 @@ class ControlGui(QWidget):
 
         self.plotData = []
         self.rTime = time.time()
-        self.beginLog.setEnabled(True)
+        self.beginLog.setEnabled(False)
         self.endLog.setEnabled(False)
 
     def setupPageThree(self):
@@ -751,6 +751,7 @@ class ControlGui(QWidget):
     def selectFile(self):
         dlg = QFileDialog()
         f=dlg.getSaveFileName(self, 'Save ventillator data:')[0]
+        self.openLog.beginLog.setEnabled(True)
         self.logFile.setText(f)
     
 
