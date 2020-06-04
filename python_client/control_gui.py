@@ -118,7 +118,6 @@ class ControlGui(QWidget):
         self.volMax       = None
         self.stateControl = None
         self.runControl   = None
-
         top = QVBoxLayout()
         self.setLayout(top)
 
@@ -742,8 +741,8 @@ class ControlGui(QWidget):
     @pyqtSlot()
     def selectFile(self):
         dlg = QFileDialog()
-        self.logFile=dlg.getSaveFileName(self, 'Save ventillator data:')
-
+        f=dlg.getSaveFileName(self, 'Save ventillator data:')[0]
+        self.logFile.setText(f)
     
 
     def stateUpdated(self):
