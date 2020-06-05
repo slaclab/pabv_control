@@ -7,6 +7,7 @@ import sys
 import traceback
 import numpy
 import message
+import queue
 import serial.tools.list_ports
 
 
@@ -26,6 +27,9 @@ class AmbuControl(object):
     def __init__(self):
 
         self._ser = None #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
+        self._queue = queue.Queue(3)
+        self._qmgr = threading.Thread(target=self._queueMgrThread)
+        self._qmgr.start()
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
         self._stateCallBack = None
@@ -269,6 +273,17 @@ class AmbuControl(object):
                         break
             if self._ser: return
 
+
+    def _queueMgrThread(self):
+        while True:
+            (self._data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True)
+            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
+
+    
+
+        
+
+
     def _handleSerial(self):
         counter=0
         while self._runEn:
@@ -361,7 +376,10 @@ class AmbuControl(object):
                             rate=0.
 
                         try:
-                            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
+                            qe=[self._data, count, rate, stime, artime, volMax, pipMax]
+                            self._queue.put(qe,block=False)
+
+#                            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
                             #print(f"Got status: {line.rstrip()}")
                         except Exception as e:
                             #traceback.print_exc()
@@ -376,6 +394,9 @@ class AmbuControl(object):
                 #traceback.print_exc()
                 #print(f"Got handleSerial error {e}")
                 pass
+
+
+
 
 
 class npfifo:
