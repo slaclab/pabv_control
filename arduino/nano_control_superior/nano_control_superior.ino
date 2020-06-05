@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <HardwareSerial.h>
 #include <Comm.h>
-#include <WDTZero.h>
+
 #define RELAYA_PIN 8
 #define RELAYB_PIN 7
 #define SENSOR_PERIOD_MILLIS 9
@@ -31,9 +31,6 @@ void SERCOM1_Handler()
 #else
 #error Unsupported Hardware
 #endif
-
-
-WDTZero watchdog;
 
 Comm displayComm(uart);
 Comm serComm(SerialPort);
@@ -76,8 +73,6 @@ void setup() {
    sensorTime = millis();
    m.writeString(Message::DEBUG,millis(),"Setup Done");
    serComm.send(m);
-   watchdog.setup(WDT_HARDCYCLE62m);
-   watchdog.attachShutdown(restart);
 }
 
 void loop() {
@@ -119,9 +114,6 @@ void loop() {
 
    relay.update(currTime);
    conf.update(currTime,relay);
-   // reset watchdog
-   watchdog.clear();
-   
 
 }
 void restart()
