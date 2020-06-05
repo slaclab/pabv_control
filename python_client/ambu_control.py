@@ -28,8 +28,6 @@ class AmbuControl(object):
 
         self._ser = None #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
         self._queue = queue.Queue(3)
-        self._qmgr = threading.Thread(target=self._queueMgrThread)
-        self._qmgr.start()
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
         self._stateCallBack = None
@@ -211,6 +209,8 @@ class AmbuControl(object):
 
     def start(self):
         self._runEn = True
+        self._qmgr = threading.Thread(target=self._queueMgrThread)
+        self._qmgr.start()
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
         self.requestConfig()
@@ -275,7 +275,7 @@ class AmbuControl(object):
 
 
     def _queueMgrThread(self):
-        while True:
+        while self._runEn:
             (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True)
             self._dataCallBack(data, count, rate, stime, artime, volMax, pipMax)
 
@@ -390,8 +390,6 @@ class AmbuControl(object):
                 #traceback.print_exc()
                 #print(f"Got handleSerial error {e}")
                 pass
-
-
 
 
 
