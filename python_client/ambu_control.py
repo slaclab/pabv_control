@@ -206,6 +206,7 @@ class AmbuControl(object):
     def stop(self):
         self._runEn = False
         self._thread.join()
+        self._qmgr.join()
 
     def start(self):
         self._runEn = True
@@ -276,9 +277,12 @@ class AmbuControl(object):
 
     def _queueMgrThread(self):
         while self._runEn:
-            (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True)
-            self._dataCallBack(data, count, rate, stime, artime, volMax, pipMax)
-
+            try:
+                # need to block with timeout - otherwise wait is uninterruptible on Windows
+                (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True,timeout=1)
+                self._dataCallBack(data, count, rate, stime, artime, volMax, pipMax)
+            except:
+                pass
 
     def _handleSerial(self):
         counter=0
