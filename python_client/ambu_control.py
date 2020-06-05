@@ -98,7 +98,7 @@ class AmbuControl(object):
     def inhTime(self,value):
         self._inhTime = value
         m=message.Message()
-        data=m.writeData(m.PARAM_FLOAT,0,[self._inhTime],[self.ConfigKey['SetInhTime']]);      
+        data=m.writeData(m.PARAM_FLOAT,0,[self._inhTime],[self.ConfigKey['SetInhTime']]);
         self._write(data)
 
     @property
@@ -222,7 +222,7 @@ class AmbuControl(object):
         m=message.Message()
         data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['GetConfig']])
         self._write(data)
-        
+
     def _write(self,data):
         if self._ser is not None:
             try:
@@ -246,12 +246,17 @@ class AmbuControl(object):
 
     def _connect(self):
         ports = list(serial.tools.list_ports.comports())
-        for port_no, description, address in ports:
-            if ( 
-                    'USB-Serial' in description or 
-                    'USB-to-Serial' in description or 
-                    'USB Serial' in description 
-                ):               
+        for port in ports:
+            port_no=port.device
+            description=port.description
+            vid=port.vid
+            pid=port.pid
+            if(vid==0x2341): continue #skip nano USN
+            if (
+                    'USB-Serial' in description or
+                    'USB-to-Serial' in description or
+                    'USB Serial' in description
+                ):
                 ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)
                 for i in range(1000):
                     try:
@@ -352,7 +357,7 @@ class AmbuControl(object):
                         continue
                     else:
                         # handle overflow and arduino reset case
-                        if(millis<self._prevmillis):                             
+                        if(millis<self._prevmillis):
                             self._smillis=millis
                             reboot_time=time.time()-self._timestamp
                             #we could count resets here
