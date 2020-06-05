@@ -46,13 +46,15 @@ class AmbuControl(object):
         self._runState = 0
 
         self._status = 0
-
+        self._prevmillis=0
         self._stime = 0
         self._smillis = -1
         self._refresh = time.time()
         self._version='unknown'
         self._cpuid=[0]*4
         self.artime = 0
+        self._tOffset=0
+        self._timestamp = time.time()
 
         self._data = npfifo(9,6000)
 
@@ -349,9 +351,20 @@ class AmbuControl(object):
                         self._stime = time.time()
                         continue
                     else:
-                        diffT=(millis-self._smillis)/1000.
+                        # handle overflow and arduino reset case
+                        if(millis<self._prevmillis):                             
+                            self._smillis=millis
+                            reboot_time=time.time()-self._timestamp
+                            #we could count resets here
+                            self._tOffset=self._diffT+reboot_time
+                            self._timestamp=time.time()
+                            self._prevmillis=millis
+                            continue
+                        diffT=(millis-self._smillis)/1000.+self._tOffset
                         if(diffT<=0): continue
-
+                        self._diffT=diffT
+                        self._timestamp=time.time()
+                        self._prevmillis=millis
                     stime  = ts - self._stime
                     artime= millis/1000.
                     self._data.append([diffT, count, press, flow, vol, self.volInThold, self.pipMax, self.volMax, self.peepMin])
