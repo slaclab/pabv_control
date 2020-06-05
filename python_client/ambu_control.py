@@ -276,12 +276,8 @@ class AmbuControl(object):
 
     def _queueMgrThread(self):
         while True:
-            (self._data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True)
-            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
-
-    
-
-        
+            (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True)
+            self._dataCallBack(data, count, rate, stime, artime, volMax, pipMax)
 
 
     def _handleSerial(self):
