@@ -7,6 +7,7 @@ import sys
 import traceback
 import numpy
 import message
+import queue
 import serial.tools.list_ports
 
 
@@ -26,6 +27,7 @@ class AmbuControl(object):
     def __init__(self):
 
         self._ser = None #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
+        self._queue = queue.Queue(3)
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
         self._stateCallBack = None
@@ -204,9 +206,12 @@ class AmbuControl(object):
     def stop(self):
         self._runEn = False
         self._thread.join()
+        self._qmgr.join()
 
     def start(self):
         self._runEn = True
+        self._qmgr = threading.Thread(target=self._queueMgrThread)
+        self._qmgr.start()
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
         self.requestConfig()
@@ -268,6 +273,16 @@ class AmbuControl(object):
                         self._ser=None
                         break
             if self._ser: return
+
+
+    def _queueMgrThread(self):
+        while self._runEn:
+            try:
+                # need to block with timeout - otherwise wait is uninterruptible on Windows
+                (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True,timeout=1)
+                self._dataCallBack(data, count, rate, stime, artime, volMax, pipMax)
+            except:
+                pass
 
     def _handleSerial(self):
         counter=0
@@ -361,7 +376,10 @@ class AmbuControl(object):
                             rate=0.
 
                         try:
-                            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
+                            qe=[self._data, count, rate, stime, artime, volMax, pipMax]
+                            self._queue.put(qe,block=False)
+
+#                            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
                             #print(f"Got status: {line.rstrip()}")
                         except Exception as e:
                             #traceback.print_exc()
@@ -376,6 +394,7 @@ class AmbuControl(object):
                 #traceback.print_exc()
                 #print(f"Got handleSerial error {e}")
                 pass
+
 
 
 class npfifo:
