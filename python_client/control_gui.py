@@ -409,10 +409,11 @@ class ControlGui(QWidget):
 
         
         self.logFile = QLineEdit()
+        self.logFile.setReadOnly(True);
         pb = QPushButton('Select output File')
         pb.clicked.connect(self.selectFile)
         vl.addWidget(pb)
-        
+        self.selectLog=pb
         fl.addRow('Log File:',self.logFile)
 
         pb = QPushButton('Begin Recording Data')
@@ -739,23 +740,25 @@ class ControlGui(QWidget):
         self.ambu.openLog(f)
         self.beginLog.setEnabled(False)
         self.endLog.setEnabled(True)
-        
+        self.selectLog.setEnabled(False)
 
     @pyqtSlot()
     def closePressed(self):
         self.ambu.closeLog()
         self.endLog.setEnabled(False)
         self.beginLog.setEnabled(True)
+        self.selectLog.setEnabled(True)
     
     @pyqtSlot()
     def selectFile(self):
         dlg = QFileDialog()
         f=dlg.getSaveFileName(self, 'Save ventillator data:')[0]
-        state=not self.beginLog.isEnabled() and not self.endLog.isEnabled()
-        if(state):
-            self.beginLog.setEnabled(True)        
-        self.logFile.setText(f)
-        self.logFile.update()
+        if(len(f)>0):
+            state=not self.beginLog.isEnabled() and not self.endLog.isEnabled()
+            if(state):
+                self.beginLog.setEnabled(True)        
+                self.logFile.setText(f)
+            self.logFile.update()
     
 
     def stateUpdated(self):

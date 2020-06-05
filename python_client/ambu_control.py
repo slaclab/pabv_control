@@ -7,6 +7,7 @@ import sys
 import traceback
 import numpy
 import message
+import queue
 import serial.tools.list_ports
 
 
@@ -26,6 +27,7 @@ class AmbuControl(object):
     def __init__(self):
 
         self._ser = None #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
+        self._queue = queue.Queue(3)
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
         self._stateCallBack = None
@@ -44,13 +46,15 @@ class AmbuControl(object):
         self._runState = 0
 
         self._status = 0
-
+        self._prevmillis=0
         self._stime = 0
         self._smillis = -1
         self._refresh = time.time()
         self._version='unknown'
         self._cpuid=[0]*4
         self.artime = 0
+        self._tOffset=0
+        self._timestamp = time.time()
 
         self._data = npfifo(9,6000)
 
@@ -204,9 +208,12 @@ class AmbuControl(object):
     def stop(self):
         self._runEn = False
         self._thread.join()
+        self._qmgr.join()
 
     def start(self):
         self._runEn = True
+        self._qmgr = threading.Thread(target=self._queueMgrThread)
+        self._qmgr.start()
         self._thread = threading.Thread(target=self._handleSerial)
         self._thread.start()
         self.requestConfig()
@@ -268,6 +275,16 @@ class AmbuControl(object):
                         self._ser=None
                         break
             if self._ser: return
+
+
+    def _queueMgrThread(self):
+        while self._runEn:
+            try:
+                # need to block with timeout - otherwise wait is uninterruptible on Windows
+                (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True,timeout=1)
+                self._dataCallBack(data, count, rate, stime, artime, volMax, pipMax)
+            except:
+                pass
 
     def _handleSerial(self):
         counter=0
@@ -334,9 +351,20 @@ class AmbuControl(object):
                         self._stime = time.time()
                         continue
                     else:
-                        diffT=(millis-self._smillis)/1000.
+                        # handle overflow and arduino reset case
+                        if(millis<self._prevmillis):                             
+                            self._smillis=millis
+                            reboot_time=time.time()-self._timestamp
+                            #we could count resets here
+                            self._tOffset=self._diffT+reboot_time
+                            self._timestamp=time.time()
+                            self._prevmillis=millis
+                            continue
+                        diffT=(millis-self._smillis)/1000.+self._tOffset
                         if(diffT<=0): continue
-
+                        self._diffT=diffT
+                        self._timestamp=time.time()
+                        self._prevmillis=millis
                     stime  = ts - self._stime
                     artime= millis/1000.
                     self._data.append([diffT, count, press, flow, vol, self.volInThold, self.pipMax, self.volMax, self.peepMin])
@@ -361,7 +389,10 @@ class AmbuControl(object):
                             rate=0.
 
                         try:
-                            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
+                            qe=[self._data, count, rate, stime, artime, volMax, pipMax]
+                            self._queue.put(qe,block=False)
+
+#                            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
                             #print(f"Got status: {line.rstrip()}")
                         except Exception as e:
                             #traceback.print_exc()
@@ -376,6 +407,7 @@ class AmbuControl(object):
                 #traceback.print_exc()
                 #print(f"Got handleSerial error {e}")
                 pass
+
 
 
 class npfifo:
