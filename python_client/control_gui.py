@@ -112,7 +112,6 @@ class ControlGui(QWidget):
         self.ambu = ambu
         self.ambu.setDataCallBack(self.dataUpdated)
         self.ambu.setStateCallBack(self.stateUpdated)
-
         self.respRate     = None
         self.inhTime      = None
         self.volInhThold  = None
@@ -809,12 +808,17 @@ class ControlGui(QWidget):
         self.updateCycPipMax.emit(f"{pipMax:.1f}")
 
         try:
+
             self.plot.axes[0].cla()
             self.plot.axes[1].cla()
             self.plot.axes[2].cla()
             ambu_data = inData.get_data()
-            xa = ambu_data[0,:]
-
+            xtime = ambu_data[0,:]
+            l=len(xtime)
+            xa=[0.]*l
+            start=xtime[-1]
+            for i in range(l):
+                xa[i]=xtime[i]-start
             self.plot.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
             self.plot.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
             self.plot.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
@@ -829,7 +833,9 @@ class ControlGui(QWidget):
             self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
 
             self.plot.axes[0].set_xlabel('Time')
-
+            self.plot.axes[0].set_xlim([-60,0])
+            self.plot.axes[1].set_xlim([-60,0])
+            self.plot.axes[2].set_xlim([-60,0])
             if self.refPlot:
                 self.plot.axes[0].set_ylabel('Ref Flow SL/Min')
             else:
@@ -846,8 +852,8 @@ class ControlGui(QWidget):
             self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
 
 
+                        
             self.plot.draw()
-
             self.plot2.axes2[0].cla()
             self.plot2.axes2[1].cla()
             self.plot2.axes2[2].cla()
@@ -878,11 +884,11 @@ class ControlGui(QWidget):
             self.plot2.axes2[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
             self.plot2.axes2[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
             self.plot2.axes2[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-
+            self.plot2.axes2[0].set_xlim([-60,0])
+            self.plot2.axes2[1].set_xlim([-60,0])
             self.plot2.draw()
-
-
-        except Exception as e:
-            #print(f"Got plotting exception {e}")
+    
+        except Exception as e:           
+            #print(f"Got plotting exception {e}")        
             pass
 
