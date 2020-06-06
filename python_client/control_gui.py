@@ -800,10 +800,9 @@ class ControlGui(QWidget):
             xtime = ambu_data[0,:]
             l=len(xtime)
             xa=[0.]*l
-            start=xtime[0]
+            start=xtime[-1]
             for i in range(l):
-                xa[i]=-(xtime[i]-start)
-                
+                xa[i]=xtime[i]-start
             self.plot.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
             self.plot.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
             self.plot.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
