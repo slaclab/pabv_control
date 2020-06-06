@@ -37,11 +37,11 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
    Message m;
    serial_.read(m);
    uint8_t id=m.id();
-  
+
    if(  (m.status()==Message::ERR_OK) && (m.nInt()>0)) {
-     uint32_t param=m.getInt()[0];    
+     uint32_t param=m.getInt()[0];
      sendConfig = true;
-     if(id==Message::PARAM_FLOAT && m.nFloat()==1) {       
+     if(id==Message::PARAM_FLOAT && m.nFloat()==1) {
        float f=m.getFloat()[0];
        Serial.print("Param: ");
        Serial.println(param,HEX);
@@ -65,14 +65,14 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
        if(param==SetRunState)        conf_.runState = d;
        storeConfig();
      } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
-       if(param==ClearAlarm) {
-	 cycle.clearAlarm();
+       if(param==MuteAlarm) {
+	 cycle.muteAlarm();
 	 Serial.println("Clear Alarm");
        }
      }
    }
    if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;
-   
+
    if (sendConfig) {
      Message m;
      float config[8];
@@ -141,7 +141,7 @@ void AmbuConfig::setVolInThold(double value) {
    storeConfig();
 }
 
-double AmbuConfig::setPeepMin() {
+double AmbuConfig::getPeepMin() {
    return conf_.peepMin;
 }
 

@@ -19,10 +19,12 @@ class AmbuControl(object):
     # Config constants
     ConfigKey = { 'GetConfig'    : 0, 'SetRespRate' : 1, 'SetInhTime'   : 2, 'SetPipMax'     : 3,
                   'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolOffset' : 6, 'SetVolInThold' : 7,
-                  'SetPeepMin'   : 8, 'SetRunState' : 9, 'ClearAlarm'   : 10 }
+                  'SetPeepMin'   : 8, 'SetRunState' : 9, 'MuteAlarm'    : 10 }
 
     # Status constants
-    StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolMax' : 0x02, 'Alarm12V' : 0x04, 'Alarm9V' : 0x08, 'VolInh' : 0x10 }
+    StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolLow' : 0x02, 'Alarm12V'  : 0x04,
+                  'Warn9V'       : 0x08, 'VolInh'      : 0x10, 'AlarmPLow' : 0x11,
+                  'WarnPeepMin'  : 0x12 }
 
     def __init__(self):
 
@@ -96,7 +98,7 @@ class AmbuControl(object):
     def inhTime(self,value):
         self._inhTime = value
         m=message.Message()
-        data=m.writeData(m.PARAM_FLOAT,0,[self._inhTime],[self.ConfigKey['SetInhTime']]);      
+        data=m.writeData(m.PARAM_FLOAT,0,[self._inhTime],[self.ConfigKey['SetInhTime']]);
         self._write(data)
 
     @property
@@ -178,28 +180,40 @@ class AmbuControl(object):
         self._write(data)
 
     @property
-    def alarmVolMax(self):
-        return ((self._status & self.StatusKey['AlarmVolMax']) != 0)
-
-    @property
     def alarmPipMax(self):
         return ((self._status & self.StatusKey['AlarmPipMax']) != 0)
 
     @property
-    def alarm9V(self):
-        return ((self._status & self.StatusKey['Alarm9V']) != 0)
+    def alarmVolLow(self):
+        return ((self._status & self.StatusKey['AlarmVolLow']) != 0)
 
     @property
     def alarm12V(self):
         return ((self._status & self.StatusKey['Alarm12V']) != 0)
 
     @property
+    def warn9V(self):
+        return ((self._status & self.StatusKey['Warn9V']) != 0)
+
+    @property
     def volInhFlag(self):
         return ((self._status & self.StatusKey['VolInh']) != 0)
 
-    def clearAlarm(self):
+    @property
+    def alarmPressLow(self):
+        return ((self._status & self.StatusKey['AlarmPressLow']) != 0)
+
+    @property
+    def warnPeepMin(self):
+        return ((self._status & self.StatusKey['WarnPeepMin']) != 0)
+
+    @property
+    def currState(self):
+        return ((self._status >> 24) & 0xFF)
+
+    def muteAlarm(self):
         m=message.Message()
-        data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['ClearAlarm']  ])
+        data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['MuteAlarm']  ])
         self._write(data)
         self._status = 0
 
@@ -220,7 +234,7 @@ class AmbuControl(object):
         m=message.Message()
         data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['GetConfig']])
         self._write(data)
-        
+
     def _write(self,data):
         if self._ser is not None:
             try:
@@ -245,11 +259,11 @@ class AmbuControl(object):
     def _connect(self):
         ports = list(serial.tools.list_ports.comports())
         for port_no, description, address in ports:
-            if ( 
-                    'USB-Serial' in description or 
-                    'USB-to-Serial' in description or 
-                    'USB Serial' in description 
-                ):               
+            if (
+                    'USB-Serial' in description or
+                    'USB-to-Serial' in description or
+                    'USB Serial' in description
+                ):
                 ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)
                 for i in range(1000):
                     try:

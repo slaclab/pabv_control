@@ -44,7 +44,7 @@ class AmbuConfig {
       static const uint8_t SetVolInThold = 7;
       static const uint8_t SetPeepMin    = 8;
       static const uint8_t SetRunState   = 9;
-      static const uint8_t ClearAlarm    = 10;
+      static const uint8_t MuteAlarm     = 10;
 
    protected:
 
@@ -63,7 +63,7 @@ class AmbuConfig {
    public:
 
       AmbuConfig (Comm &serial);
-      virtual void deviceID(cpuId &id) = 0;     
+      virtual void deviceID(cpuId &id) = 0;
       virtual void setup();
 
       void update(uint32_t ctime, CycleControl &cycle);
@@ -84,7 +84,7 @@ class AmbuConfig {
       double getVolInThold();
       void setVolInThold(double value);
 
-      double setPeepMin();
+      double getPeepMin();
       void setPeepMin(double value);
 
       uint8_t getRunState();

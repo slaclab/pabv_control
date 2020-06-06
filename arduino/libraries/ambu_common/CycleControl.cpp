@@ -3,18 +3,25 @@
 #include "AmbuConfig.h"
 #include "GenericSensor.h"
 
-
 CycleControl::CycleControl (AmbuConfig &conf,
                             GenericSensor &press,
                             GenericSensor &vol,
-                            uint8_t relayAPin, uint8_t relayBPin)  :  
-                            conf_(conf),
+                            uint8_t relayAPin,
+                            uint8_t relayBPin,
+                            uint8_t redLedPin,
+                            uint8_t yelLedPin,
+                            uint8_t piezoPin):
+             conf_(conf),
 			    press_(press),
 			    vol_(vol),
 			    relayAPin_(relayAPin),
 			    relayBPin_(relayBPin),
+			    redLedPin_(redLedPin),
+			    yelLedPin_(yelLedPin),
+			    piezoPin_(piezoPin),
 			    stateTime_(0),
-			    cycleCount_(0)
+			    cycleCount_(0),
+			    muteTime_(0)
 {  }
 
 
@@ -23,12 +30,20 @@ void CycleControl::setup() {
    cycleCount_ = 0;
 
    state_ = StateOff;
-   status_ = 0;
+   cycleStatus_ = 0;
+   currStatus_ = 0;
 
    pinMode(relayAPin_, OUTPUT);
    pinMode(relayBPin_, OUTPUT);
+   pinMode(redLedPin_, OUTPUT);
+   pinMode(yelLedPin_, OUTPUT);
+   pinMode(piezoPin_,  OUTPUT);
+
    digitalWrite(relayAPin_, RELAY_OFF);
    digitalWrite(relayBPin_, RELAY_OFF);
+   digitalWrite(redLedPin_, LED_OFF);
+   digitalWrite(yelLedPin_, LED_OFF);
+   digitalWrite(piezoPin_,  PIEZO_OFF);
 
    currVmax_ = 0;
    prevVmax_ = 0;
@@ -47,6 +62,22 @@ void CycleControl::update(uint32_t ctime) {
    // Keep track of pmax
    if ( press_.scaledValue() > currPmax_ ) currPmax_ = press_.scaledValue();
 
+   // Pressure checks for alarms
+   if (conf_.getRunState() == conf_.StateRunOn) {
+
+      // Max pressure threshold exceeded
+      if ( press_.scaledValue() > conf_.getPipMax() )  {
+         cycleStatus_ |= StatusAlarmPipMax;
+         currStatus_  |= StatusAlarmPipMax;
+      }
+
+      // Min pressure threshold exceeded
+      if ( press_.scaledValue() < conf_.getPeepMin() )  {
+         cycleStatus_ |= StatusWarnPeepMin;
+         currStatus_  |= StatusWarnPeepMin;
+      }
+   }
+
    // Off portion of the cycle
    if ( state_ == StateOff ) {
 
@@ -56,14 +87,12 @@ void CycleControl::update(uint32_t ctime) {
            ((ctime - stateTime_) > MinOffMillis) ) {
 
          newState = StateOn;
-         status_ |= StatusVolInh;
+         cycleStatus_ |= StatusVolInh;
+         currStatus_  |= StatusVolInh;
       }
 
       // Turn on based upon time
-      else if ( (ctime - stateTime_) > conf_.getOffTimeMillis()) {
-         newState = StateOn;
-         status_ &= (0xFF^StatusVolInh);
-      }
+      else if ( (ctime - stateTime_) > conf_.getOffTimeMillis()) newState = StateOn;
    }
 
    // On portion of the cycle
@@ -74,13 +103,11 @@ void CycleControl::update(uint32_t ctime) {
 
          // Turn off pressure threshold exceeded
          if ( press_.scaledValue() > conf_.getAdjPipMax() )  {
-            status_ |= StatusAlarmPipMax;
             newState = StateHold;
          }
 
          // Turn off volume threshold exceeded
          if ( vol_.scaledValue() > conf_.getAdjVolMax() ) {
-            status_ |= StatusAlarmVolMax;
             newState = StateHold;
          }
       }
@@ -104,11 +131,24 @@ void CycleControl::update(uint32_t ctime) {
          stateTime_ = ctime;
          vol_.reset(ctime);
 
+         if (conf_.getRunState() == conf_.StateRunOn) {
+
+            // Volume on previous cycle never exceeded 100mL
+            if ( currVmax_ < 100.0 ) cycleStatus_ |= StatusAlarmVolLow;
+
+            // Pressure on previous cycle never exceeded 5cmH20
+            if ( currPmax_ < 5.0 ) cycleStatus_ |= StatusAlarmPressLow;
+         }
+
          // Clear counters
          prevVmax_ = currVmax_;
          currVmax_ = 0;
          prevPmax_ = currPmax_;
          currPmax_ = 0;
+
+         // Update status to current cycle values to clear old alarms
+         currStatus_  = cycleStatus_;
+         cycleStatus_ = 0;
 
          // Increment cycle count
          cycleCount_++;
@@ -120,7 +160,12 @@ void CycleControl::update(uint32_t ctime) {
       }
 
       state_ = newState;
+
+      // Upper 8 bits of status contains current state
+      currStatus_ &= 0xFF0000;
+      currStatus_ |= (state_ << 24);
    }
+
    // Currently forced off, paddle up
    if ( conf_.getRunState() == conf_.StateForceOff ) {
       digitalWrite(relayAPin_, RELAY_OFF);
@@ -156,12 +201,37 @@ void CycleControl::update(uint32_t ctime) {
       digitalWrite(relayAPin_, RELAY_OFF);
       digitalWrite(relayBPin_, RELAY_OFF);
    }
+
+   // Alarms LED
+   if ( (currStatus_ & StatusAlarmPipMax   ) ||
+        (currStatus_ & StatusAlarmVolLow   ) ||
+        (currStatus_ & StatusAlarm12V      ) ||
+        (currStatus_ & StatusAlarmPressLow ) ) {
+
+      digitalWrite(redLedPin_, LED_ON);
+   }
+   else digitalWrite(redLedPin_, LED_OFF);
+
+   // Warning LED
+   if ( (currStatus_ & StatusWarn9V        ) ||
+        (currStatus_ & StatusWarnPeepMin   ) ) {
+
+      digitalWrite(yelLedPin_, LED_ON);
+   }
+   else digitalWrite(yelLedPin_, LED_OFF);
+
+   // Alarm Audio
+   if ( ( (currStatus_ & StatusAlarmPipMax   ) ||
+          (currStatus_ & StatusAlarmVolLow   ) ||
+          (currStatus_ & StatusAlarm12V      ) ||
+          (currStatus_ & StatusAlarmPressLow ) ) && ((ctime - muteTime_) > 300000) ) {
+
+      digitalWrite(piezoPin_, PIEZO_ON);
+   }
+   else digitalWrite(piezoPin_, PIEZO_OFF);
 }
 
-
-
-
-void CycleControl::clearAlarm() {
-   status_ = 0;
+void CycleControl::muteAlarm() {
+   muteTime_ = millis();
 }
 
