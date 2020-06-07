@@ -724,25 +724,25 @@ class ControlGui(QWidget):
 
     @pyqtSlot(int)
     def setState(self,value):
-        pass
-        #try:
-        #    self.ambu.runState = value
-#
-#            if value == 3:
-#                self.runControl.setChecked(True)
-#            else:
-#                self.runControl.setChecked(False)
-#
-#        except Exception as e:
-#            #print(f"Got GUI value error {e}")
-#            pass
+        try:
+            self.ambu.runState = value
+
+            if value == 3:
+                self.runControl.setChecked(True)
+            else:
+                self.runControl.setChecked(False)
+
+        except Exception as e:
+            #print(f"Got GUI value error {e}")
+            pass
 
     @pyqtSlot(bool)
     def setRunState(self,st):
-        if st and self.stateControl.currentIndex() != 3:
-            self.stateControl.setCurrentIndex(3)
-        elif self.stateControl.currentIndex() > 2:
-            self.stateControl.setCurrentIndex(2)
+        pass
+        #if st and self.stateControl.currentIndex() != 3:
+            #self.stateControl.setCurrentIndex(3)
+        #elif self.stateControl.currentIndex() > 2:
+            #self.stateControl.setCurrentIndex(2)
 
     @pyqtSlot()
     def muteAlarm(self):
