@@ -389,7 +389,7 @@ class AmbuControl(object):
                     self._data.append([diffT, count, press, flow, vol, self.volInThold, self.pipMax, self.volMax, self.peepMin])
 
                     if self._file is not None:
-                        self._file.write(f'{ts}, {count}, {press}, {flow}, {vol}\n')
+                        self._file.write(f'{ts}, {status}, {count}, {press}, {flow}, {vol}\n')
 
                     if time.time() - self._refresh > 0.5:
                         self._refresh = time.time()
