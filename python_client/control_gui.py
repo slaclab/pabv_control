@@ -888,7 +888,7 @@ class ControlGui(QWidget):
             # ERROR self.plot2.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
             # ERROR self.plot2.axes[0].set_xlim([-60,0])
             # ERROR self.plot2.axes[1].set_xlim([-60,0])
-            self.plot2.draw()
+            #self.plot2.draw()
 
         except Exception as e:
             print(f"Got plotting exception {e}")
