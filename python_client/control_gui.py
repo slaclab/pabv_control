@@ -739,10 +739,10 @@ class ControlGui(QWidget):
     @pyqtSlot(bool)
     def setRunState(self,st):
         pass
-        #if st and self.stateControl.currentIndex() != 3:
-            #self.stateControl.setCurrentIndex(3)
-        #elif self.stateControl.currentIndex() > 2:
-            #self.stateControl.setCurrentIndex(2)
+        if st and self.stateControl.currentIndex() != 3:
+            self.stateControl.setCurrentIndex(3)
+        elif self.stateControl.currentIndex() > 2:
+            self.stateControl.setCurrentIndex(2)
 
     @pyqtSlot()
     def muteAlarm(self):
@@ -784,6 +784,7 @@ class ControlGui(QWidget):
         self.updatePipOffset.emit("{:0.1f}".format(self.ambu.pipOffset))
         self.updateVolOffset.emit("{:0.1f}".format(self.ambu.volOffset))
         self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
+
         self.updateState.emit(self.ambu.runState)
 
         if self.ambu.runState == 3:
