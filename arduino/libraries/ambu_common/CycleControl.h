@@ -8,6 +8,12 @@
 #define RELAY_ON  HIGH
 #define RELAY_OFF LOW
 
+#define LED_ON  HIGH
+#define LED_OFF LOW
+
+#define PIEZO_ON  HIGH
+#define PIEZO_OFF LOW
+
 class AmbuConfig;
 class GenericSensor;
 
@@ -19,11 +25,13 @@ class CycleControl {
       static const uint8_t StateHold = 2;
 
       // Statis Bits
-      static const uint8_t StatusAlarmPipMax  = 0x01;
-      static const uint8_t StatusAlarmVolMax  = 0x02;
-      static const uint8_t StatusAlarm12V     = 0x04;
-      static const uint8_t StatusAlarm9V      = 0x08;
-      static const uint8_t StatusVolInh       = 0x10;
+      static const uint8_t StatusAlarmPipMax    = 0x01;
+      static const uint8_t StatusAlarmVolLow    = 0x02;
+      static const uint8_t StatusAlarm12V       = 0x04;
+      static const uint8_t StatusWarn9V         = 0x08;
+      static const uint8_t StatusVolInh         = 0x10;
+      static const uint8_t StatusAlarmPressLow  = 0x11;
+      static const uint8_t StatusWarnPeepMin    = 0x12;
 
       // Min off period
       static const uint32_t MinOffMillis = 1000;
@@ -34,9 +42,14 @@ class CycleControl {
 
       uint8_t  state_;
       uint32_t stateTime_;
+      uint32_t muteTime_;
       uint8_t  relayAPin_;
       uint8_t  relayBPin_;
-      uint8_t  status_;
+      uint8_t  redLedPin_;
+      uint8_t  yelLedPin_;
+      uint8_t  piezoPin_;
+      uint32_t cycleStatus_;
+      uint32_t currStatus_;
       uint32_t cycleCount_;
       double   currVmax_;
       double   prevVmax_;
@@ -49,16 +62,19 @@ class CycleControl {
                     GenericSensor &press,
                     GenericSensor &vol,
                     uint8_t relayAPin,
-		    uint8_t relayBPin);
+                    uint8_t relayBPin,
+                    uint8_t redLedPin,
+                    uint8_t yelLedPin,
+                    uint8_t piezoPin);
 
       void setup();
 
       void update(uint32_t ctime);
 
 
-      void clearAlarm();
+      void muteAlarm();
 
-      uint32_t status() { return status_;}
+      uint32_t status() { return currStatus_;}
       uint32_t cycleCount() { return cycleCount_;}
       float prevPmax() {return prevPmax_;}
       float prevVmax() {return prevVmax_;}
