@@ -724,17 +724,18 @@ class ControlGui(QWidget):
 
     @pyqtSlot(int)
     def setState(self,value):
-        try:
-            self.ambu.runState = value
-
-            if value == 3:
-                self.runControl.setChecked(True)
-            else:
-                self.runControl.setChecked(False)
-
-        except Exception as e:
-            #print(f"Got GUI value error {e}")
-            pass
+        pass
+        #try:
+        #    self.ambu.runState = value
+#
+#            if value == 3:
+#                self.runControl.setChecked(True)
+#            else:
+#                self.runControl.setChecked(False)
+#
+#        except Exception as e:
+#            #print(f"Got GUI value error {e}")
+#            pass
 
     @pyqtSlot(bool)
     def setRunState(self,st):
