@@ -793,21 +793,21 @@ class ControlGui(QWidget):
         self.updateVersion.emit(str(self.ambu.version))
 
     def dataUpdated(self,inData,count,rate,stime,artime,volMax,pipMax):
-        self.updateCount.emit(str(count))
-        self.updateRate.emit(f"{rate:.1f}")
-        self.updateTime.emit(f"{stime:.1f}")
-        self.updateArTime.emit(f"{artime:.1f}")
-        self.updateCycVolMax.emit(f"{volMax:.1f}")
-        self.updateCycPipMax.emit(f"{pipMax:.1f}")
-
-        self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
-        self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
-        self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
-        self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
-        self.updateAlrmPresLow.emit("{}".format(self.alarmPresLow))
-        self.updateWarnPeepMin.emit("{}".format(self.warnPeepMin))
-
         try:
+
+            self.updateCount.emit(str(count))
+            self.updateRate.emit(f"{rate:.1f}")
+            self.updateTime.emit(f"{stime:.1f}")
+            self.updateArTime.emit(f"{artime:.1f}")
+            self.updateCycVolMax.emit(f"{volMax:.1f}")
+            self.updateCycPipMax.emit(f"{pipMax:.1f}")
+
+            self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
+            self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
+            self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
+            self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
+            self.updateAlarmPresLow.emit("{}".format(self.alarmPresLow))
+            self.updateWarnPeepMin.emit("{}".format(self.warnPeepMin))
 
             self.plot.axes[0].cla()
             self.plot.axes[1].cla()
@@ -889,6 +889,6 @@ class ControlGui(QWidget):
             self.plot2.draw()
 
         except Exception as e:
-            #print(f"Got plotting exception {e}")
+            print(f"Got plotting exception {e}")
             pass
 
