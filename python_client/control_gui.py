@@ -806,8 +806,8 @@ class ControlGui(QWidget):
             self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
             self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
             self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
-            self.updateAlarmPresLow.emit("{}".format(self.alarmPresLow))
-            self.updateWarnPeepMin.emit("{}".format(self.warnPeepMin))
+            self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
+            self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
 
             self.plot.axes[0].cla()
             self.plot.axes[1].cla()
@@ -854,38 +854,38 @@ class ControlGui(QWidget):
 
 
             self.plot.draw()
-            self.plot2.axes2[0].cla()
-            self.plot2.axes2[1].cla()
-            self.plot2.axes2[2].cla()
+            self.plot2.axes[0].cla()
+            self.plot2.axes[1].cla()
+            self.plot2.axes[2].cla()
             #ambu_data = inData.get_data()
             #xa = ambu_data[0,:]
 
-            self.plot2.axes2[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
-            self.plot2.axes2[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
-            self.plot2.axes2[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
-            self.plot2.axes2[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0,label="Peep min")       # peep min
+            self.plot2.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
+            self.plot2.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
+            self.plot2.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
+            self.plot2.axes[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0,label="Peep min")       # peep min
 
-            self.plot2.axes2[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0,label="Flow")     # flow
-            self.plot2.axes2[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0,label="Volume")      # volume
-            self.plot2.axes2[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0,label="V-thresh-high")       # volume threshold
+            self.plot2.axes[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0,label="Flow")     # flow
+            self.plot2.axes[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0,label="Volume")      # volume
+            self.plot2.axes[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0,label="V-thresh-high")       # volume threshold
 
-            self.plot2.axes2[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
-            self.plot2.axes2[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
-            self.plot2.axes2[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
+            self.plot2.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
+            self.plot2.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
+            self.plot2.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
 
-            self.plot2.axes2[0].set_xlabel('Time')
+            self.plot2.axes[0].set_xlabel('Time')
 
-            self.plot2.axes2[1].set_xlabel('Time')
-            self.plot2.axes2[1].set_ylabel('Flow L/Min')
+            self.plot2.axes[1].set_xlabel('Time')
+            self.plot2.axes[1].set_ylabel('Flow L/Min')
 
-            self.plot2.axes2[2].set_xlabel('Time')
-            self.plot2.axes2[2].set_ylabel('Volume mL')
+            self.plot2.axes[2].set_xlabel('Time')
+            self.plot2.axes[2].set_ylabel('Volume mL')
 
-            self.plot2.axes2[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            self.plot2.axes2[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            self.plot2.axes2[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            self.plot2.axes2[0].set_xlim([-60,0])
-            self.plot2.axes2[1].set_xlim([-60,0])
+            self.plot2.axes[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+            self.plot2.axes[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+            self.plot2.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+            self.plot2.axes[0].set_xlim([-60,0])
+            self.plot2.axes[1].set_xlim([-60,0])
             self.plot2.draw()
 
         except Exception as e:

@@ -22,8 +22,8 @@ class AmbuControl(object):
                   'SetPeepMin'   : 8, 'SetRunState' : 9, 'MuteAlarm'    : 10 }
 
     # Status constants
-    StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolLow' : 0x02, 'Alarm12V'  : 0x04,
-                  'Warn9V'       : 0x08, 'VolInh'      : 0x10, 'AlarmPLow' : 0x11,
+    StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolLow' : 0x02, 'Alarm12V'     : 0x04,
+                  'Warn9V'       : 0x08, 'VolInh'      : 0x10, 'AlarmPresLow' : 0x11,
                   'WarnPeepMin'  : 0x12 }
 
     def __init__(self):
@@ -202,8 +202,8 @@ class AmbuControl(object):
         return ((self._status & self.StatusKey['VolInh']) != 0)
 
     @property
-    def alarmPressLow(self):
-        return ((self._status & self.StatusKey['AlarmPressLow']) != 0)
+    def alarmPresLow(self):
+        return ((self._status & self.StatusKey['AlarmPresLow']) != 0)
 
     @property
     def warnPeepMin(self):
