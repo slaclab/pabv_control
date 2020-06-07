@@ -111,7 +111,7 @@ class ControlGui(QWidget):
 
         self.ambu = ambu
         self.ambu.setDataCallBack(self.dataUpdated)
-        self.ambu.setStateCallBack(self.stateUpdated)
+        self.ambu.setConfigCallBack(self.configUpdated)
         self.respRate     = None
         self.inhTime      = None
         self.volInhThold  = None
@@ -774,7 +774,7 @@ class ControlGui(QWidget):
             self.logFile.update()
 
 
-    def stateUpdated(self):
+    def configUpdated(self):
         self.updateRespRate.emit("{:0.1f}".format(self.ambu.respRate))
         self.updateInhTime.emit("{:0.1f}".format(self.ambu.inhTime))
         self.updateVolInhThold.emit("{:0.1f}".format(self.ambu.volInThold))
@@ -790,13 +790,6 @@ class ControlGui(QWidget):
         else:
             self.runControl.setChecked(False)
 
-        self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
-        self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
-        self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
-        self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
-        self.updateAlrmPresLow.emit("{}".format(self.alarmPresLow))
-        self.updateWarnPeepMin.emit("{}".format(self.warnPeepMin))
-
         self.updateVersion.emit(str(self.ambu.version))
 
     def dataUpdated(self,inData,count,rate,stime,artime,volMax,pipMax):
@@ -806,6 +799,13 @@ class ControlGui(QWidget):
         self.updateArTime.emit(f"{artime:.1f}")
         self.updateCycVolMax.emit(f"{volMax:.1f}")
         self.updateCycPipMax.emit(f"{pipMax:.1f}")
+
+        self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
+        self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
+        self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
+        self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
+        self.updateAlrmPresLow.emit("{}".format(self.alarmPresLow))
+        self.updateWarnPeepMin.emit("{}".format(self.warnPeepMin))
 
         try:
 
@@ -852,7 +852,7 @@ class ControlGui(QWidget):
             self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
 
 
-                        
+
             self.plot.draw()
             self.plot2.axes2[0].cla()
             self.plot2.axes2[1].cla()
@@ -887,8 +887,8 @@ class ControlGui(QWidget):
             self.plot2.axes2[0].set_xlim([-60,0])
             self.plot2.axes2[1].set_xlim([-60,0])
             self.plot2.draw()
-    
-        except Exception as e:           
-            #print(f"Got plotting exception {e}")        
+
+        except Exception as e:
+            #print(f"Got plotting exception {e}")
             pass
 

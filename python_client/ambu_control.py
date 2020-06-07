@@ -32,7 +32,7 @@ class AmbuControl(object):
         self._queue = queue.Queue(3)
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
-        self._stateCallBack = None
+        self._configCallBack = None
         self._file = None
         self._last = None
         self._gotConf = False
@@ -74,8 +74,8 @@ class AmbuControl(object):
     def setDataCallBack(self, callBack):
         self._dataCallBack = callBack
 
-    def setStateCallBack(self, callBack):
-        self._stateCallBack = callBack
+    def setConfigCallBack(self, callBack):
+        self._configCallBack = callBack
 
     @property
     def version(self):
@@ -345,9 +345,9 @@ class AmbuControl(object):
                             doNotify = True
                         setattr(self,k,v)
 
-                    if ((not self._gotConf) or doNotify) and self._stateCallBack is not None:
+                    if ((not self._gotConf) or doNotify) and self._configCallBack is not None:
                         self._gotConf = True
-                        self._stateCallBack()
+                        self._configCallBack()
 
                 elif self._gotConf and m.id == m.DATA  and m.nFloat==5 and m.nInt==2:
                     #print(f"Got status: {line.rstrip()}")
@@ -362,7 +362,6 @@ class AmbuControl(object):
                     flow   = data[3]
                     vol    = data[4]
 
-                    doStatus = (status != self._status)
                     self._status = status
 
                     if self._smillis == -1:
@@ -417,10 +416,6 @@ class AmbuControl(object):
                             #traceback.print_exc()
                             #print("Got callback error {}".format(e))
                             pass
-
-                    if doStatus and self._stateCallBack is not None:
-                        self._stateCallBack()
-
 
             except Exception as e:
                 #traceback.print_exc()
