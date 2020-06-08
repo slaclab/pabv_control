@@ -207,12 +207,12 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
 
-        alarmStatus = QLineEdit()
-        alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
-        alarmStatus.setText("Clear")
-        alarmStatus.setReadOnly(True)
+        self.alarmStatus = QLineEdit()
+        self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
+        self.alarmStatus.setText("Clear")
+        self.alarmStatus.setReadOnly(True)
         #this will be a switch that will display true and turn red if any of the alarm conditions are met.  Hovering or looking at expert page will say which.  maybe even alarms settings page? or just alarm settings group box on expert page?
-        fl.addRow('Alarm Status:',alarmStatus)
+        fl.addRow('Alarm Status:',self.alarmStatus)
 
         cycVolMax = QLineEdit()
         cycVolMax.setText("0")
@@ -810,6 +810,18 @@ class ControlGui(QWidget):
             self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
             self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
             self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
+
+            # Red alarm
+            if self.ambu.alarmPipMax or self.ambu.alarmVolLow or self.ambu.alarm12V or self.ambu.alarmPresLow:
+                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: red; color: black }""")
+                self.alarmStatus.setText("Alarm")
+            elif self.ambu.warn9V or self.ambu.warnPeepMin:
+                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: yellow; color: black }""")
+                self.alarmStatus.setText("Warning")
+
+            else:
+                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
+                self.alarmStatus.setText("Clear")
 
             self.plot.axes[0].cla()
             self.plot.axes[1].cla()
