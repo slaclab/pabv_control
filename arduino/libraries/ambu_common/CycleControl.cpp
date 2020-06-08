@@ -162,7 +162,7 @@ void CycleControl::update(uint32_t ctime) {
       state_ = newState;
 
       // Upper 8 bits of status contains current state
-      currStatus_ &= 0xFF0000;
+      currStatus_ &= 0x00FFFF;
       currStatus_ |= (state_ << 24);
    }
 
