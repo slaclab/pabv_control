@@ -16,6 +16,9 @@ class AmbuControl(object):
     # State constants
     RunStates = { 0:'StateForceOff', 1:'StateForceOn', 2:'StateRunOff', 3:'StateRunOn' }
 
+    # Cycle States
+    CycleStates = { 0:'StateOff', 1:'StateOn', 2:'StateHold' }
+
     # Config constants
     ConfigKey = { 'GetConfig'    : 0, 'SetRespRate' : 1, 'SetInhTime'   : 2, 'SetPipMax'     : 3,
                   'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolOffset' : 6, 'SetVolInThold' : 7,
