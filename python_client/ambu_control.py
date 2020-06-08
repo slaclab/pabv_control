@@ -88,13 +88,10 @@ class AmbuControl(object):
 
     @respRate.setter
     def respRate(self,value):
-        self._ignoreConf = True
         self._respRate = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._respRate],[self.ConfigKey['SetRespRate']]);
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
 
     @property
     def inhTime(self):
@@ -102,13 +99,10 @@ class AmbuControl(object):
 
     @inhTime.setter
     def inhTime(self,value):
-        self._ignoreConf = True
         self._inhTime = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._inhTime],[self.ConfigKey['SetInhTime']]);
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
 
     @property
     def pipMax(self):
@@ -116,13 +110,10 @@ class AmbuControl(object):
 
     @pipMax.setter
     def pipMax(self,value):
-        self._ignoreConf = True
         self._pipMax = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._pipMax],[self.ConfigKey['SetPipMax']]);
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
 
     @property
     def pipOffset(self):
@@ -130,13 +121,10 @@ class AmbuControl(object):
 
     @pipOffset.setter
     def pipOffset(self,value):
-        self._ignoreConf = True
         self._pipOffset = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._pipOffset],[self.ConfigKey['SetPipOffset']])
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
 
     @property
     def volMax(self):
@@ -144,14 +132,10 @@ class AmbuControl(object):
 
     @volMax.setter
     def volMax(self,value):
-        self._ignoreConf = True
         self._volMax = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._volMax],[self.ConfigKey['SetVolMax']])
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
-
 
     @property
     def volOffset(self):
@@ -159,13 +143,10 @@ class AmbuControl(object):
 
     @volOffset.setter
     def volOffset(self,value):
-        self._ignoreConf = True
         self._volOffset = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._volOffset],[self.ConfigKey['SetVolOffset']])
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
 
     @property
     def volInThold(self):
@@ -173,13 +154,10 @@ class AmbuControl(object):
 
     @volInThold.setter
     def volInThold(self,value):
-        self._ignoreConf = True
         self._volInThold = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._volInThold],[self.ConfigKey['SetVolInThold']])
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
 
     @property
     def peepMin(self):
@@ -187,13 +165,10 @@ class AmbuControl(object):
 
     @peepMin.setter
     def peepMin(self,value):
-        self._ignoreConf = True
         self._peepMin = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._peepMin],[self.ConfigKey['SetPeepMin']])
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
 
     @property
     def runState(self):
@@ -201,13 +176,11 @@ class AmbuControl(object):
 
     @runState.setter
     def runState(self,value):
-        self._ignoreConf = True
         self._runState = value
+        print(f"Setting run state {self._runState}")
         m=message.Message()
         data=m.writeData(m.PARAM_INTEGER,0,[],[self.ConfigKey['SetRunState'],self._runState])
         self._write(data)
-        time.sleep(.25)
-        self._ignoreConf = False
 
     @property
     def alarmPipMax(self):
@@ -268,7 +241,10 @@ class AmbuControl(object):
     def _write(self,data):
         if self._ser is not None:
             try:
+                self._ignoreConf = True
                 self._ser.write(data)
+                time.sleep(.25)
+                self._ignoreConf = False
             except:
                 self._ser=None
 
@@ -377,6 +353,7 @@ class AmbuControl(object):
 
                         if ((not self._gotConf) or doNotify) and (self._configCallBack is not None):
                             self._gotConf = True
+                            print(f"Config callback {self._runState}")
                             self._configCallBack()
 
                 elif self._gotConf and m.id == m.DATA  and m.nFloat==5 and m.nInt==2:

@@ -66,8 +66,8 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
        storeConfig();
      } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
        if(param==MuteAlarm) {
-	 cycle.muteAlarm();
-	 Serial.println("Clear Alarm");
+         cycle.muteAlarm();
+         Serial.println("Clear Alarm");
        }
      }
    }
