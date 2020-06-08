@@ -14,18 +14,18 @@ CycleControl::CycleControl (AmbuConfig &conf,
                             uint8_t pin12V,
                             uint8_t pin9V):
              conf_(conf),
-			    press_(press),
-			    vol_(vol),
-			    relayAPin_(relayAPin),
-			    relayBPin_(relayBPin),
-			    redLedPin_(redLedPin),
-			    yelLedPin_(yelLedPin),
-			    piezoPin_(piezoPin),
+             press_(press),
+             vol_(vol),
+             relayAPin_(relayAPin),
+             relayBPin_(relayBPin),
+             redLedPin_(redLedPin),
+             yelLedPin_(yelLedPin),
+             piezoPin_(piezoPin),
              pin9V_(pin9V),
              pin12V_(pin12V),
-			    stateTime_(0),
-			    cycleCount_(0),
-			    muteTime_(0)
+             stateTime_(0),
+             cycleCount_(0),
+             muteTime_(0)
 {  }
 
 
