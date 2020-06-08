@@ -30,8 +30,8 @@ class CycleControl {
       static const uint8_t StatusAlarm12V       = 0x04;
       static const uint8_t StatusWarn9V         = 0x08;
       static const uint8_t StatusVolInh         = 0x10;
-      static const uint8_t StatusAlarmPressLow  = 0x11;
-      static const uint8_t StatusWarnPeepMin    = 0x12;
+      static const uint8_t StatusAlarmPressLow  = 0x20;
+      static const uint8_t StatusWarnPeepMin    = 0x40;
 
       // Min off period
       static const uint32_t MinOffMillis = 1000;
@@ -48,6 +48,8 @@ class CycleControl {
       uint8_t  redLedPin_;
       uint8_t  yelLedPin_;
       uint8_t  piezoPin_;
+      uint8_t  pin12V_;
+      uint8_t  pin9V_;
       uint32_t cycleStatus_;
       uint32_t currStatus_;
       uint32_t cycleCount_;
@@ -65,7 +67,9 @@ class CycleControl {
                     uint8_t relayBPin,
                     uint8_t redLedPin,
                     uint8_t yelLedPin,
-                    uint8_t piezoPin);
+                    uint8_t piezoPin,
+                    uint8_t pin12V,
+                    uint8_t pin9V);
 
       void setup();
 

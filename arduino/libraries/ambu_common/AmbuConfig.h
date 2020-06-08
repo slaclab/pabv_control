@@ -60,6 +60,8 @@ class AmbuConfig {
 
       cpuId cpuId_;
 
+      uint32_t cfgSerialNum_;
+
    public:
 
       AmbuConfig (Comm &serial);

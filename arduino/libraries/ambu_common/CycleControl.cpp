@@ -10,18 +10,22 @@ CycleControl::CycleControl (AmbuConfig &conf,
                             uint8_t relayBPin,
                             uint8_t redLedPin,
                             uint8_t yelLedPin,
-                            uint8_t piezoPin):
+                            uint8_t piezoPin,
+                            uint8_t pin12V,
+                            uint8_t pin9V):
              conf_(conf),
-			    press_(press),
-			    vol_(vol),
-			    relayAPin_(relayAPin),
-			    relayBPin_(relayBPin),
-			    redLedPin_(redLedPin),
-			    yelLedPin_(yelLedPin),
-			    piezoPin_(piezoPin),
-			    stateTime_(0),
-			    cycleCount_(0),
-			    muteTime_(0)
+             press_(press),
+             vol_(vol),
+             relayAPin_(relayAPin),
+             relayBPin_(relayBPin),
+             redLedPin_(redLedPin),
+             yelLedPin_(yelLedPin),
+             piezoPin_(piezoPin),
+             pin9V_(pin9V),
+             pin12V_(pin12V),
+             stateTime_(0),
+             cycleCount_(0),
+             muteTime_(0)
 {  }
 
 
@@ -53,6 +57,7 @@ void CycleControl::setup() {
 
 void CycleControl::update(uint32_t ctime) {
    uint8_t newState;
+   uint32_t val;
 
    newState = state_;
 
@@ -75,6 +80,28 @@ void CycleControl::update(uint32_t ctime) {
       if ( press_.scaledValue() < conf_.getPeepMin() )  {
          cycleStatus_ |= StatusWarnPeepMin;
          currStatus_  |= StatusWarnPeepMin;
+      }
+   }
+
+   // Check 9V level, double check if below threshold
+   if ( ( val = analogRead(pin9V_)) < 230 ) {
+      if ( ( val = analogRead(pin9V_)) < 230 ) {
+         cycleStatus_ |= StatusWarn9V;
+         currStatus_  |= StatusWarn9V;
+
+         Serial.print("9V = ");
+         Serial.println(val);
+      }
+   }
+
+   // Check 12V level, double check if below threshold
+   if ( ( val = analogRead(pin12V_)) < 300 ) {
+      if ( ( val = analogRead(pin12V_)) < 300 ) {
+         cycleStatus_ |= StatusAlarm12V;
+         currStatus_  |= StatusAlarm12V;
+
+         Serial.print("12V = ");
+         Serial.println(val);
       }
    }
 
@@ -162,7 +189,7 @@ void CycleControl::update(uint32_t ctime) {
       state_ = newState;
 
       // Upper 8 bits of status contains current state
-      currStatus_ &= 0xFF0000;
+      currStatus_ &= 0x00FFFFFF;
       currStatus_ |= (state_ << 24);
    }
 
@@ -223,7 +250,6 @@ void CycleControl::update(uint32_t ctime) {
    // Alarm Audio
    if ( ( (currStatus_ & StatusAlarmPipMax   ) ||
           (currStatus_ & StatusAlarmVolLow   ) ||
-          (currStatus_ & StatusAlarm12V      ) ||
           (currStatus_ & StatusAlarmPressLow ) ) && ((ctime - muteTime_) > 300000) ) {
 
       digitalWrite(piezoPin_, PIEZO_ON);
