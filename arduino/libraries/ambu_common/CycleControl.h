@@ -30,8 +30,8 @@ class CycleControl {
       static const uint8_t StatusAlarm12V       = 0x04;
       static const uint8_t StatusWarn9V         = 0x08;
       static const uint8_t StatusVolInh         = 0x10;
-      static const uint8_t StatusAlarmPressLow  = 0x11;
-      static const uint8_t StatusWarnPeepMin    = 0x12;
+      static const uint8_t StatusAlarmPressLow  = 0x20;
+      static const uint8_t StatusWarnPeepMin    = 0x40;
 
       // Min off period
       static const uint32_t MinOffMillis = 1000;

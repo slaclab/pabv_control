@@ -23,8 +23,8 @@ class AmbuControl(object):
 
     # Status constants
     StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolLow' : 0x02, 'Alarm12V'     : 0x04,
-                  'Warn9V'       : 0x08, 'VolInh'      : 0x10, 'AlarmPresLow' : 0x11,
-                  'WarnPeepMin'  : 0x12 }
+                  'Warn9V'       : 0x08, 'VolInh'      : 0x10, 'AlarmPresLow' : 0x20,
+                  'WarnPeepMin'  : 0x40 }
 
     def __init__(self):
 
