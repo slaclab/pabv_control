@@ -48,6 +48,8 @@ class CycleControl {
       uint8_t  redLedPin_;
       uint8_t  yelLedPin_;
       uint8_t  piezoPin_;
+      uint8_t  pin12V_;
+      uint8_t  pin9V_;
       uint32_t cycleStatus_;
       uint32_t currStatus_;
       uint32_t cycleCount_;
@@ -65,7 +67,9 @@ class CycleControl {
                     uint8_t relayBPin,
                     uint8_t redLedPin,
                     uint8_t yelLedPin,
-                    uint8_t piezoPin);
+                    uint8_t piezoPin,
+                    uint8_t pin12V,
+                    uint8_t pin9V);
 
       void setup();
 
