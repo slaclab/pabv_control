@@ -35,7 +35,6 @@ class AmbuControl(object):
         self._configCallBack = None
         self._file = None
         self._last = None
-        self._gotConf = False
 
         self._respRate = 0
         self._inhTime = 0
@@ -46,7 +45,6 @@ class AmbuControl(object):
         self._volInThold = 0
         self._peepMin = 0
         self._runState = 0
-        self._ignoreConf = False
 
         self._status = 0
         self._prevmillis=0
@@ -58,6 +56,7 @@ class AmbuControl(object):
         self.artime = 0
         self._tOffset=0
         self._timestamp = time.time()
+        self._cfgSerialNum = 0
 
         self._data = npfifo(9,6000)
 
@@ -177,7 +176,6 @@ class AmbuControl(object):
     @runState.setter
     def runState(self,value):
         self._runState = value
-        print(f"Setting run state {self._runState}")
         m=message.Message()
         data=m.writeData(m.PARAM_INTEGER,0,[],[self.ConfigKey['SetRunState'],self._runState])
         self._write(data)
@@ -241,10 +239,7 @@ class AmbuControl(object):
     def _write(self,data):
         if self._ser is not None:
             try:
-                self._ignoreConf = True
                 self._ser.write(data)
-                time.sleep(.25)
-                self._ignoreConf = False
             except:
                 self._ser=None
 
@@ -323,40 +318,32 @@ class AmbuControl(object):
                     m.decode(line)
                 except:
                     pass
+
                 if(m.status!=m.ERR_OK): continue
                 if(m.id == m.VERSION):
                     self._version=m.string
                 if(m.id == m.CPU_ID and m.nInt==4):
                     self._cpuid=m.intData
-                elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==1:
-                    data=m.floatData
-                    state=m.intData[0]
-                    #print(f"Got config: {line.rstrip()}")
-                    doNotify = False
-                    nconf = {}
+                elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==2:
+                    newSerial = m.intData[1]
 
-                    if not self._ignoreConf:
+                    if newSerial != self._cfgSerialNum:
+                        self._cfgSerialNum = newSerial
 
-                        nconf['_respRate']    = data[0]
-                        nconf['_inhTime']     = data[1]
-                        nconf['_pipMax']      = data[2]
-                        nconf['_pipOffset']   = data[3]
-                        nconf['_volMax']      = data[4]
-                        nconf['_volOffset']   = data[5]
-                        nconf['_volInThold']  = data[6]
-                        nconf['_peepMin']     = data[7]
-                        nconf['_runState']    = state
-                        for k,v in nconf.items():
-                            if v != getattr(self,k):
-                                doNotify = True
-                            setattr(self,k,v)
+                        self._respRate    = m.floatData[0]
+                        self._inhTime     = m.floatData[1]
+                        self._pipMax      = m.floatData[2]
+                        self._pipOffset   = m.floatData[3]
+                        self._volMax      = m.floatData[4]
+                        self._volOffset   = m.floatData[5]
+                        self._volInThold  = m.floatData[6]
+                        self._peepMin     = m.floatData[7]
+                        self._runState    = m.intData[0]
 
-                        if ((not self._gotConf) or doNotify) and (self._configCallBack is not None):
-                            self._gotConf = True
-                            print(f"Config callback {self._runState}")
+                        if (self._configCallBack is not None):
                             self._configCallBack()
 
-                elif self._gotConf and m.id == m.DATA  and m.nFloat==5 and m.nInt==2:
+                elif self._cfgSerialNum != 0 and m.id == m.DATA and m.nFloat==5 and m.nInt==2:
                     #print(f"Got status: {line.rstrip()}")
                     millis = m.millis
                     data=  m.floatData
