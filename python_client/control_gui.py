@@ -823,7 +823,7 @@ class ControlGui(QWidget):
                 self.plot.axes[1].cla()
                 self.plot.axes[2].cla()
             ambu_data = inData.get_data()
-            if ambu_data == None:
+            if type(ambu_data) == type(None):
                 return
             xa =  ambu_data[0,:]
             xa=xa-xa[-1]
@@ -873,5 +873,5 @@ class ControlGui(QWidget):
             self.plot.draw()
             if(self.doInit): self.doInit=False
         except Exception as e:
-            #print(f"Got plotting exception {e}")
+            print(f"Got plotting exception {e}")
             pass
