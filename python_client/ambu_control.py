@@ -31,7 +31,7 @@ class AmbuControl(object):
     def __init__(self):
 
         self._ser = comm.Comm() #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
-        self._queue = queue.Queue(3)
+        self._queue = queue.LifoQueue(1)
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
         self._configCallBack = None
@@ -250,113 +250,93 @@ class AmbuControl(object):
     def _handleSerial(self):
         counter=0
         while self._runEn:
+            line=self._ser.readPacket()
+            if(line is None): continue
+            ts = time.time()
+            m=message.Message()
             try:
-                line=self._ser.readPacket()
-                if(line is None): continue
-                ts = time.time()
-                m=message.Message()
-                try:
-                    m.decode(line)
-                except:
+                m.decode(line)
+            except:
+                continue
+            if(m.status!=m.ERR_OK): continue
+            if(m.id == m.VERSION):
+                self._version=m.string
+            if(m.id == m.CPU_ID and m.nInt==4):
+                self._cpuid=m.intData
+            elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==2:
+                newSerial = m.intData[1]
+
+                if newSerial != self._cfgSerialNum:
+                    self._cfgSerialNum = newSerial
+                    self._respRate    = m.floatData[0]
+                    self._inhTime     = m.floatData[1]
+                    self._pipMax      = m.floatData[2]
+                    self._pipOffset   = m.floatData[3]
+                    self._volMax      = m.floatData[4]
+                    self._volOffset   = m.floatData[5]
+                    self._volInThold  = m.floatData[6]
+                    self._peepMin     = m.floatData[7]
+                    self._runState    = m.intData[0]
+
+                    if (self._configCallBack is not None):
+                        self._configCallBack()
+
+            elif self._cfgSerialNum != 0 and m.id == m.DATA and m.nFloat==5 and m.nInt==2:
+                #print(f"Got status: {line.rstrip()}")
+                millis = m.millis
+                data=  m.floatData
+                idata  = m.intData
+                count  = idata[0]
+                status = idata[1]
+                volMax = data[0]
+                pipMax = data[1]
+                press  = data[2]
+                flow   = data[3]
+                vol    = data[4]
+
+                self._status = status
+
+                if self._smillis == -1:
+                    self._smillis=millis
+                    self._stime = time.time()
                     continue
-                if(m.status!=m.ERR_OK): continue
-                if(m.id == m.VERSION):
-                    self._version=m.string
-                if(m.id == m.CPU_ID and m.nInt==4):
-                    self._cpuid=m.intData
-                elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==2:
-                    newSerial = m.intData[1]
-
-                    if newSerial != self._cfgSerialNum:
-                        self._cfgSerialNum = newSerial
-
-                        self._respRate    = m.floatData[0]
-                        self._inhTime     = m.floatData[1]
-                        self._pipMax      = m.floatData[2]
-                        self._pipOffset   = m.floatData[3]
-                        self._volMax      = m.floatData[4]
-                        self._volOffset   = m.floatData[5]
-                        self._volInThold  = m.floatData[6]
-                        self._peepMin     = m.floatData[7]
-                        self._runState    = m.intData[0]
-
-                        if (self._configCallBack is not None):
-                            self._configCallBack()
-
-                elif self._cfgSerialNum != 0 and m.id == m.DATA and m.nFloat==5 and m.nInt==2:
-                    #print(f"Got status: {line.rstrip()}")
-                    millis = m.millis
-                    data=  m.floatData
-                    idata  = m.intData
-                    count  = idata[0]
-                    status = idata[1]
-                    volMax = data[0]
-                    pipMax = data[1]
-                    press  = data[2]
-                    flow   = data[3]
-                    vol    = data[4]
-
-                    self._status = status
-
-                    if self._smillis == -1:
+                else:
+                    # handle overflow and arduino reset case
+                    if(millis<self._prevmillis):
                         self._smillis=millis
-                        self._stime = time.time()
-                        continue
-                    else:
-                        # handle overflow and arduino reset case
-                        if(millis<self._prevmillis):
-                            self._smillis=millis
-                            reboot_time=time.time()-self._timestamp
-                            #we could count resets here
-                            self._tOffset=self._diffT+reboot_time
-                            self._timestamp=time.time()
-                            self._prevmillis=millis
-                            continue
-                        diffT=(millis-self._smillis)/1000.+self._tOffset
-                        if(diffT<=0): continue
-                        self._diffT=diffT
+                        reboot_time=time.time()-self._timestamp
+                        #we could count resets here
+                        self._tOffset=self._diffT+reboot_time
                         self._timestamp=time.time()
                         self._prevmillis=millis
-                    stime  = ts - self._stime
-                    artime= millis/1000.
-                    self._data.append([diffT, count, press, flow, vol, self.volInThold, self.pipMax, self.volMax, self.peepMin])
+                        continue
+                    diffT=(millis-self._smillis)/1000.+self._tOffset
+                    if(diffT<=0): continue
+                    self._diffT=diffT
+                    self._timestamp=time.time()
+                    self._prevmillis=millis
+                stime  = ts - self._stime
+                artime= millis/1000.
+                self._data.append([diffT, count, press, flow, vol, self.volInThold, self.pipMax, self.volMax, self.peepMin])
 
-                    if self._file is not None:
-                        self._file.write(f'{ts}, {status}, {count}, {press}, {flow}, {vol}\n')
+                if self._file is not None:
+                    self._file.write(f'{ts}, {status}, {count}, {press}, {flow}, {vol}\n')
 
-                    if time.time() - self._refresh > 0.5:
-                        self._refresh = time.time()
+                if time.time() - self._refresh > 0.5:
+                    self._refresh = time.time()
 
-                        try:
-                            num_points = self._data.get_n()
-                            denom= (self._data.A[0,-1] - self._data.get_nextout_time())
-                            if denom!=0:
-                                rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
-                            else:
-                                rate=0
-                        except Exception as e:
-                            #traceback.print_exc()
-                            #print(f"Got error {e}")
-                            #print(num_points, self._data.A[0,-1], self._data.get_nextout_time())
-                            rate=0.
+                    try:
+                        num_points = self._data.get_n()
+                        denom= (self._data.A[0,-1] - self._data.get_nextout_time())
+                        if denom!=0:
+                            rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
+                        else:
+                            rate=0
+                    except Exception as e:
+                        rate=0.
 
-                        try:
-                            qe=[self._data, count, rate, stime, artime, volMax, pipMax]
-                            self._queue.put(qe,block=False)
-
-#                            self._dataCallBack(self._data, count, rate, stime, artime, volMax, pipMax)
-                            #print(f"Got status: {line.rstrip()}")
-                        except Exception as e:
-                            #traceback.print_exc()
-                            #print("Got callback error {}".format(e))
-                            pass
-
-            except Exception as e:
-                #traceback.print_exc()
-                #print(f"Got handleSerial error {e}")
-                pass
-
-
+                    qe=[self._data, count, rate, stime, artime, volMax, pipMax]
+                    self._queue.put(qe,block=False)
 
 class npfifo:
     def __init__(self, num_parm, num_points):

@@ -790,88 +790,84 @@ class ControlGui(QWidget):
             self.runControl.setChecked(False)
 
         self.updateVersion.emit(str(self.ambu.version))
-
     def dataUpdated(self,inData,count,rate,stime,artime,volMax,pipMax):
-        try:
-            self.updateCount.emit(str(count))
-            self.updateRate.emit(f"{rate:.1f}")
-            self.updateTime.emit(f"{stime:.1f}")
-            self.updateArTime.emit(f"{artime:.1f}")
-            self.updateCycVolMax.emit(f"{volMax:.1f}")
-            self.updateCycPipMax.emit(f"{pipMax:.1f}")
+        self.updateDisplay(count,rate,stime,artime,volMax,pipMax)
+        self.updatePlot(inData)
 
-            self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
-            self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
-            self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
-            self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
-            self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
-            self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
+    def updateDisplay(self,count,rate,stime,artime,volMax,pipMax):
+        self.updateCount.emit(str(count))
+        self.updateRate.emit(f"{rate:.1f}")
+        self.updateTime.emit(f"{stime:.1f}")
+        self.updateArTime.emit(f"{artime:.1f}")
+        self.updateCycVolMax.emit(f"{volMax:.1f}")
+        self.updateCycPipMax.emit(f"{pipMax:.1f}")
 
-            # Red alarm
-            if self.ambu.alarmPipMax or self.ambu.alarmVolLow or self.ambu.alarm12V or self.ambu.alarmPresLow:
-                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: red; color: black }""")
-                self.alarmStatus.setText("Alarm")
-            elif self.ambu.warn9V or self.ambu.warnPeepMin:
-                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: yellow; color: black }""")
-                self.alarmStatus.setText("Warning")
+        self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
+        self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
+        self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
+        self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
+        self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
+        self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
+        if self.ambu.alarmPipMax or self.ambu.alarmVolLow or self.ambu.alarm12V or self.ambu.alarmPresLow:
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: red; color: black }""")
+            self.alarmStatus.setText("Alarm")
+        elif self.ambu.warn9V or self.ambu.warnPeepMin:
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: yellow; color: black }""")
+            self.alarmStatus.setText("Warning")
 
+        else:
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
+            self.alarmStatus.setText("Clear")
+    
+    def updatePlot(self,inData):
+        ambu_data = inData.get_data()
+        if type(ambu_data) == type(None):
+            return
+        xa =  ambu_data[0,:]
+        xa=xa-xa[-1]
+        fs=12
+        if(self.doInit):
+            self.line[0],=self.plot.axes[0].plot(xa, ambu_data[2,:],"s",ms=0.2,color="magenta", label="Pressure")   # press
+            self.line[1],=self.plot.axes[0].plot(xa, ambu_data[6,:],"s",ms=0.2,color="red",label="P-thresh-high")       # p-threshold high
+            self.line[2],=self.plot.axes[0].plot(xa, ambu_data[5,:],"s",ms=0.2,color="green",label="P-thresh-low")     # p-threshold low
+            self.line[3],=self.plot.axes[0].plot(xa, ambu_data[8,:],"s",ms=0.2,color="red",label="Peep min")       # peep min
+
+            self.line[4],=self.plot.axes[1].plot(xa, ambu_data[3,:],"s",ms=0.2,color="green",label="Flow")     # flow
+            self.line[5],=self.plot.axes[2].plot(xa, ambu_data[4,:],"s",ms=0.2,color="blue",label="Volume")      # volume
+            self.line[6],=self.plot.axes[2].plot(xa, ambu_data[7,:],"s",ms=0.2,color="red",label="V-thresh-high")       # volume threshold
+        else:
+            self.line[0].set_ydata(ambu_data[2,:])
+            self.line[1].set_ydata(ambu_data[6,:])
+            self.line[2].set_ydata(ambu_data[5,:])
+            self.line[3].set_ydata(ambu_data[8,:])
+            self.line[4].set_ydata(ambu_data[3,:])
+            self.line[5].set_ydata(ambu_data[4,:])
+            self.line[6].set_ydata(ambu_data[7,:])
+            for i in range(7): self.line[i].set_xdata(xa)
+        self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
+        self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
+        self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
+        if(self.doInit):
+            self.plot.axes[0].set_xlabel('Time',fontsize=fs)
+            prop={'size': fs}
+            self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
+            self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
+            self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), markerscale=40.,loc='upper left', borderaxespad=0.,prop=prop)
+            for i in range(3):
+                self.plot.axes[i].set_xlim([-60,0])
+                for label in (self.plot.axes[i].get_xticklabels() + self.plot.axes[i].get_yticklabels()):
+                    label.set_fontsize(fs)
+            if self.refPlot:
+                self.plot.axes[0].set_ylabel('Ref Flow SL/Min',fontsize=fs)
             else:
-                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
-                self.alarmStatus.setText("Clear")
-            if(self.doInit):
-                self.plot.axes[0].cla()
-                self.plot.axes[1].cla()
-                self.plot.axes[2].cla()
-            ambu_data = inData.get_data()
-            if type(ambu_data) == type(None):
-                return
-            xa =  ambu_data[0,:]
-            xa=xa-xa[-1]
-            fs=12
-            if(self.doInit):
-                self.line[0],=self.plot.axes[0].plot(xa, ambu_data[2,:],"s",ms=0.2,color="magenta", label="Pressure")   # press
-                self.line[1],=self.plot.axes[0].plot(xa, ambu_data[6,:],"s",ms=0.2,color="red",label="P-thresh-high")       # p-threshold high
-                self.line[2],=self.plot.axes[0].plot(xa, ambu_data[5,:],"s",ms=0.2,color="green",label="P-thresh-low")     # p-threshold low
-                self.line[3],=self.plot.axes[0].plot(xa, ambu_data[8,:],"s",ms=0.2,color="red",label="Peep min")       # peep min
+                self.plot.axes[0].set_ylabel('Press cmH20',fontsize=fs)
 
-                self.line[4],=self.plot.axes[1].plot(xa, ambu_data[3,:],"s",ms=0.2,color="green",label="Flow")     # flow
-                self.line[5],=self.plot.axes[2].plot(xa, ambu_data[4,:],"s",ms=0.2,color="blue",label="Volume")      # volume
-                self.line[6],=self.plot.axes[2].plot(xa, ambu_data[7,:],"s",ms=0.2,color="red",label="V-thresh-high")       # volume threshold
-            else:
-                self.line[0].set_ydata(ambu_data[2,:])
-                self.line[1].set_ydata(ambu_data[6,:])
-                self.line[2].set_ydata(ambu_data[5,:])
-                self.line[3].set_ydata(ambu_data[8,:])
-                self.line[4].set_ydata(ambu_data[3,:])
-                self.line[5].set_ydata(ambu_data[4,:])
-                self.line[6].set_ydata(ambu_data[7,:])
-                for i in range(7): self.line[i].set_xdata(xa)
-            self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
-            self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
-            self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
-            if(self.doInit):
-                self.plot.axes[0].set_xlabel('Time',fontsize=fs)
-                prop={'size': fs}
-                self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
-                self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
-                self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), markerscale=40.,loc='upper left', borderaxespad=0.,prop=prop)
-                for i in range(3):
-                    self.plot.axes[i].set_xlim([-60,0])
-                    for label in (self.plot.axes[i].get_xticklabels() + self.plot.axes[i].get_yticklabels()):
-                        label.set_fontsize(fs)
-                if self.refPlot:
-                    self.plot.axes[0].set_ylabel('Ref Flow SL/Min',fontsize=fs)
-                else:
-                    self.plot.axes[0].set_ylabel('Press cmH20',fontsize=fs)
+            self.plot.axes[1].set_xlabel('Time',fontsize=fs)
+            self.plot.axes[1].set_ylabel('Flow L/Min',fontsize=fs)
 
-                self.plot.axes[1].set_xlabel('Time',fontsize=fs)
-                self.plot.axes[1].set_ylabel('Flow L/Min',fontsize=fs)
+            self.plot.axes[2].set_xlabel('Time',fontsize=fs)
+            self.plot.axes[2].set_ylabel('Volume mL',fontsize=fs)
 
-                self.plot.axes[2].set_xlabel('Time',fontsize=fs)
-                self.plot.axes[2].set_ylabel('Volume mL',fontsize=fs)
+        self.plot.draw()
+        if(self.doInit): self.doInit=False
 
-            self.plot.draw()
-            if(self.doInit): self.doInit=False
-        except Exception as e:
-            print(f"Got plotting exception {e}")
-            pass
