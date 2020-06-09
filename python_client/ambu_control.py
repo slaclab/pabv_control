@@ -1,5 +1,3 @@
-
-import serial
 import time
 import threading
 import math
@@ -7,8 +5,9 @@ import sys
 import traceback
 import numpy
 import message
+import comm
 import queue
-import serial.tools.list_ports
+
 
 
 class AmbuControl(object):
@@ -31,7 +30,7 @@ class AmbuControl(object):
 
     def __init__(self):
 
-        self._ser = None #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
+        self._ser = comm.Comm() #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
         self._queue = queue.Queue(3)
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
@@ -93,7 +92,7 @@ class AmbuControl(object):
         self._respRate = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._respRate],[self.ConfigKey['SetRespRate']]);
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def inhTime(self):
@@ -104,7 +103,7 @@ class AmbuControl(object):
         self._inhTime = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._inhTime],[self.ConfigKey['SetInhTime']]);
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def pipMax(self):
@@ -115,7 +114,7 @@ class AmbuControl(object):
         self._pipMax = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._pipMax],[self.ConfigKey['SetPipMax']]);
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def pipOffset(self):
@@ -126,7 +125,7 @@ class AmbuControl(object):
         self._pipOffset = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._pipOffset],[self.ConfigKey['SetPipOffset']])
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def volMax(self):
@@ -137,7 +136,7 @@ class AmbuControl(object):
         self._volMax = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._volMax],[self.ConfigKey['SetVolMax']])
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def volOffset(self):
@@ -148,7 +147,7 @@ class AmbuControl(object):
         self._volOffset = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._volOffset],[self.ConfigKey['SetVolOffset']])
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def volInThold(self):
@@ -159,7 +158,7 @@ class AmbuControl(object):
         self._volInThold = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._volInThold],[self.ConfigKey['SetVolInThold']])
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def peepMin(self):
@@ -170,7 +169,7 @@ class AmbuControl(object):
         self._peepMin = value
         m=message.Message()
         data=m.writeData(m.PARAM_FLOAT,0,[self._peepMin],[self.ConfigKey['SetPeepMin']])
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def runState(self):
@@ -181,7 +180,7 @@ class AmbuControl(object):
         self._runState = value
         m=message.Message()
         data=m.writeData(m.PARAM_INTEGER,0,[],[self.ConfigKey['SetRunState'],self._runState])
-        self._write(data)
+        self._ser.write(data)
 
     @property
     def alarmPipMax(self):
@@ -218,7 +217,7 @@ class AmbuControl(object):
     def muteAlarm(self):
         m=message.Message()
         data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['MuteAlarm']  ])
-        self._write(data)
+        self._ser.write(data)
         self._status = 0
 
     def stop(self):
@@ -237,66 +236,7 @@ class AmbuControl(object):
     def requestConfig(self):
         m=message.Message()
         data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['GetConfig']])
-        self._write(data)
-
-    def _write(self,data):
-        if self._ser is not None:
-            try:
-                self._ser.write(data)
-            except:
-                self._ser=None
-
-    def _readPacket(self):
-        if(self._ser is None): return None
-        l=''
-        while(True):
-            try:
-                c = self._ser.read().decode('UTF-8')
-                if(c!='-'):
-                    l=l+c
-                else:
-                    return l
-            except:
-                self._ser=None
-                return None
-
-    def _connect(self):
-        ports = list(serial.tools.list_ports.comports())
-        for port in ports:
-            port_no=port.device
-            description=port.description
-            vid=port.vid
-            pid=port.pid
-            if(vid==0x2341): continue #skip nano USN
-            if (
-                    'USB-Serial' in description or
-                    'USB-to-Serial' in description or
-                    'USB Serial' in description
-                ):
-                ser=serial.Serial(port=port_no, baudrate=57600, timeout=1.0)
-                for i in range(1000):
-                    try:
-                        m=message.Message()
-                        self._ser=ser
-                        line=self._readPacket()
-                        self._ser=None
-                        if line is None: continue
-                        m.decode(line)
-                        if(m.status!=m.ERR_OK): continue
-                        if(m.id==m.CPU_ID and m.nInt==4):
-                            new_cpuid=m.intData
-                            if(self._cpuid!=new_cpuid):
-                                pass #put some code her for new connection
-                            else:
-                                pass # resume old connection
-                            self._ser=ser
-                            break
-                    except:
-                        ser.close()
-                        self._ser=None
-                        break
-            if self._ser: return
-
+        self._ser.write(data)
 
     def _queueMgrThread(self):
         while self._runEn:
@@ -311,9 +251,7 @@ class AmbuControl(object):
         counter=0
         while self._runEn:
             try:
-                if self._ser is None:
-                    self._connect()
-                line=self._readPacket()
+                line=self._ser.readPacket()
                 if(line is None): continue
                 ts = time.time()
                 m=message.Message()
