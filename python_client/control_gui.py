@@ -823,10 +823,9 @@ class ControlGui(QWidget):
                 self.plot.axes[1].cla()
                 self.plot.axes[2].cla()
             ambu_data = inData.get_data()
-            try:
-                xa =  ambu_data[0,:]
-            except:
+            if ambu_data == None:
                 return
+            xa =  ambu_data[0,:]
             xa=xa-xa[-1]
             fs=12
             if(self.doInit):
