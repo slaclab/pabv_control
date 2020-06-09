@@ -147,7 +147,7 @@ class ControlGui(QWidget):
 
         # Plot on right
         self.plot = MplCanvas()
-        top.addWidget(self.plot)
+        top.addWidget(self.plot,66)
 
         # Controls on left
         gb = QGroupBox('Control')
@@ -486,9 +486,6 @@ class ControlGui(QWidget):
 
         #using self.plot makes it disappear from other page... this is placeholder for now
 
-        self.plot2 = MplCanvas()
-        right.addWidget(self.plot2)
-
 
         # left
         gb = QGroupBox('Calibration Instructions')
@@ -496,7 +493,6 @@ class ControlGui(QWidget):
         #left.addSpacing(300)
         gb.setMinimumWidth(450)
         gb.setMaximumHeight(500)
-
 
 
         vbox = QVBoxLayout()
@@ -580,8 +576,8 @@ class ControlGui(QWidget):
         gb_results.setLayout(results_hbox)
 
         #results_hbox.addLayout(nameofthing)
-
-
+        self.doInit=True
+        self.line=[None]*7
 
     def performAction(self):
         try:
@@ -796,7 +792,6 @@ class ControlGui(QWidget):
 
     def dataUpdated(self,inData,count,rate,stime,artime,volMax,pipMax):
         try:
-
             self.updateCount.emit(str(count))
             self.updateRate.emit(f"{rate:.1f}")
             self.updateTime.emit(f"{stime:.1f}")
@@ -822,87 +817,59 @@ class ControlGui(QWidget):
             else:
                 self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
                 self.alarmStatus.setText("Clear")
-
-            self.plot.axes[0].cla()
-            self.plot.axes[1].cla()
-            self.plot.axes[2].cla()
+            if(self.doInit):
+                self.plot.axes[0].cla()
+                self.plot.axes[1].cla()
+                self.plot.axes[2].cla()
             ambu_data = inData.get_data()
-            xtime = ambu_data[0,:]
-            l=len(xtime)
-            xa=[0.]*l
-            start=xtime[-1]
-            for i in range(l):
-                xa[i]=xtime[i]-start
-            self.plot.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
-            self.plot.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
-            self.plot.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
-            self.plot.axes[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0,label="Peep min")       # peep min
 
-            self.plot.axes[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0,label="Flow")     # flow
-            self.plot.axes[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0,label="Volume")      # volume
-            self.plot.axes[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0,label="V-thresh-high")       # volume threshold
+            xa = ambu_data[0,:]
+            xa=xa-xa[-1]
+            if(self.doInit):
+                self.line[0],=self.plot.axes[0].plot(xa, ambu_data[2,:],"s",ms=0.2,color="magenta", label="Pressure")   # press
+                self.line[1],=self.plot.axes[0].plot(xa, ambu_data[6,:],"s",ms=0.2,color="red",label="P-thresh-high")       # p-threshold high
+                self.line[2],=self.plot.axes[0].plot(xa, ambu_data[5,:],"s",ms=0.2,color="green",label="P-thresh-low")     # p-threshold low
+                self.line[3],=self.plot.axes[0].plot(xa, ambu_data[8,:],"s",ms=0.2,color="red",label="Peep min")       # peep min
 
+                self.line[4],=self.plot.axes[1].plot(xa, ambu_data[3,:],"s",ms=0.2,color="green",label="Flow")     # flow
+                self.line[5],=self.plot.axes[2].plot(xa, ambu_data[4,:],"s",ms=0.2,color="blue",label="Volume")      # volume
+                self.line[6],=self.plot.axes[2].plot(xa, ambu_data[7,:],"s",ms=0.2,color="red",label="V-thresh-high")       # volume threshold
+            else:
+                self.line[0].set_ydata(ambu_data[2,:])
+                self.line[1].set_ydata(ambu_data[6,:])
+                self.line[2].set_ydata(ambu_data[5,:])
+                self.line[3].set_ydata(ambu_data[8,:])
+                self.line[4].set_ydata(ambu_data[3,:])
+                self.line[5].set_ydata(ambu_data[4,:])
+                self.line[6].set_ydata(ambu_data[7,:])
+                for i in range(7): self.line[i].set_xdata(xa)
             self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
             self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
             self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
+            if(self.doInit):
+                self.plot.axes[0].set_xlabel('Time',fontsize=16)
+                prop={'size': 16}
+                self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
+                self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
+                self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), markerscale=40.,loc='upper left', borderaxespad=0.,prop=prop)
+                for i in range(3):
+                    self.plot.axes[i].set_xlim([-60,0])
+                    for label in (self.plot.axes[i].get_xticklabels() + self.plot.axes[i].get_yticklabels()):
+                        label.set_fontsize(16)
+                if self.refPlot:
+                    self.plot.axes[0].set_ylabel('Ref Flow SL/Min',fontsize=16)
+                else:
+                    self.plot.axes[0].set_ylabel('Press cmH20',fontsize=16)
 
-            self.plot.axes[0].set_xlabel('Time')
-            self.plot.axes[0].set_xlim([-60,0])
-            self.plot.axes[1].set_xlim([-60,0])
-            self.plot.axes[2].set_xlim([-60,0])
-            if self.refPlot:
-                self.plot.axes[0].set_ylabel('Ref Flow SL/Min')
-            else:
-                self.plot.axes[0].set_ylabel('Press cmH20')
+                self.plot.axes[1].set_xlabel('Time',fontsize=16)
+                self.plot.axes[1].set_ylabel('Flow L/Min',fontsize=16)
 
-            self.plot.axes[1].set_xlabel('Time')
-            self.plot.axes[1].set_ylabel('Flow L/Min')
-
-            self.plot.axes[2].set_xlabel('Time')
-            self.plot.axes[2].set_ylabel('Volume mL')
-
-            self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-
-
+                self.plot.axes[2].set_xlabel('Time',fontsize=16)
+                self.plot.axes[2].set_ylabel('Volume mL',fontsize=16)
 
             self.plot.draw()
-            # ERROR self.plot2.axes[0].cla()
-            # ERROR self.plot2.axes[1].cla()
-            # ERROR self.plot2.axes[2].cla()
-            #ambu_data = inData.get_data()
-            #xa = ambu_data[0,:]
-
-            # ERROR self.plot2.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
-            # ERROR self.plot2.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
-            # ERROR self.plot2.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
-            # ERROR self.plot2.axes[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0,label="Peep min")       # peep min
-
-            # ERROR self.plot2.axes[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0,label="Flow")     # flow
-            # ERROR self.plot2.axes[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0,label="Volume")      # volume
-            # ERROR self.plot2.axes[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0,label="V-thresh-high")       # volume threshold
-
-            # ERROR self.plot2.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
-            # ERROR self.plot2.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
-            # ERROR self.plot2.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
-
-            # ERROR self.plot2.axes[0].set_xlabel('Time')
-
-            # ERROR self.plot2.axes[1].set_xlabel('Time')
-            # ERROR self.plot2.axes[1].set_ylabel('Flow L/Min')
-
-            # ERROR self.plot2.axes[2].set_xlabel('Time')
-            # ERROR self.plot2.axes[2].set_ylabel('Volume mL')
-
-            # ERROR self.plot2.axes[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            # ERROR self.plot2.axes[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            # ERROR self.plot2.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            # ERROR self.plot2.axes[0].set_xlim([-60,0])
-            # ERROR self.plot2.axes[1].set_xlim([-60,0])
-            #self.plot2.draw()
-
+            if(self.doInit): self.doInit=False
         except Exception as e:
-            print(f"Got plotting exception {e}")
+            #print(f"Got plotting exception {e}")
             pass
 
