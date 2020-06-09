@@ -258,8 +258,7 @@ class AmbuControl(object):
                 try:
                     m.decode(line)
                 except:
-                    pass
-
+                    continue
                 if(m.status!=m.ERR_OK): continue
                 if(m.id == m.VERSION):
                     self._version=m.string
