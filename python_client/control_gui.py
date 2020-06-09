@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ambu_control
 import time
+import traceback
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -822,9 +823,12 @@ class ControlGui(QWidget):
                 self.plot.axes[1].cla()
                 self.plot.axes[2].cla()
             ambu_data = inData.get_data()
-
-            xa = ambu_data[0,:]
+            try:
+                xa =  ambu_data[0,:]
+            except:
+                return
             xa=xa-xa[-1]
+            fs=12
             if(self.doInit):
                 self.line[0],=self.plot.axes[0].plot(xa, ambu_data[2,:],"s",ms=0.2,color="magenta", label="Pressure")   # press
                 self.line[1],=self.plot.axes[0].plot(xa, ambu_data[6,:],"s",ms=0.2,color="red",label="P-thresh-high")       # p-threshold high
@@ -847,29 +851,28 @@ class ControlGui(QWidget):
             self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
             self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
             if(self.doInit):
-                self.plot.axes[0].set_xlabel('Time',fontsize=16)
-                prop={'size': 16}
+                self.plot.axes[0].set_xlabel('Time',fontsize=fs)
+                prop={'size': fs}
                 self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
                 self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
                 self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), markerscale=40.,loc='upper left', borderaxespad=0.,prop=prop)
                 for i in range(3):
                     self.plot.axes[i].set_xlim([-60,0])
                     for label in (self.plot.axes[i].get_xticklabels() + self.plot.axes[i].get_yticklabels()):
-                        label.set_fontsize(16)
+                        label.set_fontsize(fs)
                 if self.refPlot:
-                    self.plot.axes[0].set_ylabel('Ref Flow SL/Min',fontsize=16)
+                    self.plot.axes[0].set_ylabel('Ref Flow SL/Min',fontsize=fs)
                 else:
-                    self.plot.axes[0].set_ylabel('Press cmH20',fontsize=16)
+                    self.plot.axes[0].set_ylabel('Press cmH20',fontsize=fs)
 
-                self.plot.axes[1].set_xlabel('Time',fontsize=16)
-                self.plot.axes[1].set_ylabel('Flow L/Min',fontsize=16)
+                self.plot.axes[1].set_xlabel('Time',fontsize=fs)
+                self.plot.axes[1].set_ylabel('Flow L/Min',fontsize=fs)
 
-                self.plot.axes[2].set_xlabel('Time',fontsize=16)
-                self.plot.axes[2].set_ylabel('Volume mL',fontsize=16)
+                self.plot.axes[2].set_xlabel('Time',fontsize=fs)
+                self.plot.axes[2].set_ylabel('Volume mL',fontsize=fs)
 
             self.plot.draw()
             if(self.doInit): self.doInit=False
         except Exception as e:
             #print(f"Got plotting exception {e}")
             pass
-
