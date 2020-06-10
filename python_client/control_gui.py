@@ -111,8 +111,9 @@ class ControlGui(QWidget):
         self.setWindowTitle("SLAC Accute Shortage Ventilator")
 
         self.ambu = ambu
-        self.ambu.setDataCallBack(self.dataUpdated)
+        self.ambu.setDataCallBack(self.updateDisplay)
         self.ambu.setConfigCallBack(self.configUpdated)
+        self.ambu.setPlotCallBack(self.updatePlot)
         self.respRate     = None
         self.inhTime      = None
         self.volInhThold  = None
@@ -790,9 +791,6 @@ class ControlGui(QWidget):
             self.runControl.setChecked(False)
 
         self.updateVersion.emit(str(self.ambu.version))
-    def dataUpdated(self,inData,count,rate,stime,artime,volMax,pipMax):
-        self.updateDisplay(count,rate,stime,artime,volMax,pipMax)
-        self.updatePlot(inData)
 
     def updateDisplay(self,count,rate,stime,artime,volMax,pipMax):
         self.updateCount.emit(str(count))

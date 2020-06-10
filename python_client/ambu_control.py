@@ -3,10 +3,10 @@ import threading
 import math
 import sys
 import traceback
-import numpy
 import message
 import comm
 import queue
+import npfifo
 
 
 
@@ -60,7 +60,7 @@ class AmbuControl(object):
         self._timestamp = time.time()
         self._cfgSerialNum = 0
 
-        self._data = npfifo(9,6000)
+        self._data = npfifo.npfifo(9,6000)
 
     def openLog(self, fName):
         self._file = open(fName,'a')
@@ -75,6 +75,9 @@ class AmbuControl(object):
 
     def setDataCallBack(self, callBack):
         self._dataCallBack = callBack
+
+    def setPlotCallBack(self, callBack):
+        self._plotCallBack = callBack
 
     def setConfigCallBack(self, callBack):
         self._configCallBack = callBack
@@ -243,7 +246,8 @@ class AmbuControl(object):
             try:
                 # need to block with timeout - otherwise wait is uninterruptible on Windows
                 (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True,timeout=1)
-                self._dataCallBack(data, count, rate, stime, artime, volMax, pipMax)
+                self._dataCallBack(count, rate, stime, artime, volMax, pipMax)
+                self._plotCallBack(data)
             except:
                 pass
 
@@ -325,53 +329,13 @@ class AmbuControl(object):
                 if time.time() - self._refresh > 0.5:
                     self._refresh = time.time()
 
-                    try:
-                        num_points = self._data.get_n()
-                        denom= (self._data.A[0,-1] - self._data.get_nextout_time())
-                        if denom!=0:
-                            rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
-                        else:
-                            rate=0
-                    except Exception as e:
-                        rate=0.
-
+                    num_points = self._data.get_n()
+                    denom= (self._data.A[0,-1] - self._data.get_nextout_time())
+                    if denom!=0:
+                        rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
+                    else:
+                        rate=0
                     qe=[self._data, count, rate, stime, artime, volMax, pipMax]
-                    self._queue.put(qe,block=False)
+                    ret=self._queue.put(qe,block=False)
 
-class npfifo:
-    def __init__(self, num_parm, num_points):
-        self._n = num_parm
-        self._x = num_points
-        self.A = numpy.zeros((self._n, self._x))
-        self._i = 0
 
-    def append(self, X):
-        if len(X) != self._n:
-            #print("Wrong number of parameters to append, ignoring")
-            return
-        # Move the data in the buffer
-        self.A[:,:-1] = self.A[:,1:]
-        # add the data to the end of the buffer
-        self.A[:,-1] = X
-        # increment number of data-points entered
-        self._i += 1
-
-    def clear(self):
-        self.A = 0.0
-        self._i = 0
-
-    def get_data(self):
-        if self._i > 1:
-            # Returns data array up to the minimum of length or entries
-            return self.A[:,-min(self._i, self._x):]
-        else:
-            return None
-
-    def get_i(self):
-        return self._i
-
-    def get_n(self):
-        return min(self._i, self._x)
-
-    def get_nextout_time(self):
-        return self.A[0, -(self.get_n()-1)]
