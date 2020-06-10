@@ -4,43 +4,24 @@ from PyQt5.QtCore    import *
 from PyQt5.QtGui     import *
 
 import numpy as np
-import matplotlib.pyplot as plt
+from pyqtgraph import PlotWidget, plot
+import pyqtgraph as pg
+
+
 import ambu_control
 import time
 import traceback
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
-from matplotlib import rcParams
 
 import time
 
 git_version="unknown"
-
-rcParams.update({'figure.autolayout': True})
 
 try:
     import version
     git_version=version.version
 except:
     pass
-
-class MplCanvas(FigureCanvasQTAgg):
-
-    def __init__(self, parent=None, width=10, height=10, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = [fig.add_subplot(311), fig.add_subplot(312), fig.add_subplot(313)]
-        super(MplCanvas, self).__init__(fig)
-        fig.tight_layout(pad=3.0)
-
-class MplCanvas2(FigureCanvasQTAgg):
-
-    def __init__(self, parent=None, width=10, height=10, dpi=100):
-        fig2 = Figure(figsize=(width, height), dpi=dpi)
-        self.axes2 = [fig2.add_subplot(311), fig2.add_subplot(312), fig2.add_subplot(313)]
-        super(MplCanvas2, self).__init__(fig2)
-        fig2.tight_layout(pad=3.0)
-
 
 
 class PowerSwitch(QPushButton):
@@ -148,8 +129,56 @@ class ControlGui(QWidget):
         top.addLayout(left)
 
         # Plot on right
-        self.plot = MplCanvas()
-        top.addWidget(self.plot,66)
+        self.plotWidget=pg.GraphicsView()
+        self.gl=pg.GraphicsLayout()
+        self.plotWidget.setCentralItem(self.gl)
+        self.plotWidget.setBackground("w")
+        self.plot=[None]*3
+        self.item=[None]*3
+        self.plot[0]=self.gl.addPlot(row=1,col=1)
+        self.plot[1]=self.gl.addPlot(row=2,col=1)
+        self.plot[2]=self.gl.addPlot(row=3,col=1)
+        self.plot[0].setLabel('bottom',"Time",color='black')
+        self.plot[1].setLabel('bottom',"Time",color='black')
+        self.plot[2].setLabel('bottom',"Time",color='black')
+        legend=[None]*3
+        legend[0]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-25)
+        self.gl.addItem(legend[0],row=1,col=2)
+        legend[1]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-40)
+        self.gl.addItem(legend[1],row=2,col=2)
+        legend[2]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-25)
+        self.gl.addItem(legend[2],row=3,col=2)
+        if self.refPlot:
+            self.plot[0].setLabel('left',"Ref Flow SL/Min",color='black')
+        else:
+            self.plot[0].setLabel('left',"Press cmH20",color='black')
+        self.plot[1].setLabel('left',"Flow L/Min",color='black')
+        self.plot[2].setLabel('left',"Volume mL",color='black')
+        for p in self.plot:
+            p.setXRange(-60,0)
+            p.setAutoVisible(x=False,y=False)
+            p.enableAutoRange('x',False)
+            p.enableAutoRange('y',False)
+            p.hideButtons()
+
+        self.curve=[None]*7
+        width=3
+        self.curve[0]=self.plot[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
+        self.curve[1]=self.plot[0].plot(pen=pg.mkPen("r",width=width),name="P-thresh-high")
+        self.curve[2]=self.plot[0].plot(pen=pg.mkPen("g",width=width),name="P-thresh-low")
+        self.curve[3]=self.plot[0].plot(pen=pg.mkPen("r",width=width),name="Peep min")
+        self.curve[4]=self.plot[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
+        self.curve[5]=self.plot[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
+        self.curve[6]=self.plot[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
+
+        legend[0].addItem(self.curve[0],"Pressure")
+        legend[0].addItem(self.curve[1],"P-thresh-high")
+        legend[0].addItem(self.curve[2],"P-thresh-low")
+        legend[0].addItem(self.curve[3],"Peep min")
+        legend[1].addItem(self.curve[4],"Flow     ")
+        legend[2].addItem(self.curve[5],"Volume")
+        legend[2].addItem(self.curve[6],"V-thresh-high")
+        top.addWidget(self.plotWidget,66)
 
         # Controls on left
         gb = QGroupBox('Control')
@@ -824,48 +853,16 @@ class ControlGui(QWidget):
         xa =  ambu_data[0,:]
         xa=xa-xa[-1]
         fs=12
-        if(self.doInit):
-            self.line[0],=self.plot.axes[0].plot(xa, ambu_data[2,:],"s",ms=0.2,color="magenta", label="Pressure")   # press
-            self.line[1],=self.plot.axes[0].plot(xa, ambu_data[6,:],"s",ms=0.2,color="red",label="P-thresh-high")       # p-threshold high
-            self.line[2],=self.plot.axes[0].plot(xa, ambu_data[5,:],"s",ms=0.2,color="green",label="P-thresh-low")     # p-threshold low
-            self.line[3],=self.plot.axes[0].plot(xa, ambu_data[8,:],"s",ms=0.2,color="red",label="Peep min")       # peep min
+        self.plot[0].setYRange(float(self.pMinValue.text()),float(self.pMaxValue.text()))
+        self.plot[1].setYRange(float(self.fMinValue.text()),float(self.fMaxValue.text()))
+        self.plot[2].setYRange(float(self.vMinValue.text()),float(self.vMaxValue.text()))
+        self.curve[0].setData(xa,ambu_data[2,:])
+        self.curve[1].setData(xa,ambu_data[6,:])
+        self.curve[2].setData(xa,ambu_data[5,:])
+        self.curve[3].setData(xa,ambu_data[8,:])
+        self.curve[4].setData(xa,ambu_data[3,:])
+        self.curve[5].setData(xa,ambu_data[4,:])
+        self.curve[6].setData(xa,ambu_data[7,:])
 
-            self.line[4],=self.plot.axes[1].plot(xa, ambu_data[3,:],"s",ms=0.2,color="green",label="Flow")     # flow
-            self.line[5],=self.plot.axes[2].plot(xa, ambu_data[4,:],"s",ms=0.2,color="blue",label="Volume")      # volume
-            self.line[6],=self.plot.axes[2].plot(xa, ambu_data[7,:],"s",ms=0.2,color="red",label="V-thresh-high")       # volume threshold
-        else:
-            self.line[0].set_ydata(ambu_data[2,:])
-            self.line[1].set_ydata(ambu_data[6,:])
-            self.line[2].set_ydata(ambu_data[5,:])
-            self.line[3].set_ydata(ambu_data[8,:])
-            self.line[4].set_ydata(ambu_data[3,:])
-            self.line[5].set_ydata(ambu_data[4,:])
-            self.line[6].set_ydata(ambu_data[7,:])
-            for i in range(7): self.line[i].set_xdata(xa)
-        self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
-        self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
-        self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
-        if(self.doInit):
-            self.plot.axes[0].set_xlabel('Time',fontsize=fs)
-            prop={'size': fs}
-            self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
-            self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), markerscale=40., loc='upper left', borderaxespad=0.,prop=prop)
-            self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), markerscale=40.,loc='upper left', borderaxespad=0.,prop=prop)
-            for i in range(3):
-                self.plot.axes[i].set_xlim([-60,0])
-                for label in (self.plot.axes[i].get_xticklabels() + self.plot.axes[i].get_yticklabels()):
-                    label.set_fontsize(fs)
-            if self.refPlot:
-                self.plot.axes[0].set_ylabel('Ref Flow SL/Min',fontsize=fs)
-            else:
-                self.plot.axes[0].set_ylabel('Press cmH20',fontsize=fs)
-
-            self.plot.axes[1].set_xlabel('Time',fontsize=fs)
-            self.plot.axes[1].set_ylabel('Flow L/Min',fontsize=fs)
-
-            self.plot.axes[2].set_xlabel('Time',fontsize=fs)
-            self.plot.axes[2].set_ylabel('Volume mL',fontsize=fs)
-
-        self.plot.draw()
-        if(self.doInit): self.doInit=False
+        self.plotWidget.update()
 
