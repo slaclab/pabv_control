@@ -31,7 +31,7 @@ class AmbuControl(object):
     def __init__(self):
 
         self._ser = comm.Comm() #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
-        self._queue = queue.LifoQueue(1)
+        #self._queue = queue.LifoQueue(1)
         self._runEn = False
         self._dataCallBack  = self._debugCallBack
         self._configCallBack = None
@@ -59,6 +59,7 @@ class AmbuControl(object):
         self._tOffset=0
         self._timestamp = time.time()
         self._cfgSerialNum = 0
+        self._queue=None
 
         self._data = npfifo.npfifo(9,6000)
 
@@ -223,33 +224,34 @@ class AmbuControl(object):
         self._ser.write(data)
         self._status = 0
 
-    def stop(self):
-        self._runEn = False
-        self._thread.join()
-        self._qmgr.join()
-
-    def start(self):
-        self._runEn = True
-        self._qmgr = threading.Thread(target=self._queueMgrThread)
-        self._qmgr.start()
-        self._thread = threading.Thread(target=self._handleSerial)
-        self._thread.start()
-        self.requestConfig()
-
     def requestConfig(self):
         m=message.Message()
         data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['GetConfig']])
         self._ser.write(data)
+    def setQueue(self,queue):
+        self._queue=queue
 
-    def _queueMgrThread(self):
-        while self._runEn:
-            try:
-                # need to block with timeout - otherwise wait is uninterruptible on Windows
-                (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True,timeout=1)
-                self._dataCallBack(count, rate, stime, artime, volMax, pipMax)
-                self._plotCallBack(data)
-            except:
-                pass
+#    def _queueMgrThread(self):
+#        while self._runEn:
+#            try:
+#                # need to block with timeout - otherwise wait is uninterruptible on Windows
+#                (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True,timeout=1)
+#                self._dataCallBack(count, rate, stime, artime, volMax, pipMax)
+#                self._plotCallBack(data)
+#            except:
+#                pass
+
+    def stop(self):
+        self._runEn = False
+        self._thread.join()
+
+
+    def start(self):
+        self._runEn = True
+        self._thread = threading.Thread(target=self._handleSerial)
+        self._thread.start()
+        self.requestConfig()
+
 
     def _handleSerial(self):
         counter=0
@@ -326,7 +328,7 @@ class AmbuControl(object):
                 if self._file is not None:
                     self._file.write(f'{ts}, {status}, {count}, {press}, {flow}, {vol}\n')
 
-                if time.time() - self._refresh > 0.1:
+                if time.time() - self._refresh > 0.05:
                     self._refresh = time.time()
 
                     num_points = self._data.get_n()
@@ -336,6 +338,9 @@ class AmbuControl(object):
                     else:
                         rate=0
                     qe=[self._data, count, rate, stime, artime, volMax, pipMax]
-                    ret=self._queue.put(qe,block=False)
+                    try:
+                        self._queue.put(qe,block=False)
+                    except:
+                        pass
 
 

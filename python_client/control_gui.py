@@ -2,6 +2,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore    import *
 from PyQt5.QtGui     import *
+import queue
 
 import numpy as np
 from pyqtgraph import PlotWidget, plot
@@ -87,7 +88,6 @@ class ControlGui(QWidget):
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
-
         self.refPlot = refPlot
         self.setWindowTitle("SLAC Accute Shortage Ventilator")
 
@@ -95,6 +95,8 @@ class ControlGui(QWidget):
         self.ambu.setDataCallBack(self.updateDisplay)
         self.ambu.setConfigCallBack(self.configUpdated)
         self.ambu.setPlotCallBack(self.updatePlot)
+        self._queue=queue.LifoQueue(1)
+        self.ambu.setQueue(self._queue)
         self.respRate     = None
         self.inhTime      = None
         self.volInhThold  = None
@@ -117,9 +119,9 @@ class ControlGui(QWidget):
         self.setupPageOne()
         self.setupPageTwo()
         self.setupPageThree()
-
         top.addWidget(self.tabs)
-
+        self.last_update=time.time()
+        QTimer.singleShot(100,self.updateAll)
     def setupPageOne(self):
 
         top = QHBoxLayout()
@@ -876,8 +878,23 @@ class ControlGui(QWidget):
             
             for i in range(7):
                 self.curve[i].setData(xa,data[i])
-            for p in self.plot: p.update()
-            self.gl.update()
+            #self.gl.update()
         except Exception as e:
             #print(e)
             pass
+
+    def updateAll(self):
+        ts=time.time()
+        rate=100
+
+        try:
+            (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=False)
+            self.updateDisplay(count,rate,stime,artime,volMax,pipMax)
+            self.updatePlot(data)
+        except:
+            pass
+        dt=(time.time()-self.last_update)*1000
+        corr=dt-rate
+        if(corr>=(rate/2) or dt>=rate): corr=0 
+        self.last_update=time.time()
+        QTimer.singleShot(rate-corr, self.updateAll)
