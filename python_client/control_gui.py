@@ -875,8 +875,9 @@ class ControlGui(QWidget):
             data[6]=ambu_data[7,:]
             
             for i in range(7):
-                self.curve[i].setData(xa,data[i])        
+                self.curve[i].setData(xa,data[i])
+            for p in self.plot: p.update()
             self.gl.update()
         except Exception as e:
-            print(e)
+            #print(e)
             pass
