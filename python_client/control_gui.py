@@ -137,7 +137,9 @@ class ControlGui(QWidget):
         self.plot[0]=self.gl.addPlot(row=1,col=1)
         self.plot[1]=self.gl.addPlot(row=2,col=1)
         self.plot[2]=self.gl.addPlot(row=3,col=1)
-        self.hidden=pg.PlotItem(pen=pg.mkPen("w"))
+        item=pg.PlotItem()
+        self.hidden=item.plot(pen=pg.mkPen("w"))
+
         self.plot[0].setLabel('bottom',"Time",color='black')
         self.plot[1].setLabel('bottom',"Time",color='black')
         self.plot[2].setLabel('bottom',"Time",color='black')
@@ -871,10 +873,10 @@ class ControlGui(QWidget):
             data[4]=ambu_data[3,:]
             data[5]=ambu_data[4,:]
             data[6]=ambu_data[7,:]
-            for i in range(7):           
-                self.curve[i].setData(xa,data[i])
-        
+            
+            for i in range(7):
+                self.curve[i].setData(xa,data[i])        
             self.gl.update()
         except Exception as e:
-            #print(e)
+            print(e)
             pass
