@@ -129,10 +129,9 @@ class ControlGui(QWidget):
         top.addLayout(left)
 
         # Plot on right
-        self.plotWidget=pg.GraphicsView()
-        self.gl=pg.GraphicsLayout()
-        self.plotWidget.setCentralItem(self.gl)
-        self.plotWidget.setBackground("w")
+        #self.plotWidget=pg.GraphicsView()
+        self.gl=pg.GraphicsLayoutWidget()
+        self.gl.setBackground("w")
         self.plot=[None]*3
         self.item=[None]*3
         self.plot[0]=self.gl.addPlot(row=1,col=1)
@@ -154,11 +153,15 @@ class ControlGui(QWidget):
             self.plot[0].setLabel('left',"Press cmH20",color='black')
         self.plot[1].setLabel('left',"Flow L/Min",color='black')
         self.plot[2].setLabel('left',"Volume mL",color='black')
+        for l in legend:
+            pass
         for p in self.plot:
             p.setXRange(-60,0)
             p.setAutoVisible(x=False,y=False)
             p.enableAutoRange('x',False)
             p.enableAutoRange('y',False)
+            p.setMouseEnabled(x=False,y=False)
+            p.setMenuEnabled(False)
             p.hideButtons()
 
         self.curve=[None]*7
@@ -178,7 +181,7 @@ class ControlGui(QWidget):
         legend[1].addItem(self.curve[4],"Flow     ")
         legend[2].addItem(self.curve[5],"Volume")
         legend[2].addItem(self.curve[6],"V-thresh-high")
-        top.addWidget(self.plotWidget,66)
+        top.addWidget(self.gl,66)
 
         # Controls on left
         gb = QGroupBox('Control')
