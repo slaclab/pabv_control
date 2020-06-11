@@ -855,17 +855,22 @@ class ControlGui(QWidget):
             return
         xa =  ambu_data[0,:]
         xa=xa-xa[-1]
-        fs=12
-        self.plot[0].setYRange(float(self.pMinValue.text()),float(self.pMaxValue.text()))
-        self.plot[1].setYRange(float(self.fMinValue.text()),float(self.fMaxValue.text()))
-        self.plot[2].setYRange(float(self.vMinValue.text()),float(self.vMaxValue.text()))
-        self.curve[0].setData(xa,ambu_data[2,:])
-        self.curve[1].setData(xa,ambu_data[6,:])
-        self.curve[2].setData(xa,ambu_data[5,:])
-        self.curve[3].setData(xa,ambu_data[8,:])
-        self.curve[4].setData(xa,ambu_data[3,:])
-        self.curve[5].setData(xa,ambu_data[4,:])
-        self.curve[6].setData(xa,ambu_data[7,:])
-
-        self.plotWidget.update()
-
+        try:
+            self.plot[0].setYRange(float(self.pMinValue.text()),float(self.pMaxValue.text()))
+            self.plot[1].setYRange(float(self.fMinValue.text()),float(self.fMaxValue.text()))
+            self.plot[2].setYRange(float(self.vMinValue.text()),float(self.vMaxValue.text()))
+            data=[None]*7
+            data[0]=ambu_data[2,:]
+            data[1]=ambu_data[6,:]
+            data[2]=ambu_data[7,:]
+            data[3]=ambu_data[8,:]
+            data[4]=ambu_data[3,:]
+            data[5]=ambu_data[4,:]
+            data[6]=ambu_data[7,:]
+            for i in range(7):           
+                self.curve[i].setData(xa,data[i])
+        
+            self.gl.update()
+        except Exception as e:
+            #print(e)
+            pass

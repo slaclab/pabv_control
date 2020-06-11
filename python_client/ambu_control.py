@@ -326,7 +326,7 @@ class AmbuControl(object):
                 if self._file is not None:
                     self._file.write(f'{ts}, {status}, {count}, {press}, {flow}, {vol}\n')
 
-                if time.time() - self._refresh > 0.5:
+                if time.time() - self._refresh > 0.1:
                     self._refresh = time.time()
 
                     num_points = self._data.get_n()
