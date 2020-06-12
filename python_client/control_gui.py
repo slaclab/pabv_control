@@ -184,7 +184,7 @@ class ControlGui(QWidget):
         legend[0].addItem(self.curve[2],"P-thresh-low")
         legend[0].addItem(self.curve[3],"Peep min")
         for i in range(3): legend[0].addItem(self.hidden,"")
-        legend[1].addItem(self.curve[4],"Flow")        
+        legend[1].addItem(self.curve[4],"Flow")
         for i in range(6): legend[1].addItem(self.hidden,"")
         legend[2].addItem(self.curve[5],"Volume")
         legend[2].addItem(self.curve[6],"V-thresh-high")
@@ -856,7 +856,7 @@ class ControlGui(QWidget):
         else:
             self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
             self.alarmStatus.setText("Clear")
-    
+
     def updatePlot(self,inData):
         ambu_data = inData.get_data()
         if type(ambu_data) == type(None):
@@ -870,12 +870,12 @@ class ControlGui(QWidget):
             data=[None]*7
             data[0]=ambu_data[2,:]
             data[1]=ambu_data[6,:]
-            data[2]=ambu_data[7,:]
+            data[2]=ambu_data[5,:]
             data[3]=ambu_data[8,:]
             data[4]=ambu_data[3,:]
             data[5]=ambu_data[4,:]
             data[6]=ambu_data[7,:]
-            
+
             for i in range(7):
                 self.curve[i].setData(xa,data[i])
             #self.gl.update()
@@ -895,6 +895,6 @@ class ControlGui(QWidget):
             pass
         dt=(time.time()-self.last_update)*1000
         corr=dt-rate
-        if(corr>=(rate/2) or dt>=rate): corr=0 
+        if(corr>=(rate/2) or dt>=rate): corr=0
         self.last_update=time.time()
         QTimer.singleShot(rate-corr, self.updateAll)
