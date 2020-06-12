@@ -2,44 +2,27 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore    import *
 from PyQt5.QtGui     import *
+import queue
 
 import numpy as np
-import matplotlib.pyplot as plt
+from pyqtgraph import PlotWidget, plot
+import pyqtgraph as pg
+
+
 import ambu_control
 import time
+import traceback
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
-from matplotlib import rcParams
 
 import time
 
 git_version="unknown"
-
-rcParams.update({'figure.autolayout': True})
 
 try:
     import version
     git_version=version.version
 except:
     pass
-
-class MplCanvas(FigureCanvasQTAgg):
-
-    def __init__(self, parent=None, width=10, height=10, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = [fig.add_subplot(311), fig.add_subplot(312), fig.add_subplot(313)]
-        super(MplCanvas, self).__init__(fig)
-        fig.tight_layout(pad=3.0)
-
-class MplCanvas2(FigureCanvasQTAgg):
-
-    def __init__(self, parent=None, width=10, height=10, dpi=100):
-        fig2 = Figure(figsize=(width, height), dpi=dpi)
-        self.axes2 = [fig2.add_subplot(311), fig2.add_subplot(312), fig2.add_subplot(313)]
-        super(MplCanvas2, self).__init__(fig2)
-        fig2.tight_layout(pad=3.0)
-
 
 
 class PowerSwitch(QPushButton):
@@ -105,13 +88,15 @@ class ControlGui(QWidget):
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
-
         self.refPlot = refPlot
         self.setWindowTitle("SLAC Accute Shortage Ventilator")
 
         self.ambu = ambu
-        self.ambu.setDataCallBack(self.dataUpdated)
+        self.ambu.setDataCallBack(self.updateDisplay)
         self.ambu.setConfigCallBack(self.configUpdated)
+        self.ambu.setPlotCallBack(self.updatePlot)
+        self._queue=queue.LifoQueue(1)
+        self.ambu.setQueue(self._queue)
         self.respRate     = None
         self.inhTime      = None
         self.volInhThold  = None
@@ -134,9 +119,9 @@ class ControlGui(QWidget):
         self.setupPageOne()
         self.setupPageTwo()
         self.setupPageThree()
-
         top.addWidget(self.tabs)
-
+        self.last_update=time.time()
+        QTimer.singleShot(100,self.updateAll)
     def setupPageOne(self):
 
         top = QHBoxLayout()
@@ -146,8 +131,65 @@ class ControlGui(QWidget):
         top.addLayout(left)
 
         # Plot on right
-        self.plot = MplCanvas()
-        top.addWidget(self.plot)
+        #self.plotWidget=pg.GraphicsView()
+        self.gl=pg.GraphicsLayoutWidget()
+        self.gl.setBackground("w")
+        self.plot=[None]*3
+        self.item=[None]*3
+        self.plot[0]=self.gl.addPlot(row=1,col=1)
+        self.plot[1]=self.gl.addPlot(row=2,col=1)
+        self.plot[2]=self.gl.addPlot(row=3,col=1)
+        item=pg.PlotItem()
+        self.hidden=item.plot(pen=pg.mkPen("w"))
+
+        self.plot[0].setLabel('bottom',"Time",color='black')
+        self.plot[1].setLabel('bottom',"Time",color='black')
+        self.plot[2].setLabel('bottom',"Time",color='black')
+        legend=[None]*3
+        legend[0]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-25)
+        self.gl.addItem(legend[0],row=1,col=2)
+        legend[1]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-100)
+        self.gl.addItem(legend[1],row=2,col=2)
+        legend[2]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-25)
+        self.gl.addItem(legend[2],row=3,col=2)
+        if self.refPlot:
+            self.plot[0].setLabel('left',"Ref Flow SL/Min",color='black')
+        else:
+            self.plot[0].setLabel('left',"Press cmH20",color='black')
+        self.plot[1].setLabel('left',"Flow L/Min",color='black')
+        self.plot[2].setLabel('left',"Volume mL",color='black')
+        for l in legend:
+            pass
+        for p in self.plot:
+            p.setXRange(-60,0)
+            p.setAutoVisible(x=False,y=False)
+            p.enableAutoRange('x',False)
+            p.enableAutoRange('y',False)
+            p.setMouseEnabled(x=False,y=False)
+            p.setMenuEnabled(False)
+            p.hideButtons()
+
+        self.curve=[None]*7
+        width=3
+        self.curve[0]=self.plot[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
+        self.curve[1]=self.plot[0].plot(pen=pg.mkPen("r",width=width),name="P-thresh-high")
+        self.curve[2]=self.plot[0].plot(pen=pg.mkPen("g",width=width),name="P-thresh-low")
+        self.curve[3]=self.plot[0].plot(pen=pg.mkPen("r",width=width),name="Peep min")
+        self.curve[4]=self.plot[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
+        self.curve[5]=self.plot[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
+        self.curve[6]=self.plot[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
+
+        legend[0].addItem(self.curve[0],"Pressure")
+        legend[0].addItem(self.curve[1],"P-thresh-high")
+        legend[0].addItem(self.curve[2],"P-thresh-low")
+        legend[0].addItem(self.curve[3],"Peep min")
+        for i in range(3): legend[0].addItem(self.hidden,"")
+        legend[1].addItem(self.curve[4],"Flow")
+        for i in range(6): legend[1].addItem(self.hidden,"")
+        legend[2].addItem(self.curve[5],"Volume")
+        legend[2].addItem(self.curve[6],"V-thresh-high")
+        for i in range(5): legend[2].addItem(self.hidden,"")
+        top.addWidget(self.gl,66)
 
         # Controls on left
         gb = QGroupBox('Control')
@@ -486,9 +528,6 @@ class ControlGui(QWidget):
 
         #using self.plot makes it disappear from other page... this is placeholder for now
 
-        self.plot2 = MplCanvas()
-        right.addWidget(self.plot2)
-
 
         # left
         gb = QGroupBox('Calibration Instructions')
@@ -496,7 +535,6 @@ class ControlGui(QWidget):
         #left.addSpacing(300)
         gb.setMinimumWidth(450)
         gb.setMaximumHeight(500)
-
 
 
         vbox = QVBoxLayout()
@@ -580,8 +618,8 @@ class ControlGui(QWidget):
         gb_results.setLayout(results_hbox)
 
         #results_hbox.addLayout(nameofthing)
-
-
+        self.doInit=True
+        self.line=[None]*7
 
     def performAction(self):
         try:
@@ -794,115 +832,69 @@ class ControlGui(QWidget):
 
         self.updateVersion.emit(str(self.ambu.version))
 
-    def dataUpdated(self,inData,count,rate,stime,artime,volMax,pipMax):
+    def updateDisplay(self,count,rate,stime,artime,volMax,pipMax):
+        self.updateCount.emit(str(count))
+        self.updateRate.emit(f"{rate:.1f}")
+        self.updateTime.emit(f"{stime:.1f}")
+        self.updateArTime.emit(f"{artime:.1f}")
+        self.updateCycVolMax.emit(f"{volMax:.1f}")
+        self.updateCycPipMax.emit(f"{pipMax:.1f}")
+
+        self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
+        self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
+        self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
+        self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
+        self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
+        self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
+        if self.ambu.alarmPipMax or self.ambu.alarmVolLow or self.ambu.alarm12V or self.ambu.alarmPresLow:
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: red; color: black }""")
+            self.alarmStatus.setText("Alarm")
+        elif self.ambu.warn9V or self.ambu.warnPeepMin:
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: yellow; color: black }""")
+            self.alarmStatus.setText("Warning")
+
+        else:
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
+            self.alarmStatus.setText("Clear")
+
+    def updatePlot(self,inData):
+        ambu_data = inData.get_data()
+        if type(ambu_data) == type(None):
+            return
+        xa =  ambu_data[0,:]
+        xa=xa-xa[-1]
         try:
+            self.plot[0].setYRange(float(self.pMinValue.text()),float(self.pMaxValue.text()))
+            self.plot[1].setYRange(float(self.fMinValue.text()),float(self.fMaxValue.text()))
+            self.plot[2].setYRange(float(self.vMinValue.text()),float(self.vMaxValue.text()))
+            data=[None]*7
+            data[0]=ambu_data[2,:]
+            data[1]=ambu_data[6,:]
+            data[2]=ambu_data[5,:]
+            data[3]=ambu_data[8,:]
+            data[4]=ambu_data[3,:]
+            data[5]=ambu_data[4,:]
+            data[6]=ambu_data[7,:]
 
-            self.updateCount.emit(str(count))
-            self.updateRate.emit(f"{rate:.1f}")
-            self.updateTime.emit(f"{stime:.1f}")
-            self.updateArTime.emit(f"{artime:.1f}")
-            self.updateCycVolMax.emit(f"{volMax:.1f}")
-            self.updateCycPipMax.emit(f"{pipMax:.1f}")
-
-            self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
-            self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
-            self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
-            self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
-            self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
-            self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
-
-            # Red alarm
-            if self.ambu.alarmPipMax or self.ambu.alarmVolLow or self.ambu.alarm12V or self.ambu.alarmPresLow:
-                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: red; color: black }""")
-                self.alarmStatus.setText("Alarm")
-            elif self.ambu.warn9V or self.ambu.warnPeepMin:
-                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: yellow; color: black }""")
-                self.alarmStatus.setText("Warning")
-
-            else:
-                self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
-                self.alarmStatus.setText("Clear")
-
-            self.plot.axes[0].cla()
-            self.plot.axes[1].cla()
-            self.plot.axes[2].cla()
-            ambu_data = inData.get_data()
-            xtime = ambu_data[0,:]
-            l=len(xtime)
-            xa=[0.]*l
-            start=xtime[-1]
-            for i in range(l):
-                xa[i]=xtime[i]-start
-            self.plot.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
-            self.plot.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
-            self.plot.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
-            self.plot.axes[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0,label="Peep min")       # peep min
-
-            self.plot.axes[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0,label="Flow")     # flow
-            self.plot.axes[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0,label="Volume")      # volume
-            self.plot.axes[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0,label="V-thresh-high")       # volume threshold
-
-            self.plot.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
-            self.plot.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
-            self.plot.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
-
-            self.plot.axes[0].set_xlabel('Time')
-            self.plot.axes[0].set_xlim([-60,0])
-            self.plot.axes[1].set_xlim([-60,0])
-            self.plot.axes[2].set_xlim([-60,0])
-            if self.refPlot:
-                self.plot.axes[0].set_ylabel('Ref Flow SL/Min')
-            else:
-                self.plot.axes[0].set_ylabel('Press cmH20')
-
-            self.plot.axes[1].set_xlabel('Time')
-            self.plot.axes[1].set_ylabel('Flow L/Min')
-
-            self.plot.axes[2].set_xlabel('Time')
-            self.plot.axes[2].set_ylabel('Volume mL')
-
-            self.plot.axes[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            self.plot.axes[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            self.plot.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-
-
-
-            self.plot.draw()
-            # ERROR self.plot2.axes[0].cla()
-            # ERROR self.plot2.axes[1].cla()
-            # ERROR self.plot2.axes[2].cla()
-            #ambu_data = inData.get_data()
-            #xa = ambu_data[0,:]
-
-            # ERROR self.plot2.axes[0].plot(xa, ambu_data[2,:],color="magenta",linewidth=2.0, label="Pressure")   # press
-            # ERROR self.plot2.axes[0].plot(xa, ambu_data[6,:],color="red",linewidth=1.0,label="P-thresh-high")       # p-threshold high
-            # ERROR self.plot2.axes[0].plot(xa, ambu_data[5,:],color="green",linewidth=1.0,label="P-thresh-low")     # p-threshold low
-            # ERROR self.plot2.axes[0].plot(xa, ambu_data[8,:],color="red",linewidth=1.0,label="Peep min")       # peep min
-
-            # ERROR self.plot2.axes[1].plot(xa, ambu_data[3,:],color="green",linewidth=2.0,label="Flow")     # flow
-            # ERROR self.plot2.axes[2].plot(xa, ambu_data[4,:],color="blue",linewidth=2.0,label="Volume")      # volume
-            # ERROR self.plot2.axes[2].plot(xa, ambu_data[7,:],color="red",linewidth=1.0,label="V-thresh-high")       # volume threshold
-
-            # ERROR self.plot2.axes[0].set_ylim([float(self.pMinValue.text()),float(self.pMaxValue.text())])
-            # ERROR self.plot2.axes[1].set_ylim([float(self.fMinValue.text()),float(self.fMaxValue.text())])
-            # ERROR self.plot2.axes[2].set_ylim([float(self.vMinValue.text()),float(self.vMaxValue.text())])
-
-            # ERROR self.plot2.axes[0].set_xlabel('Time')
-
-            # ERROR self.plot2.axes[1].set_xlabel('Time')
-            # ERROR self.plot2.axes[1].set_ylabel('Flow L/Min')
-
-            # ERROR self.plot2.axes[2].set_xlabel('Time')
-            # ERROR self.plot2.axes[2].set_ylabel('Volume mL')
-
-            # ERROR self.plot2.axes[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            # ERROR self.plot2.axes[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            # ERROR self.plot2.axes[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            # ERROR self.plot2.axes[0].set_xlim([-60,0])
-            # ERROR self.plot2.axes[1].set_xlim([-60,0])
-            #self.plot2.draw()
-
+            for i in range(7):
+                self.curve[i].setData(xa,data[i])
+            #self.gl.update()
         except Exception as e:
-            print(f"Got plotting exception {e}")
+            #print(e)
             pass
 
+    def updateAll(self):
+        ts=time.time()
+        rate=100
+
+        try:
+            (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=False)
+            self.updateDisplay(count,rate,stime,artime,volMax,pipMax)
+            self.updatePlot(data)
+        except:
+            pass
+        dt=(time.time()-self.last_update)*1000
+        corr=dt-rate
+        if(corr>=(rate/2) or dt>=rate): corr=0
+        self.last_update=time.time()
+        QTimer.singleShot(rate-corr, self.updateAll)
