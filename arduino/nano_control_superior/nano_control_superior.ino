@@ -8,9 +8,15 @@
 #include <stdint.h>
 #include <HardwareSerial.h>
 #include <Comm.h>
+#include <Arduino.h>
 
 #define RELAYA_PIN 8
 #define RELAYB_PIN 7
+#define REDLED_PIN 3
+#define YELLED_PIN 4
+#define PIEZO_PIN  2
+#define PIN_12V A6
+#define PIN_9V  A7
 #define SENSOR_PERIOD_MILLIS 9
 #define DISPLAY_PERIOD_MILLIS 999
 //#define SerialPort Serial
@@ -39,7 +45,7 @@ AmbuConfigNano conf(serComm);
 SensorDlcL20D4 press;
 SensorSp110Sm02Flow flow;
 SensorVolume vol(flow);
-CycleControl relay(conf,press,vol,RELAYA_PIN,RELAYB_PIN);
+CycleControl relay(conf,press,vol,RELAYA_PIN,RELAYB_PIN,REDLED_PIN,YELLED_PIN,PIEZO_PIN,PIN_12V,PIN_9V);
 
 
 uint32_t sensorTime;
@@ -77,7 +83,7 @@ void setup() {
 
 void loop() {
    uint32_t currTime=millis();
-  
+
    if ((currTime - sensorTime) > SENSOR_PERIOD_MILLIS ) {
 
       press.update(currTime);
@@ -97,7 +103,7 @@ void loop() {
       m.writeData(Message::DATA,currTime,5,sendFloat,2,sendInt);
       serComm.send(m);
       sensorTime = currTime;
-   } 
+   }
    // Update display every second
    if ((currTime - displayTime) > DISPLAY_PERIOD_MILLIS )  {
      Message m;

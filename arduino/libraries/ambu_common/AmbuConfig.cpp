@@ -14,7 +14,7 @@ const char *git_version= "unknown";
 const char *git_version=QUOTE(GIT_VERSION);
 #endif
 
-AmbuConfig::AmbuConfig (Comm &serial) : rxCount_(0),serial_(serial) {
+AmbuConfig::AmbuConfig (Comm &serial) : rxCount_(0),serial_(serial),cfgSerialNum_(1) {
    memset(rxBuffer_,0,20);
 }
 
@@ -37,11 +37,11 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
    Message m;
    serial_.read(m);
    uint8_t id=m.id();
-  
+
    if(  (m.status()==Message::ERR_OK) && (m.nInt()>0)) {
-     uint32_t param=m.getInt()[0];    
+     uint32_t param=m.getInt()[0];
      sendConfig = true;
-     if(id==Message::PARAM_FLOAT && m.nFloat()==1) {       
+     if(id==Message::PARAM_FLOAT && m.nFloat()==1) {
        float f=m.getFloat()[0];
        Serial.print("Param: ");
        Serial.println(param,HEX);
@@ -65,18 +65,19 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
        if(param==SetRunState)        conf_.runState = d;
        storeConfig();
      } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
-       if(param==ClearAlarm) {
-	 cycle.clearAlarm();
-	 Serial.println("Clear Alarm");
+       if(param==MuteAlarm) {
+         cycle.muteAlarm();
+         Serial.println("Clear Alarm");
        }
      }
+     cfgSerialNum_++;
    }
    if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;
-   
+
    if (sendConfig) {
      Message m;
      float config[8];
-     uint32_t stat;
+     uint32_t intConf[2];
      config[0]=conf_.respRate;
      config[1]=conf_.inhTime;
      config[2]=conf_.pipMax;
@@ -85,8 +86,9 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
      config[5]=conf_.volOffset;
      config[6]=conf_.volInThold;
      config[7]=conf_.peepMin;
-     stat=conf_.runState;
-     m.writeData(Message::CONFIG,ctime,8,config,1,&stat);
+     intConf[0]=conf_.runState;
+     intConf[1]=cfgSerialNum_;
+     m.writeData(Message::CONFIG,ctime,8,config,2,intConf);
      serial_.send(m);
      m.writeString(Message::VERSION,ctime,git_version);
      serial_.send(m);
@@ -141,7 +143,7 @@ void AmbuConfig::setVolInThold(double value) {
    storeConfig();
 }
 
-double AmbuConfig::setPeepMin() {
+double AmbuConfig::getPeepMin() {
    return conf_.peepMin;
 }
 
