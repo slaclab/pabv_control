@@ -270,10 +270,11 @@ void loop() {
     for (uint8_t i=0; i<3; i++) {
       parms[i] = update_parms[i];
     }
-    if (guiParamSelected == -1) {
-      // Means no value is being changed locally, so update w/ conf values
-      for (uint8_t i=3; i<9; i++) {
-        parms[i] = update_parms[i];
+    for (uint8_t i=3; i<9; i++) {
+        if (guiParamSelected == i && gui.items[guiParamSelected].elem.selected == true) {}
+        else {
+          parms[i] = update_parms[i];
+        }
       }
     }
     update_display();
