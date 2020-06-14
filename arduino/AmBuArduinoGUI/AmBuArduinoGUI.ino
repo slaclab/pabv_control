@@ -5,7 +5,7 @@
 #include "GUI.h"
 #include "Comm.h"
 
-#define SerialPort Serial1
+#define SerialPort Serial1 //RX-TX pins on board
 Comm masterComm(SerialPort);
 
 #define SPI_DEFAULT_FREQ 20000000
@@ -15,7 +15,7 @@ Comm masterComm(SerialPort);
 #define pin_encoderA 6
 #define pin_encoderB 5
 
-
+float update_parms[nParam] = {0.f};
 
 //gets data from master
 float parms[nParam]={0.f};
@@ -27,7 +27,7 @@ GUI_value gui_value[nParam]={
    .dval=10.0f, 
    .dx=2.0f, 
    .min=0.0f, 
-   .max=30.0f,
+   .max=90.0f,
    .fmt="%02.1f"
   },
   {.name="PIP",  //last cycle max pressure
@@ -35,7 +35,7 @@ GUI_value gui_value[nParam]={
    .val=&parms[pPIP],
    .dval=30.0f, 
    .dx=2.0f, 
-   .min=20.0f, 
+   .min=00.0f, 
    .max=50.0f,
    .fmt="%02.1f"
   },
@@ -44,7 +44,7 @@ GUI_value gui_value[nParam]={
    .val=&parms[pVol],
    .dval=500.0f, 
    .dx=10.0f, 
-   .min=200.0f, 
+   .min=000.0f, 
    .max=1000.0f,
    .fmt="%3.0f"
   },
@@ -138,12 +138,6 @@ void setup_display(){
 
 void update_display() {
   gui.update();
-}
-
-
-double get_rand(double rmin, double rmax){
-  unsigned long rand_long = random();
-  return rmin + (rmax - rmin)*((double)rand_long / 4.2949e9);
 }
 
 
@@ -264,14 +258,24 @@ void loop() {
   
   // Update sensor parameters at nominal 1Hz
   if ( (curTime - measTime) > 1000 ){
-    // Take a sudo measurments of PEEP/PIP/Vol
     Message msg;
      masterComm.read(msg);
      int n=msg.nFloat();
      Serial.println(msg.status());
-     if(msg.nFloat()==3) {
-       msg.getFloat(parms);
-     }
+    Serial.println(msg.nFloat());
+    if(msg.nFloat()==9) {
+      
+      msg.getFloat(update_parms);
+    }
+    for (uint8_t i=0; i<3; i++) {
+      parms[i] = update_parms[i];
+    }
+    if (guiParamSelected == -1) {
+      // Means no value is being changed locally, so update w/ conf values
+      for (uint8_t i=3; i<9; i++) {
+        parms[i] = update_parms[i];
+      }
+    }
     update_display();
     measTime=curTime;
   }
