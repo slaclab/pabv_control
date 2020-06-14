@@ -266,11 +266,10 @@ void loop() {
     if(msg.nFloat()==9) {
       msg.getFloat(update_parms);
     }
-    for (uint8_t i=0; i<3; i++) {
-      parms[i] = update_parms[i];
-    }
-    for (uint8_t i=3; i<9; i++) {
-      if (guiParamSelected == i && gui.items[guiParamSelected].elem.selected == true) {}
+    for (uint8_t i=0; i<9; i++) {
+      if (guiParamSelected == i && gui.items[guiParamSelected].elem.selected == true) {
+        // Dont update parameter currently being adjusted on display
+      }
       else {
         parms[i] = update_parms[i];
       }
