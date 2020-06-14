@@ -4,6 +4,7 @@
 #include "Adafruit_ILI9341.h"
 #include "GUI.h"
 #include "Comm.h"
+#include "AmbuConfig.h"
 
 #define SerialPort Serial1 //RX-TX pins on board
 Comm masterComm(SerialPort);
@@ -261,8 +262,8 @@ void loop() {
     Message msg;
      masterComm.read(msg);
      int n=msg.nFloat();
-     Serial.println(msg.status());
-    Serial.println(msg.nFloat());
+     //     Serial.println(msg.status());
+     // Serial.println(msg.nFloat());
     if(msg.nFloat()==9) {
       msg.getFloat(update_parms);
     }
@@ -275,6 +276,13 @@ void loop() {
       }
     }
     update_display();
+    uint32_t intData[2];
+    intData[0]=AmbuConfig::SetRespRate;
+    float floatData=millis();  // just for testing
+    msg.writeData(Message::PARAM_FLOAT,0,1,&floatData,1,intData);
+    masterComm.send(msg);
+
+
     measTime=curTime;
   }
    

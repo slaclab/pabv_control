@@ -55,17 +55,18 @@ class AmbuConfig {
 
       AmbuParameters conf_;
 
-      virtual void storeConfig() = 0;
+      void storeConfig();
       Comm &serial_;
-
+      Comm &display_;
+      bool update_(Message &m,CycleControl &cycle);
       cpuId cpuId_;
 
       uint32_t cfgSerialNum_;
 
    public:
 
-      AmbuConfig (Comm &serial);
-      virtual void deviceID(cpuId &id) = 0;
+      AmbuConfig (Comm &serial,Comm &display);
+      void deviceID(cpuId &id) ;
       virtual void setup();
 
       void update(uint32_t ctime, CycleControl &cycle);
@@ -81,7 +82,7 @@ class AmbuConfig {
       void setPipMax(double value);
 
       double getVolMax();
-      void setGetVolMax(double value);
+      void setVolMax(double value);
 
       double getVolInThold();
       void setVolInThold(double value);

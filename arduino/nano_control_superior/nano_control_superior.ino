@@ -1,6 +1,6 @@
 
 #include <Wire.h>
-#include <AmbuConfigNano.h>
+#include <AmbuConfig.h>
 #include <CycleControl.h>
 #include <SensorDlcL20D4.h>
 #include <SensorSp110Sm02Flow.h>
@@ -41,7 +41,7 @@ void SERCOM1_Handler()
 Comm displayComm(uart);    // To second NANO for local-display
 Comm serComm(SerialPort);  // To MAX3232
 
-AmbuConfigNano conf(serComm);
+AmbuConfig conf(serComm,displayComm);
 SensorDlcL20D4 press;
 SensorSp110Sm02Flow flow;
 SensorVolume vol(flow);
@@ -108,6 +108,7 @@ void loop() {
    if ((currTime - displayTime) > DISPLAY_PERIOD_MILLIS )  {
      Message m;
       float sendFloat[9];
+      float parms[6];
       sendFloat[0]=relay.prevPmin();
       sendFloat[1]=relay.prevPmax();
       sendFloat[2]=relay.prevVmax();
