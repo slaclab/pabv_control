@@ -264,17 +264,15 @@ void loop() {
      Serial.println(msg.status());
     Serial.println(msg.nFloat());
     if(msg.nFloat()==9) {
-      
       msg.getFloat(update_parms);
     }
     for (uint8_t i=0; i<3; i++) {
       parms[i] = update_parms[i];
     }
     for (uint8_t i=3; i<9; i++) {
-        if (guiParamSelected == i && gui.items[guiParamSelected].elem.selected == true) {}
-        else {
-          parms[i] = update_parms[i];
-        }
+      if (guiParamSelected == i && gui.items[guiParamSelected].elem.selected == true) {}
+      else {
+        parms[i] = update_parms[i];
       }
     }
     update_display();
