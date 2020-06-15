@@ -11,7 +11,7 @@ ambu = ambu_control.AmbuControl()
 appTop = QApplication(sys.argv)
 font_db = QFontDatabase()
 font_id = font_db.addApplicationFont("fonts/Oxygen-Regular.ttf")
-font = font_db.font("Oxygen","Regular",12)
+font = font_db.font("Oxygen","Regular",14)
 appTop.setFont(font)
 
 guiTop = control_gui.ControlGui(ambu=ambu)

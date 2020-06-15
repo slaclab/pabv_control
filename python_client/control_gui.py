@@ -29,15 +29,15 @@ class PowerSwitch(QPushButton):
     def __init__(self, parent = None):
         super().__init__(parent)
         self.setCheckable(True)
-        self.setMinimumWidth(66)
-        self.setMinimumHeight(22)
+        self.setMinimumWidth(100)
+        self.setMinimumHeight(40)
 
     def paintEvent(self, event):
         label = "ON" if self.isChecked() else "OFF"
         bg_color = Qt.green if self.isChecked() else Qt.red
 
-        radius = 10
-        width = 32
+        radius = 14
+        width = 50
         center = self.rect().center()
 
         painter = QPainter(self)
@@ -109,6 +109,10 @@ class ControlGui(QWidget):
         self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
         self.alarmStatus.setText("Clear")
         self.alarmStatus.setAlignment(Qt.AlignCenter);
+        font = self.alarmStatus.font();
+        font.setPointSize(36);
+        font.setBold(True);
+        self.alarmStatus.setFont(font)
         self.tabs = QTabWidget()
         self.tab1 = QWidget()
         self.tab2 = QWidget()
@@ -116,7 +120,7 @@ class ControlGui(QWidget):
 
         self.tabs.addTab(self.tab1,"AMBU Control")
         self.tabs.addTab(self.tab2,"AMBU Expert")
-        self.tabs.addTab(self.tab3,"Calibration and Test")
+        self.tabs.addTab(self.tab3,"Setup and Test")
         self.tabs.setTabPosition(QTabWidget.East)
         self.setupPageOne()
         self.setupPageTwo()
@@ -135,9 +139,9 @@ class ControlGui(QWidget):
         top.addLayout(left)
 
         # Plot on right
-        #self.plotWidget=pg.GraphicsView()
         self.gl=pg.GraphicsLayoutWidget(border=pg.mkPen(color=None,width=2))
         self.gl.setBackground("w")
+        self.gl.setFrameStyle(QFrame.Box)
         self.plot=[None]*3
         self.item=[None]*3
         self.plot[0]=self.gl.addPlot(row=1,col=1)
@@ -148,9 +152,10 @@ class ControlGui(QWidget):
         self.plot[0].setLabel('bottom',"Time",color='black')
         self.plot[1].setLabel('bottom',"Time",color='black')
         self.plot[2].setLabel('bottom',"Time",color='black')
-        self.plot[0].addLegend(offset=(15,-50),brush=pg.mkBrush((0,0,0,0)))
-        self.plot[1].addLegend(offset=(15,-120),brush=pg.mkBrush((0,0,0,0)))
-        self.plot[2].addLegend(offset=(15,-100),brush=pg.mkBrush((0,0,0,0)))
+        self.legend=[None]*3
+        for i in range(3):
+            self.legend[i]=self.plot[i].addLegend(offset=(15,0),brush=pg.mkBrush((0,0,0,0)))
+            self.legend[i].anchor((0,0), (0,0))
         if self.refPlot:
             self.plot[0].setLabel('left',"Ref Flow SL/Min",color='black')
         else:
@@ -176,13 +181,14 @@ class ControlGui(QWidget):
         self.curve[5]=self.plot[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
         self.curve[6]=self.plot[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
 
-        top.addWidget(self.gl,66)
-
+        top.addWidget(self.gl)
         # Controls on left
         gb = QGroupBox('Control')
+        gb.setFixedWidth(300)
         left.addWidget(gb)
 
         fl = QFormLayout()
+        fl.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
@@ -228,6 +234,7 @@ class ControlGui(QWidget):
 
         # Status
         gb = QGroupBox('Status')
+        gb.setFixedWidth(300)
         left.addWidget(gb)
 
         fl = QFormLayout()
@@ -433,7 +440,7 @@ class ControlGui(QWidget):
 
         # Log File
         gb = QGroupBox('Log File')
-        right.addWidget(gb)
+        left.addWidget(gb)
 
         vl = QVBoxLayout()
         gb.setLayout(vl)
