@@ -34,17 +34,17 @@ class AmbuConfig {
       static const uint8_t StateRunOn    = 3;
 
       // Set parameter Constants
-      static const uint8_t GetConfig     = 0;
-      static const uint8_t SetRespRate   = 1;
-      static const uint8_t SetInhTime    = 2;
-      static const uint8_t SetPipMax     = 3;
-      static const uint8_t SetPipOffset  = 4;
-      static const uint8_t SetVolMax     = 5;
-      static const uint8_t SetVolOffset  = 6;
-      static const uint8_t SetVolInThold = 7;
-      static const uint8_t SetPeepMin    = 8;
-      static const uint8_t SetRunState   = 9;
-      static const uint8_t MuteAlarm     = 10;
+      static constexpr  uint8_t GetConfig     = 0;
+      static constexpr  uint8_t SetRespRate   = 1;
+      static constexpr  uint8_t SetInhTime    = 2;
+      static constexpr  uint8_t SetPipMax     = 3;
+      static constexpr  uint8_t SetPipOffset  = 4;
+      static constexpr  uint8_t SetVolMax     = 5;
+      static constexpr  uint8_t SetVolOffset  = 6;
+      static constexpr  uint8_t SetVolInThold = 7;
+      static constexpr  uint8_t SetPeepMin    = 8;
+      static constexpr  uint8_t SetRunState   = 9;
+      static constexpr  uint8_t MuteAlarm     = 10;
 
    protected:
 

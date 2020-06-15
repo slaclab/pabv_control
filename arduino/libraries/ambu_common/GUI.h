@@ -41,6 +41,7 @@ using GUI_elem  = struct  _GUI_elem {
 using GUI_value = struct  _GUI_value  {
   const char *name;
   uint8_t id;
+  uint8_t ambucfg;
   float *val;
   float dval;
   float dx;

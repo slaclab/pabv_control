@@ -51,6 +51,7 @@ GUI_value gui_value[nParam]={
   },
   {.name="RR",    // resp rate in Hz
    .id=pRR,
+   .ambucfg=AmbuConfig::SetRespRate,
    .val=&parms[pRR],
    .dval=20.0f, 
    .dx=0.5f, 
@@ -60,6 +61,7 @@ GUI_value gui_value[nParam]={
   },
   {.name="IH",    //Inhale time in seconds
    .id=pIH,
+   .ambucfg=AmbuConfig::SetInhTime,
    .val=&parms[pIH],
    .dval=1.0f,
    .dx= 0.1f, 
@@ -70,6 +72,7 @@ GUI_value gui_value[nParam]={
   {.name="TH",    //threhsold cmH2O
    .id=pTH,
    .val=&parms[pTH],
+   .ambucfg=AmbuConfig::SetVolInThold,
    .dval=0.0f,       
    .dx=0.1f, 
    .min=-10.0f, 
@@ -78,6 +81,7 @@ GUI_value gui_value[nParam]={
   },
   {.name="Vmax",  //Threshold where volume will stop IH short
    .id=pVmax,
+   .ambucfg=AmbuConfig::SetVolMax,
    .val=&parms[pVmax],
    .dval=800.0f, 
    .dx=10.0f, 
@@ -87,6 +91,7 @@ GUI_value gui_value[nParam]={
   },
   {.name="Pmin",  //Threshold where pressure will alarm
    .id=pPmin,
+   .ambucfg=AmbuConfig::SetPeepMin,
    .val=&parms[pPmin],
    .dval=-10.0f, 
    .dx=2.0f, 
@@ -96,6 +101,7 @@ GUI_value gui_value[nParam]={
   },
   {.name="Pmax",  //Threshold where pressure will alarm
    .id=pPmax,
+   .ambucfg=AmbuConfig::SetPipMax,
    .val=&parms[pPmax],
    .dval=10.0f, 
    .dx=2.0f, 
@@ -232,6 +238,12 @@ void loop() {
       else if (gui.items[guiParamSelected].elem.selected) {
         // the parmater is selected and the value should be changed
         gui.change_value(guiParamSelected, encDT);
+        // Send the changed value to AmBuConfig
+        uint32_t intData[2];
+        intData[0]=gui_value[guiParamSelected].ambucfg;
+        float floatData=&parms[guiParamSelected];
+        msg.writeData(Message::PARAM_FLOAT,0,1,&floatData,1,intData);
+        masterComm.send(msg);
       }
     }
     update_display();    
@@ -276,13 +288,6 @@ void loop() {
       }
     }
     update_display();
-    uint32_t intData[2];
-    intData[0]=AmbuConfig::SetRespRate;
-    float floatData=millis();  // just for testing
-    msg.writeData(Message::PARAM_FLOAT,0,1,&floatData,1,intData);
-    masterComm.send(msg);
-
-
     measTime=curTime;
   }
    
