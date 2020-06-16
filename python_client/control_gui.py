@@ -840,7 +840,7 @@ class ControlGui(QWidget):
             #self.alarmStatus.setStyleheet("""QLabel { background-color: red; color: black }""")
             self.alarmStatus.setText("Alarm")
         elif self.ambu.warn9V or self.ambu.warnPeepMin:
-            self.alarmStatus.setStyleSheet("""QLabel { background-color: yellow; color: black }""")
+            #self.alarmStatus.setStyleSheet("""QLabel { background-color: yellow; color: black }""")
             self.alarmStatus.setText("Warning")
 
         else:
@@ -894,9 +894,17 @@ class ControlGui(QWidget):
         if(text=="Alarm"):
             label=self.alarmStatus
             if(self.blinkStat):
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: red; color: white }""") 
+                self.alarmStatus.setStyleSheet("""QLabel { background-color: red; color: black }""")
                 self.blinkStat=False
             else:
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: black  }""")
+                self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: red  }""")
+                self.blinkStat=True
+        if(text=="Warning"):
+            label=self.alarmStatus
+            if(self.blinkStat):
+                self.alarmStatus.setStyleSheet("""QLabel { background-color: #FFC200; color: black }""")
+                self.blinkStat=False
+            else:
+                self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: #FFC200  }""")
                 self.blinkStat=True
         QTimer.singleShot(1000, self.blink)
