@@ -244,7 +244,10 @@ void loop() {
         uint32_t intData[2];
         intData[0]=gui_value[guiParamSelected].ambucfg;
         float floatData=parms[guiParamSelected];
-	Message msg;
+	      Message msg;
+        Serial.print("Sending MSG: ");
+        Serial.print(intData[0]);
+        Serial.println(floatData);
         msg.writeData(Message::PARAM_FLOAT,0,1,&floatData,1,intData);
         masterComm.send(msg);
       }
