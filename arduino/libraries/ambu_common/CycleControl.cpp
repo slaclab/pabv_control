@@ -68,7 +68,7 @@ void CycleControl::update(uint32_t ctime) {
    if ( press_.scaledValue() > currPmax_ ) currPmax_ = press_.scaledValue();
 
    // Pressure checks for alarms
-   if (conf_.getRunState() == conf_.StateRunOn) {
+   if ((conf_.getRunState() == conf_.StateRunOn) && (cycleCount_ > 5) ) {
 
       // Max pressure threshold exceeded
       if ( press_.scaledValue() > conf_.getPipMax() )  {
@@ -84,7 +84,7 @@ void CycleControl::update(uint32_t ctime) {
    }
 
    // Check 9V level, double check if below threshold
-   if ( ( val = analogRead(pin9V_)) < 230 ) {
+   if ( (( val = analogRead(pin9V_)) < 230 ) && (cycleCount_ > 5) ) {
       if ( ( val = analogRead(pin9V_)) < 230 ) {
          cycleStatus_ |= StatusWarn9V;
          currStatus_  |= StatusWarn9V;
@@ -95,7 +95,7 @@ void CycleControl::update(uint32_t ctime) {
    }
 
    // Check 12V level, double check if below threshold
-   if ( ( val = analogRead(pin12V_)) < 300 ) {
+   if ( ( ( val = analogRead(pin12V_)) < 300  ) && (cycleCount_ > 5)) {
       if ( ( val = analogRead(pin12V_)) < 300 ) {
          cycleStatus_ |= StatusAlarm12V;
          currStatus_  |= StatusAlarm12V;
@@ -161,10 +161,10 @@ void CycleControl::update(uint32_t ctime) {
          if (conf_.getRunState() == conf_.StateRunOn) {
 
             // Volume on previous cycle never exceeded 100mL
-            if ( currVmax_ < 100.0 ) cycleStatus_ |= StatusAlarmVolLow;
+            if ( (currVmax_ < 100.0) && (cycleCount_ > 5)) cycleStatus_ |= StatusAlarmVolLow;
 
             // Pressure on previous cycle never exceeded 5cmH20
-            if ( currPmax_ < 5.0 ) cycleStatus_ |= StatusAlarmPressLow;
+            if ( (currPmax_ < 5.0) && (cycleCount_ > 5)) cycleStatus_ |= StatusAlarmPressLow;
          }
 
          // Clear counters
