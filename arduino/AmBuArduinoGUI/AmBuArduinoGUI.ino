@@ -22,95 +22,97 @@ float update_parms[nParam] = {0.f};
 float parms[nParam]={0.f};
 
 GUI_value gui_value[nParam]={
-  {.name="PEEP",  //Last cycle min pressure
-   .id=pPEEP,
-   .val=&parms[pPEEP],
-   .dval=10.0f, 
-   .dx=2.0f, 
-   .min=0.0f, 
-   .max=90.0f,
-   .fmt="%02.1f"
+  {name:"PEEP",  //Last cycle min pressure
+   id:pPEEP,
+   ambucfg:0,
+   val:&parms[pPEEP],
+   dval:10.0f, 
+   dx:2.0f, 
+   min:0.0f, 
+   max:90.0f,
+   fmt:"%02.1f"
   },
-  {.name="PIP",  //last cycle max pressure
-   .id=pPIP,
-   .val=&parms[pPIP],
-   .dval=30.0f, 
-   .dx=2.0f, 
-   .min=00.0f, 
-   .max=50.0f,
-   .fmt="%02.1f"
+  {name:"PIP",  //last cycle max pressure
+   id:pPIP,
+   ambucfg:0,
+   val:&parms[pPIP],
+   dval:30.0f, 
+   dx:2.0f, 
+   min:00.0f, 
+   max:50.0f,
+   fmt:"%02.1f"
   },
-  {.name="Vol",  // last cycle volume mL
-   .id=pVol,
-   .val=&parms[pVol],
-   .dval=500.0f, 
-   .dx=10.0f, 
-   .min=000.0f, 
-   .max=1000.0f,
-   .fmt="%3.0f"
+  {.name:"Vol",  // last cycle volume mL
+   id:pVol,
+   ambucfg:0,
+   val:&parms[pVol],
+   dval:500.0f, 
+   dx:10.0f, 
+   min:000.0f, 
+   max:1000.0f,
+   fmt:"%3.0f"
   },
-  {.name="RR",    // resp rate in Hz
-   .id=pRR,
-   .ambucfg=AmbuConfig::SetRespRate,
-   .val=&parms[pRR],
-   .dval=20.0f, 
-   .dx=0.5f, 
-   .min=10.0f,
-   .max= 30.0f,
-   .fmt="%02.1f"
+  {name:"RR",    // resp rate in Hz
+   id:pRR,
+   ambucfg:AmbuConfig::SetRespRate,
+   val:&parms[pRR],
+   dval:20.0f, 
+   dx:0.5f, 
+   min:10.0f,
+   max: 30.0f,
+   fmt:"%02.1f"
   },
-  {.name="IH",    //Inhale time in seconds
-   .id=pIH,
-   .ambucfg=AmbuConfig::SetInhTime,
-   .val=&parms[pIH],
-   .dval=1.0f,
-   .dx= 0.1f, 
-   .min=  0.5f, 
-   .max = 2.5f,
-   .fmt="%02.1f"
+  {.name:"IH",    //Inhale time in seconds
+   id:pIH,
+   ambucfg:AmbuConfig::SetInhTime,
+   val:&parms[pIH],
+   dval:1.0f,
+   dx: 0.1f, 
+   min:  0.5f, 
+   max : 2.5f,
+   fmt:"%02.1f"
   },
-  {.name="TH",    //threhsold cmH2O
-   .id=pTH,
-   .val=&parms[pTH],
-   .ambucfg=AmbuConfig::SetVolInThold,
-   .dval=0.0f,       
-   .dx=0.1f, 
-   .min=-10.0f, 
-   .max=30.0f,
-   .fmt="% 2.1f"
+  {name:"TH",    //threhsold cmH2O
+   id:pTH,
+   ambucfg:AmbuConfig::SetVolInThold,
+   val:&parms[pTH],
+   dval:0.0f,       
+   dx:0.1f, 
+   min:-10.0f, 
+   max:30.0f,
+   fmt:"% 2.1f"
   },
-  {.name="Vmax",  //Threshold where volume will stop IH short
-   .id=pVmax,
-   .ambucfg=AmbuConfig::SetVolMax,
-   .val=&parms[pVmax],
-   .dval=800.0f, 
-   .dx=10.0f, 
-   .min=250.0f, 
-   .max=990.0f,
-   .fmt="%3.0f"
+  {.name:"Vmax",  //Threshold where volume will stop IH short
+   id:pVmax,
+   ambucfg:AmbuConfig::SetVolMax,
+   val=&parms[pVmax],
+   dval=800.0f, 
+   dx=10.0f, 
+   min=250.0f, 
+   max=990.0f,
+   fmt="%3.0f"
   },
-  {.name="Pmin",  //Threshold where pressure will alarm
-   .id=pPmin,
-   .ambucfg=AmbuConfig::SetPeepMin,
-   .val=&parms[pPmin],
-   .dval=-10.0f, 
-   .dx=2.0f, 
-   .min=-10.0f, 
-   .max=30.0f,
-   .fmt="% 2.1f"
+  {name="Pmin",  //Threshold where pressure will alarm
+   id=pPmin,
+   ambucfg=AmbuConfig::SetPeepMin,
+   val=&parms[pPmin],
+   dval=-10.0f, 
+   dx=2.0f, 
+   min=-10.0f, 
+   max=30.0f,
+   fmt="% 2.1f"
   },
-  {.name="Pmax",  //Threshold where pressure will alarm
-   .id=pPmax,
-   .ambucfg=AmbuConfig::SetPipMax,
-   .val=&parms[pPmax],
-   .dval=10.0f, 
-   .dx=2.0f, 
-   .min=10.0f, 
-   .max=60.0f,
-   .fmt="%02.1f"
+  {name="Pmax",  //Threshold where pressure will alarm
+   id=pPmax,
+   ambucfg=AmbuConfig::SetPipMax,
+   val=&parms[pPmax],
+   dval=10.0f, 
+   dx=2.0f, 
+   min=10.0f, 
+   max=60.0f,
+   fmt="%02.1f"
   }
 };
-
 
 GUI gui;
 

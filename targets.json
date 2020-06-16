@@ -1,5 +1,4 @@
 {
 "nano_control_superior" : "arduino:samd:nano_33_iot"  ,
-"AmBuArduinoGUI" : "arduino:samd:nano_33_iot",
-"MasterSim" : "arduino:samd:nano_33_iot"
+"AmBuArduinoGUI" : "arduino:samd:nano_33_iot"
 }
