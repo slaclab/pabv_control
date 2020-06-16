@@ -29,15 +29,15 @@ class PowerSwitch(QPushButton):
     def __init__(self, parent = None):
         super().__init__(parent)
         self.setCheckable(True)
-        self.setMinimumWidth(100)
-        self.setMinimumHeight(40)
+        self.setMinimumWidth(66)
+        self.setMinimumHeight(22)
 
     def paintEvent(self, event):
         label = "ON" if self.isChecked() else "OFF"
         bg_color = Qt.green if self.isChecked() else Qt.red
 
-        radius = 14
-        width = 50
+        radius = 10
+        width = 32
         center = self.rect().center()
 
         painter = QPainter(self)
@@ -92,8 +92,10 @@ class ControlGui(QWidget):
         self.setWindowTitle("SLAC Accute Shortage Ventilator")
 
         self.ambu = ambu
+        self.ambu.setDataCallBack(self.updateDisplay)
         self.ambu.setConfigCallBack(self.configUpdated)
-        self._queue=queue.Queue(1)
+        self.ambu.setPlotCallBack(self.updatePlot)
+        self._queue=queue.LifoQueue(1)
         self.ambu.setQueue(self._queue)
         self.respRate     = None
         self.inhTime      = None
@@ -104,15 +106,7 @@ class ControlGui(QWidget):
         self.runControl   = None
         top = QVBoxLayout()
         self.setLayout(top)
-        self.alarmStatus = QLabel()
-        self.blinkStat=True
-        self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
-        self.alarmStatus.setText("Clear")
-        self.alarmStatus.setAlignment(Qt.AlignCenter);
-        font = self.alarmStatus.font();
-        font.setPointSize(36);
-        font.setBold(True);
-        self.alarmStatus.setFont(font)
+
         self.tabs = QTabWidget()
         self.tab1 = QWidget()
         self.tab2 = QWidget()
@@ -120,16 +114,14 @@ class ControlGui(QWidget):
 
         self.tabs.addTab(self.tab1,"AMBU Control")
         self.tabs.addTab(self.tab2,"AMBU Expert")
-        self.tabs.addTab(self.tab3,"Setup and Test")
-        self.tabs.setTabPosition(QTabWidget.East)
+        self.tabs.addTab(self.tab3,"Calibration and Test")
+
         self.setupPageOne()
         self.setupPageTwo()
         self.setupPageThree()
-        top.addWidget(self.alarmStatus)
         top.addWidget(self.tabs)
         self.last_update=time.time()
         QTimer.singleShot(100,self.updateAll)
-        QTimer.singleShot(1000,self.blink)
     def setupPageOne(self):
 
         top = QHBoxLayout()
@@ -139,29 +131,35 @@ class ControlGui(QWidget):
         top.addLayout(left)
 
         # Plot on right
-        self.gl=pg.GraphicsLayoutWidget(border=pg.mkPen(color=None,width=2))
+        #self.plotWidget=pg.GraphicsView()
+        self.gl=pg.GraphicsLayoutWidget()
         self.gl.setBackground("w")
-        self.gl.setFrameStyle(QFrame.Box)
         self.plot=[None]*3
         self.item=[None]*3
         self.plot[0]=self.gl.addPlot(row=1,col=1)
         self.plot[1]=self.gl.addPlot(row=2,col=1)
         self.plot[2]=self.gl.addPlot(row=3,col=1)
         item=pg.PlotItem()
-        self.hidden=item.plot(pen=pg.mkPen((0,0,0,0)))
+        self.hidden=item.plot(pen=pg.mkPen("w"))
+
         self.plot[0].setLabel('bottom',"Time",color='black')
         self.plot[1].setLabel('bottom',"Time",color='black')
         self.plot[2].setLabel('bottom',"Time",color='black')
-        self.legend=[None]*3
-        for i in range(3):
-            self.legend[i]=self.plot[i].addLegend(offset=(15,0),brush=pg.mkBrush((0,0,0,0)))
-            self.legend[i].anchor((0,0), (0,0))
+        legend=[None]*3
+        legend[0]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-25)
+        self.gl.addItem(legend[0],row=1,col=2)
+        legend[1]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-100)
+        self.gl.addItem(legend[1],row=2,col=2)
+        legend[2]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-25)
+        self.gl.addItem(legend[2],row=3,col=2)
         if self.refPlot:
             self.plot[0].setLabel('left',"Ref Flow SL/Min",color='black')
         else:
             self.plot[0].setLabel('left',"Press cmH20",color='black')
         self.plot[1].setLabel('left',"Flow L/Min",color='black')
         self.plot[2].setLabel('left',"Volume mL",color='black')
+        for l in legend:
+            pass
         for p in self.plot:
             p.setXRange(-60,0)
             p.setAutoVisible(x=False,y=False)
@@ -181,14 +179,23 @@ class ControlGui(QWidget):
         self.curve[5]=self.plot[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
         self.curve[6]=self.plot[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
 
-        top.addWidget(self.gl)
+        legend[0].addItem(self.curve[0],"Pressure")
+        legend[0].addItem(self.curve[1],"P-thresh-high")
+        legend[0].addItem(self.curve[2],"P-thresh-low")
+        legend[0].addItem(self.curve[3],"Peep min")
+        for i in range(3): legend[0].addItem(self.hidden,"")
+        legend[1].addItem(self.curve[4],"Flow")
+        for i in range(6): legend[1].addItem(self.hidden,"")
+        legend[2].addItem(self.curve[5],"Volume")
+        legend[2].addItem(self.curve[6],"V-thresh-high")
+        for i in range(5): legend[2].addItem(self.hidden,"")
+        top.addWidget(self.gl,66)
+
         # Controls on left
         gb = QGroupBox('Control')
-        gb.setFixedWidth(300)
         left.addWidget(gb)
 
         fl = QFormLayout()
-        fl.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
@@ -234,7 +241,6 @@ class ControlGui(QWidget):
 
         # Status
         gb = QGroupBox('Status')
-        gb.setFixedWidth(300)
         left.addWidget(gb)
 
         fl = QFormLayout()
@@ -243,8 +249,12 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
 
+        self.alarmStatus = QLineEdit()
+        self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
+        self.alarmStatus.setText("Clear")
+        self.alarmStatus.setReadOnly(True)
         #this will be a switch that will display true and turn red if any of the alarm conditions are met.  Hovering or looking at expert page will say which.  maybe even alarms settings page? or just alarm settings group box on expert page?
-        #fl.addRow('Alarm Status:',self.alarmStatus)
+        fl.addRow('Alarm Status:',self.alarmStatus)
 
         cycVolMax = QLineEdit()
         cycVolMax.setText("0")
@@ -440,7 +450,7 @@ class ControlGui(QWidget):
 
         # Log File
         gb = QGroupBox('Log File')
-        left.addWidget(gb)
+        right.addWidget(gb)
 
         vl = QVBoxLayout()
         gb.setLayout(vl)
@@ -837,14 +847,14 @@ class ControlGui(QWidget):
         self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
         self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
         if self.ambu.alarmPipMax or self.ambu.alarmVolLow or self.ambu.alarm12V or self.ambu.alarmPresLow:
-            #self.alarmStatus.setStyleheet("""QLabel { background-color: red; color: black }""")
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: red; color: black }""")
             self.alarmStatus.setText("Alarm")
         elif self.ambu.warn9V or self.ambu.warnPeepMin:
-            #self.alarmStatus.setStyleSheet("""QLabel { background-color: yellow; color: black }""")
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: yellow; color: black }""")
             self.alarmStatus.setText("Warning")
 
         else:
-            self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
+            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
             self.alarmStatus.setText("Clear")
 
     def updatePlot(self,inData):
@@ -888,23 +898,3 @@ class ControlGui(QWidget):
         if(corr>=(rate/2) or dt>=rate): corr=0
         self.last_update=time.time()
         QTimer.singleShot(rate-corr, self.updateAll)
-
-    def blink(self):
-        text=self.alarmStatus.text()
-        if(text=="Alarm"):
-            label=self.alarmStatus
-            if(self.blinkStat):
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: red; color: black }""")
-                self.blinkStat=False
-            else:
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: red  }""")
-                self.blinkStat=True
-        if(text=="Warning"):
-            label=self.alarmStatus
-            if(self.blinkStat):
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: #FFC200; color: black }""")
-                self.blinkStat=False
-            else:
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: #FFC200  }""")
-                self.blinkStat=True
-        QTimer.singleShot(1000, self.blink)
