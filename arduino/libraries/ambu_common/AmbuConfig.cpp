@@ -14,8 +14,9 @@ const char *git_version= "unknown";
 const char *git_version=QUOTE(GIT_VERSION);
 #endif
 
-AmbuConfig::AmbuConfig (Comm &serial) : rxCount_(0),serial_(serial),cfgSerialNum_(1) {
-   memset(rxBuffer_,0,20);
+AmbuConfig::AmbuConfig (Comm &serial,Comm &display) : rxCount_(0),serial_(serial),display_(display),cfgSerialNum_(1) {
+  deviceID(cpuId_);
+  memset(rxBuffer_,0,20);
 }
 
 void AmbuConfig::setup () {
@@ -30,48 +31,56 @@ void AmbuConfig::setup () {
    conf_.runState   = StateRunOn;
    confTime_ = millis();
 }
+bool AmbuConfig::update_(Message &m,CycleControl &cycle) {
+  bool sendConfig=false;
+  uint8_t id=m.id();
+  if(  (m.status()==Message::ERR_OK) && (m.nInt()>0)) {
+    uint32_t param=m.getInt()[0];
+    sendConfig = true;
+    if(id==Message::PARAM_FLOAT && m.nFloat()==1) {
+      float f=m.getFloat()[0];
+      Serial.print("Param: ");
+      Serial.println(param,HEX);
+      Serial.print("Value: ");
+      Serial.println(f);
+      if(     param==SetRespRate)        conf_.respRate = f;
+      else if(param==SetInhTime)    conf_.inhTime = f;
+      else if(param==SetPipMax)     conf_.pipMax = f;
+      else if(param==SetPipOffset)  conf_.pipOffset = f;
+      else if(param==SetVolMax)     conf_.volMax = f;
+      else if(param==SetVolOffset)  conf_.volOffset = f;
+      else if(param==SetVolInThold) conf_.volInThold = f;
+      else if(param==SetPeepMin)    conf_.peepMin = f;
+      storeConfig();
+    } else if (id==Message::PARAM_INTEGER  && m.nInt()==2) {
+      uint32_t d=m.getInt()[1];
+      //      Serial.print("Param: ");
+      //Serial.println(param,HEX);
+      //Serial.print("Value: ");
+      //Serial.println(d);
+      if(param==SetRunState)        conf_.runState = d;
+      storeConfig();
+    } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
+       if(param==MuteAlarm) {
+         cycle.muteAlarm();
+         Serial.println("Clear Alarm");
+       }
+    }
+  }
+  return sendConfig;
+}
+
 
 void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
    bool sendConfig;
    sendConfig = false;
    Message m;
    serial_.read(m);
-   uint8_t id=m.id();
-
-   if(  (m.status()==Message::ERR_OK) && (m.nInt()>0)) {
-     uint32_t param=m.getInt()[0];
-     sendConfig = true;
-     if(id==Message::PARAM_FLOAT && m.nFloat()==1) {
-       float f=m.getFloat()[0];
-       Serial.print("Param: ");
-       Serial.println(param,HEX);
-       Serial.print("Value: ");
-       Serial.println(f);
-       if(     param==SetRespRate)        conf_.respRate = f;
-       else if(param==SetInhTime)    conf_.inhTime = f;
-       else if(param==SetPipMax)     conf_.pipMax = f;
-       else if(param==SetPipOffset)  conf_.pipOffset = f;
-       else if(param==SetVolMax)     conf_.volMax = f;
-       else if(param==SetVolOffset)  conf_.volOffset = f;
-       else if(param==SetVolInThold) conf_.volInThold = f;
-       else if(param==SetPeepMin)    conf_.peepMin = f;
-       storeConfig();
-     } else if (id==Message::PARAM_INTEGER  && m.nInt()==2) {
-       uint32_t d=m.getInt()[1];
-       Serial.print("Param: ");
-       Serial.println(param,HEX);
-       Serial.print("Value: ");
-       Serial.println(d);
-       if(param==SetRunState)        conf_.runState = d;
-       storeConfig();
-     } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
-       if(param==MuteAlarm) {
-         cycle.muteAlarm();
-         Serial.println("Clear Alarm");
-       }
-     }
+   sendConfig=sendConfig || update_(m,cycle);
+   display_.read(m);
+   sendConfig=sendConfig || update_(m,cycle);
+   if(sendConfig)
      cfgSerialNum_++;
-   }
    if ((ctime - confTime_) > CONFIG_MILLIS) sendConfig = true;
 
    if (sendConfig) {
@@ -129,7 +138,7 @@ double AmbuConfig::getVolMax() {
    return conf_.volMax;
 }
 
-void AmbuConfig::setGetVolMax(double value) {
+void AmbuConfig::setVolMax(double value) {
    conf_.volMax = value;
    storeConfig();
 }
@@ -188,3 +197,29 @@ double   AmbuConfig::getAdjPipMax() {
    return (conf_.pipMax + conf_.pipOffset);
 }
 
+void AmbuConfig::deviceID(cpuId &id) {
+#ifdef ARDUINO_ARCH_MBED;
+  // https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fficr.html
+  uint32_t *deviceID=(uint32_t*) 0x10000060;
+  id[0]=deviceID[0];
+  id[1]=deviceID[1];
+  id[2]=0;
+  id[3]=0;
+#elif ARDUINO_ARCH_SAMD
+#define SERIAL_NUMBER_WORD_0	*(volatile uint32_t*)(0x0080A00C)
+#define SERIAL_NUMBER_WORD_1	*(volatile uint32_t*)(0x0080A040)
+#define SERIAL_NUMBER_WORD_2	*(volatile uint32_t*)(0x0080A044)
+#define SERIAL_NUMBER_WORD_3	*(volatile uint32_t*)(0x0080A048)
+  // https://cdn.sparkfun.com/assets/6/3/d/d/2/Atmel-42181-SAM-D21_Datasheet.pdf
+  id[0] = SERIAL_NUMBER_WORD_0;
+  id[1] = SERIAL_NUMBER_WORD_1;
+  id[2] = SERIAL_NUMBER_WORD_2;
+  id[3] = SERIAL_NUMBER_WORD_3;
+#else
+  #error Unsupported platform
+#endif
+}
+
+void AmbuConfig::storeConfig() {
+  // to be implemented
+}

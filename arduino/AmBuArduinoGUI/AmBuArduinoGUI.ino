@@ -4,8 +4,9 @@
 #include "Adafruit_ILI9341.h"
 #include "GUI.h"
 #include "Comm.h"
+#include "AmbuConfig.h"
 
-#define SerialPort Serial1
+#define SerialPort Serial1 //RX-TX pins on board
 Comm masterComm(SerialPort);
 
 #define SPI_DEFAULT_FREQ 20000000
@@ -15,95 +16,103 @@ Comm masterComm(SerialPort);
 #define pin_encoderA 6
 #define pin_encoderB 5
 
-
+float update_parms[nParam] = {0.f};
 
 //gets data from master
 float parms[nParam]={0.f};
 
 GUI_value gui_value[nParam]={
-  {.name="PEEP",  //Last cycle min pressure
-   .id=pPEEP,
-   .val=&parms[pPEEP],
-   .dval=10.0f, 
-   .dx=2.0f, 
-   .min=0.0f, 
-   .max=30.0f,
-   .fmt="%02.1f"
+  {name:"PEEP",  //Last cycle min pressure
+   id:pPEEP,
+   ambucfg:0,
+   val:&parms[pPEEP],
+   dval:10.0f, 
+   dx:2.0f, 
+   min:0.0f, 
+   max:90.0f,
+   fmt:"%02.1f"
   },
-  {.name="PIP",  //last cycle max pressure
-   .id=pPIP,
-   .val=&parms[pPIP],
-   .dval=30.0f, 
-   .dx=2.0f, 
-   .min=20.0f, 
-   .max=50.0f,
-   .fmt="%02.1f"
+  {name:"PIP",  //last cycle max pressure
+   id:pPIP,
+   ambucfg:0,
+   val:&parms[pPIP],
+   dval:30.0f, 
+   dx:2.0f, 
+   min:00.0f, 
+   max:50.0f,
+   fmt:"%02.1f"
   },
-  {.name="Vol",  // last cycle volume mL
-   .id=pVol,
-   .val=&parms[pVol],
-   .dval=500.0f, 
-   .dx=10.0f, 
-   .min=200.0f, 
-   .max=1000.0f,
-   .fmt="%3.0f"
+  {name:"Vol",  // last cycle volume mL
+   id:pVol,
+   ambucfg:0,
+   val:&parms[pVol],
+   dval:500.0f, 
+   dx:10.0f, 
+   min:000.0f, 
+   max:1000.0f,
+   fmt:"%3.0f"
   },
-  {.name="RR",    // resp rate in Hz
-   .id=pRR,
-   .val=&parms[pRR],
-   .dval=20.0f, 
-   .dx=0.5f, 
-   .min=10.0f,
-   .max= 30.0f,
-   .fmt="%02.1f"
+  {name:"RR",    // resp rate in Hz
+   id:pRR,
+   ambucfg:AmbuConfig::SetRespRate,
+   val:&parms[pRR],
+   dval:20.0f, 
+   dx:0.5f, 
+   min:10.0f,
+   max: 30.0f,
+   fmt:"%02.1f"
   },
-  {.name="IH",    //Inhale time in seconds
-   .id=pIH,
-   .val=&parms[pIH],
-   .dval=1.0f,
-   .dx= 0.1f, 
-   .min=  0.5f, 
-   .max = 2.5f,
-   .fmt="%02.1f"
+  {name:"IH",    //Inhale time in seconds
+   id:pIH,
+   ambucfg:AmbuConfig::SetInhTime,
+   val:&parms[pIH],
+   dval:1.0f,
+   dx: 0.1f, 
+   min:  0.5f, 
+   max : 2.5f,
+   fmt:"%02.1f"
   },
-  {.name="TH",    //threhsold cmH2O
-   .id=pTH,
-   .val=&parms[pTH],
-   .dval=0.0f,       
-   .dx=0.1f, 
-   .min=-10.0f, 
-   .max=30.0f,
-   .fmt="% 2.1f"
+  {name:"TH",    //threhsold cmH2O
+   id:pTH,
+   ambucfg:AmbuConfig::SetVolInThold,
+   val:&parms[pTH],
+   dval:0.0f,       
+   dx:0.1f, 
+   min:-10.0f, 
+   max:30.0f,
+   fmt:"% 2.1f"
   },
-  {.name="Vmax",  //Threshold where volume will stop IH short
-   .id=pVmax,
-   .val=&parms[pVmax],
-   .dval=800.0f, 
-   .dx=10.0f, 
-   .min=250.0f, 
-   .max=990.0f,
-   .fmt="%3.0f"
+  {name:"Vmax",  //Threshold where volume will stop IH short
+   id:pVmax,
+   ambucfg:AmbuConfig::SetVolMax,
+   val:&parms[pVmax],
+   dval:800.0f, 
+   dx:10.0f, 
+   min:250.0f, 
+   max:990.0f,
+   fmt:"%3.0f"
   },
-  {.name="Pmin",  //Threshold where pressure will alarm
-   .id=pPmin,
-   .val=&parms[pPmin],
-   .dval=-10.0f, 
-   .dx=2.0f, 
-   .min=-10.0f, 
-   .max=30.0f,
-   .fmt="% 2.1f"
+  {name:"Pmin",  //Threshold where pressure will alarm
+   id:pPmin,
+   ambucfg:AmbuConfig::SetPeepMin,
+   val:&parms[pPmin],
+   dval:-10.0f, 
+   dx:2.0f, 
+   min:-10.0f, 
+   max:30.0f,
+   fmt:"% 2.1f"
   },
-  {.name="Pmax",  //Threshold where pressure will alarm
-   .id=pPmax,
-   .val=&parms[pPmax],
-   .dval=10.0f, 
-   .dx=2.0f, 
-   .min=10.0f, 
-   .max=60.0f,
-   .fmt="%02.1f"
+  {name:"Pmax",  //Threshold where pressure will alarm
+   id:pPmax,
+   ambucfg:AmbuConfig::SetPipMax,
+   val:&parms[pPmax],
+   dval:10.0f, 
+   dx:2.0f, 
+   min:10.0f, 
+   max:60.0f,
+   fmt:"%02.1f"
   }
 };
-
 
 GUI gui;
 
@@ -138,12 +147,6 @@ void setup_display(){
 
 void update_display() {
   gui.update();
-}
-
-
-double get_rand(double rmin, double rmax){
-  unsigned long rand_long = random();
-  return rmin + (rmax - rmin)*((double)rand_long / 4.2949e9);
 }
 
 
@@ -237,6 +240,16 @@ void loop() {
       else if (gui.items[guiParamSelected].elem.selected) {
         // the parmater is selected and the value should be changed
         gui.change_value(guiParamSelected, encDT);
+        // Send the changed value to AmBuConfig
+        uint32_t intData[2];
+        intData[0]=gui_value[guiParamSelected].ambucfg;
+        float floatData=parms[guiParamSelected];
+	      Message msg;
+        Serial.print("Sending MSG: ");
+        Serial.print(intData[0]);
+        Serial.println(floatData);
+        msg.writeData(Message::PARAM_FLOAT,0,1,&floatData,1,intData);
+        masterComm.send(msg);
       }
     }
     update_display();    
@@ -264,14 +277,22 @@ void loop() {
   
   // Update sensor parameters at nominal 1Hz
   if ( (curTime - measTime) > 1000 ){
-    // Take a sudo measurments of PEEP/PIP/Vol
     Message msg;
      masterComm.read(msg);
      int n=msg.nFloat();
-     Serial.println(msg.status());
-     if(msg.nFloat()==3) {
-       msg.getFloat(parms);
-     }
+     //     Serial.println(msg.status());
+     // Serial.println(msg.nFloat());
+    if(msg.nFloat()==9) {
+      msg.getFloat(update_parms);
+    }
+    for (uint8_t i=0; i<9; i++) {
+      if (guiParamSelected == i && gui.items[guiParamSelected].elem.selected == true) {
+        // Dont update parameter currently being adjusted on display
+      }
+      else {
+        parms[i] = update_parms[i];
+      }
+    }
     update_display();
     measTime=curTime;
   }
