@@ -42,7 +42,7 @@ GUI_value gui_value[nParam]={
    max:50.0f,
    fmt:"%02.1f"
   },
-  {.name:"Vol",  // last cycle volume mL
+  {name:"Vol",  // last cycle volume mL
    id:pVol,
    ambucfg:0,
    val:&parms[pVol],
@@ -62,7 +62,7 @@ GUI_value gui_value[nParam]={
    max: 30.0f,
    fmt:"%02.1f"
   },
-  {.name:"IH",    //Inhale time in seconds
+  {name:"IH",    //Inhale time in seconds
    id:pIH,
    ambucfg:AmbuConfig::SetInhTime,
    val:&parms[pIH],
@@ -82,35 +82,35 @@ GUI_value gui_value[nParam]={
    max:30.0f,
    fmt:"% 2.1f"
   },
-  {.name:"Vmax",  //Threshold where volume will stop IH short
+  {name:"Vmax",  //Threshold where volume will stop IH short
    id:pVmax,
    ambucfg:AmbuConfig::SetVolMax,
-   val=&parms[pVmax],
-   dval=800.0f, 
-   dx=10.0f, 
-   min=250.0f, 
-   max=990.0f,
-   fmt="%3.0f"
+   val:&parms[pVmax],
+   dval:800.0f, 
+   dx:10.0f, 
+   min:250.0f, 
+   max:990.0f,
+   fmt:"%3.0f"
   },
-  {name="Pmin",  //Threshold where pressure will alarm
-   id=pPmin,
-   ambucfg=AmbuConfig::SetPeepMin,
-   val=&parms[pPmin],
-   dval=-10.0f, 
-   dx=2.0f, 
-   min=-10.0f, 
-   max=30.0f,
-   fmt="% 2.1f"
+  {name:"Pmin",  //Threshold where pressure will alarm
+   id:pPmin,
+   ambucfg:AmbuConfig::SetPeepMin,
+   val:&parms[pPmin],
+   dval:-10.0f, 
+   dx:2.0f, 
+   min:-10.0f, 
+   max:30.0f,
+   fmt:"% 2.1f"
   },
-  {name="Pmax",  //Threshold where pressure will alarm
-   id=pPmax,
-   ambucfg=AmbuConfig::SetPipMax,
-   val=&parms[pPmax],
-   dval=10.0f, 
-   dx=2.0f, 
-   min=10.0f, 
-   max=60.0f,
-   fmt="%02.1f"
+  {name:"Pmax",  //Threshold where pressure will alarm
+   id:pPmax,
+   ambucfg:AmbuConfig::SetPipMax,
+   val:&parms[pPmax],
+   dval:10.0f, 
+   dx:2.0f, 
+   min:10.0f, 
+   max:60.0f,
+   fmt:"%02.1f"
   }
 };
 
@@ -243,7 +243,8 @@ void loop() {
         // Send the changed value to AmBuConfig
         uint32_t intData[2];
         intData[0]=gui_value[guiParamSelected].ambucfg;
-        float floatData=&parms[guiParamSelected];
+        float floatData=parms[guiParamSelected];
+	Message msg;
         msg.writeData(Message::PARAM_FLOAT,0,1,&floatData,1,intData);
         masterComm.send(msg);
       }
