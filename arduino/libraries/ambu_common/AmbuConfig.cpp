@@ -181,7 +181,7 @@ uint32_t AmbuConfig::getOnTimeMillis() {
 }
 
 double   AmbuConfig::getAdjVolMax() {
-   return (conf_.volMax + conf_.volOffset);
+   return (conf_.volMax - (-0.0011*pow(conf_.volMax,2.0) + 0.3005*conf_.volMax + 87.95) + conf_.volOffset);
 }
 
 double   AmbuConfig::getAdjPipMax() {
