@@ -250,7 +250,7 @@ void CycleControl::update(uint32_t ctime) {
    // Alarm Audio
    if ( ( (currStatus_ & StatusAlarmPipMax   ) ||
           (currStatus_ & StatusAlarmVolLow   ) ||
-          (currStatus_ & StatusAlarmPressLow ) ) && ((ctime - muteTime_) > 300000) ) {
+          (currStatus_ & StatusAlarmPressLow ) ) && ((ctime - muteTime_) > 120000) ) {
 
       digitalWrite(piezoPin_, PIEZO_ON);
    }
