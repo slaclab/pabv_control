@@ -77,12 +77,12 @@ class GUI
 	GUI_item items[nItems];
 
 	static constexpr uint32_t SPI_DEFAULT_FREQ=20000000;
-	static constexpr uint8_t TFT_DC=10;
-	static constexpr uint8_t TFT_CS= -1;
-	static constexpr uint8_t TFT_MOSI= 11;
-	static constexpr uint8_t TFT_MISO= -1;
-	static constexpr uint8_t TFT_RST= 9;
-	static constexpr uint8_t TFT_CLK= 13;	
+	static constexpr uint8_t TFT_DC=10;      //D10
+	static constexpr uint8_t TFT_CS= -1;     //GND
+	static constexpr uint8_t TFT_MOSI= 11;   //MOSI
+	static constexpr uint8_t TFT_MISO= -1;   //Not used
+	static constexpr uint8_t TFT_RST= 9;     //D9
+	static constexpr uint8_t TFT_CLK= 13;	 //SCK
 	static constexpr uint8_t TFT_FONTH_1 = 8*1;
 	static constexpr uint8_t TFT_FONTH_2=  8*2;
 	static constexpr uint8_t TFT_FONTH_3 = 8*3;
