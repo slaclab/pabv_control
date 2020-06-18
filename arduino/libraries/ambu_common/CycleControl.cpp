@@ -170,6 +170,9 @@ void CycleControl::update(uint32_t ctime) {
 
             // Pressure on previous cycle never exceeded 5cmH20
             if ( (currPmax_ < 5.0) && (cycleCount_ > 5)) cycleStatus_ |= StatusAlarmPressLow;
+
+            // Update adjust volume max
+            conf_.updateAdjVolMax(currVmax_);
          }
 
          // Clear counters

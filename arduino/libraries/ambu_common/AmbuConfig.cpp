@@ -22,11 +22,12 @@ AmbuConfig::AmbuConfig (Comm &serial,Comm &display) : rxCount_(0),serial_(serial
 void AmbuConfig::setup () {
    conf_.respRate   = 20.0;
    conf_.inhTime    = 1.0;
-   conf_.pipMax     = 100.0;
+   conf_.pipMax     = 40.0;
    conf_.pipOffset  = 0.0;
    conf_.volMax     = 200.0;
-   conf_.volOffset  = 0.0;
-   conf_.volInThold = -10.0;
+   conf_.volFactor  = 0.5;
+   conf_.volMaxAdj  = conf_.volMax * conf_.volFactor;
+   conf_.volInThold = -2.0;
    conf_.peepMin    = 0.0;
    conf_.runState   = StateRunOn;
    confTime_ = millis();
@@ -48,7 +49,7 @@ bool AmbuConfig::update_(Message &m,CycleControl &cycle) {
       else if(param==SetPipMax)     conf_.pipMax = f;
       else if(param==SetPipOffset)  conf_.pipOffset = f;
       else if(param==SetVolMax)     conf_.volMax = f;
-      else if(param==SetVolOffset)  conf_.volOffset = f;
+      else if(param==SetVolFactor)  conf_.volFactor = f;
       else if(param==SetVolInThold) conf_.volInThold = f;
       else if(param==SetPeepMin)    conf_.peepMin = f;
       storeConfig();
@@ -92,7 +93,7 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
      config[2]=conf_.pipMax;
      config[3]=conf_.pipOffset;
      config[4]=conf_.volMax;
-     config[5]=conf_.volOffset;
+     config[5]=conf_.volFactor;
      config[6]=conf_.volInThold;
      config[7]=conf_.peepMin;
      intConf[0]=conf_.runState;
@@ -189,8 +190,12 @@ uint32_t AmbuConfig::getOnTimeMillis() {
    return ret;
 }
 
-double   AmbuConfig::getAdjVolMax() {
-   return (conf_.volMax - (-0.0011*pow(conf_.volMax,2.0) + 0.3005*conf_.volMax + 87.95) + conf_.volOffset);
+double AmbuConfig::getAdjVolMax() {
+   return conf_.volMaxAdj;
+}
+
+void AmbuConfig::updateAdjVolMax(double maxVol) {
+   conf_.volMaxAdj -= (conf_.volFactor * maxVol) - conf_.volMax;
 }
 
 double   AmbuConfig::getAdjPipMax() {
