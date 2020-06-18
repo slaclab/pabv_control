@@ -17,7 +17,8 @@ class AmbuParameters {
       double pipMax;
       double pipOffset;
       double volMax;
-      double volOffset;
+      double volFactor;
+      double volMaxAdj;
       double volInThold;
       double peepMin;
 
@@ -40,7 +41,7 @@ class AmbuConfig {
       static constexpr  uint8_t SetPipMax     = 3;
       static constexpr  uint8_t SetPipOffset  = 4;
       static constexpr  uint8_t SetVolMax     = 5;
-      static constexpr  uint8_t SetVolOffset  = 6;
+      static constexpr  uint8_t SetVolFactor  = 6;
       static constexpr  uint8_t SetVolInThold = 7;
       static constexpr  uint8_t SetPeepMin    = 8;
       static constexpr  uint8_t SetRunState   = 9;
@@ -97,6 +98,7 @@ class AmbuConfig {
       uint32_t getOffTimeMillis();
       uint32_t getOnTimeMillis();
       double   getAdjVolMax();
+      void     updateAdjVolMax(double maxVol);
       double   getAdjPipMax();
 
 };
