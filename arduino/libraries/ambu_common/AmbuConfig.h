@@ -17,7 +17,8 @@ class AmbuParameters {
       double pipMax;
       double pipOffset;
       double volMax;
-      double volOffset;
+      double volFactor;
+      double volMaxAdj;
       double volInThold;
       double peepMin;
 
@@ -34,17 +35,17 @@ class AmbuConfig {
       static const uint8_t StateRunOn    = 3;
 
       // Set parameter Constants
-      static const uint8_t GetConfig     = 0;
-      static const uint8_t SetRespRate   = 1;
-      static const uint8_t SetInhTime    = 2;
-      static const uint8_t SetPipMax     = 3;
-      static const uint8_t SetPipOffset  = 4;
-      static const uint8_t SetVolMax     = 5;
-      static const uint8_t SetVolOffset  = 6;
-      static const uint8_t SetVolInThold = 7;
-      static const uint8_t SetPeepMin    = 8;
-      static const uint8_t SetRunState   = 9;
-      static const uint8_t MuteAlarm     = 10;
+      static constexpr  uint8_t GetConfig     = 0;
+      static constexpr  uint8_t SetRespRate   = 1;
+      static constexpr  uint8_t SetInhTime    = 2;
+      static constexpr  uint8_t SetPipMax     = 3;
+      static constexpr  uint8_t SetPipOffset  = 4;
+      static constexpr  uint8_t SetVolMax     = 5;
+      static constexpr  uint8_t SetVolFactor  = 6;
+      static constexpr  uint8_t SetVolInThold = 7;
+      static constexpr  uint8_t SetPeepMin    = 8;
+      static constexpr  uint8_t SetRunState   = 9;
+      static constexpr  uint8_t MuteAlarm     = 10;
 
    protected:
 
@@ -55,17 +56,18 @@ class AmbuConfig {
 
       AmbuParameters conf_;
 
-      virtual void storeConfig() = 0;
+      void storeConfig();
       Comm &serial_;
-
+      Comm &display_;
+      bool update_(Message &m,CycleControl &cycle);
       cpuId cpuId_;
 
       uint32_t cfgSerialNum_;
 
    public:
 
-      AmbuConfig (Comm &serial);
-      virtual void deviceID(cpuId &id) = 0;
+      AmbuConfig (Comm &serial,Comm &display);
+      void deviceID(cpuId &id) ;
       virtual void setup();
 
       void update(uint32_t ctime, CycleControl &cycle);
@@ -81,7 +83,7 @@ class AmbuConfig {
       void setPipMax(double value);
 
       double getVolMax();
-      void setGetVolMax(double value);
+      void setVolMax(double value);
 
       double getVolInThold();
       void setVolInThold(double value);
@@ -96,6 +98,7 @@ class AmbuConfig {
       uint32_t getOffTimeMillis();
       uint32_t getOnTimeMillis();
       double   getAdjVolMax();
+      void     updateAdjVolMax(double maxVol);
       double   getAdjPipMax();
 
 };

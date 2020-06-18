@@ -52,11 +52,14 @@ class CycleControl {
       uint8_t  pin9V_;
       uint32_t cycleStatus_;
       uint32_t currStatus_;
-      uint32_t cycleCount_;
+      uint32_t cycleCountTotal_;
+      uint32_t cycleCountReal_;
       double   currVmax_;
       double   prevVmax_;
       double   currPmax_;
       double   prevPmax_;
+      double   currPmin_;
+      double   prevPmin_;
 
    public:
 
@@ -79,9 +82,10 @@ class CycleControl {
       void muteAlarm();
 
       uint32_t status() { return currStatus_;}
-      uint32_t cycleCount() { return cycleCount_;}
+      uint32_t cycleCount() { return cycleCountTotal_;}
       float prevPmax() {return prevPmax_;}
       float prevVmax() {return prevVmax_;}
+      float prevPmin() {return prevPmin_;}
 };
 
 #endif

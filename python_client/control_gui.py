@@ -69,7 +69,7 @@ class ControlGui(QWidget):
     updatePipMax      = pyqtSignal(str)
     updatePipOffset   = pyqtSignal(str)
     updateVolMax      = pyqtSignal(str)
-    updateVolOffset   = pyqtSignal(str)
+    updateVolFactor   = pyqtSignal(str)
     updateVolInhThold = pyqtSignal(str)
     updatePeepMin     = pyqtSignal(str)
     updateState       = pyqtSignal(int)
@@ -322,10 +322,10 @@ class ControlGui(QWidget):
         self.updatePipOffset.connect(self.pipOffset.setText)
         fl.addRow('Pip Offset (cmH20):',self.pipOffset)
 
-        self.volOffset = QLineEdit()
-        self.volOffset.returnPressed.connect(self.setVolOffset)
-        self.updateVolOffset.connect(self.volOffset.setText)
-        fl.addRow('Vol Offset (mL):',self.volOffset)
+        self.volFactor = QLineEdit()
+        self.volFactor.returnPressed.connect(self.setVolFactor)
+        self.updateVolFactor.connect(self.volFactor.setText)
+        fl.addRow('Vol Factor:',self.volFactor)
 
         self.pMinValue = QLineEdit()
         self.pMinValue.setText("-5")
@@ -753,9 +753,9 @@ class ControlGui(QWidget):
             pass
 
     @pyqtSlot()
-    def setVolOffset(self):
+    def setVolFactor(self):
         try:
-            self.ambu.volOffset = float(self.volOffset.text())
+            self.ambu.volFactor = float(self.volFactor.text())
         except Exception as e:
             #print(f"Got GUI value error {e}")
             pass
@@ -820,7 +820,7 @@ class ControlGui(QWidget):
         self.updatePipMax.emit("{:0.1f}".format(self.ambu.pipMax))
         self.updateVolMax.emit("{:0.1f}".format(self.ambu.volMax))
         self.updatePipOffset.emit("{:0.1f}".format(self.ambu.pipOffset))
-        self.updateVolOffset.emit("{:0.1f}".format(self.ambu.volOffset))
+        self.updateVolFactor.emit("{:0.1f}".format(self.ambu.volFactor))
         self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
 
         self.updateState.emit(self.ambu.runState)

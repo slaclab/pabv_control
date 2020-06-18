@@ -24,14 +24,16 @@ CycleControl::CycleControl (AmbuConfig &conf,
              pin9V_(pin9V),
              pin12V_(pin12V),
              stateTime_(0),
-             cycleCount_(0),
+             cycleCountTotal_(0),
+             cycleCountReal_(0),
              muteTime_(0)
 {  }
 
 
 void CycleControl::setup() {
    stateTime_ = millis();
-   cycleCount_ = 0;
+   cycleCountTotal_ = 0;
+   cycleCountReal_ = 0;
 
    state_ = StateOff;
    cycleStatus_ = 0;
@@ -53,6 +55,8 @@ void CycleControl::setup() {
    prevVmax_ = 0;
    currPmax_ = 0;
    prevPmax_ = 0;
+   currPmin_ = 99.9;
+   prevPmin_ = 99.9;
 }
 
 void CycleControl::update(uint32_t ctime) {
@@ -64,11 +68,14 @@ void CycleControl::update(uint32_t ctime) {
    // Keep track of vmax
    if ( vol_.scaledValue() > currVmax_ ) currVmax_ = vol_.scaledValue();
 
-   // Keep track of pmax
+   // Keep track of pmax (PIP)
    if ( press_.scaledValue() > currPmax_ ) currPmax_ = press_.scaledValue();
 
+   // Keep track of pmin (PEEP)
+   if ( press_.scaledValue() < currPmin_ ) currPmin_ = press_.scaledValue();
+
    // Pressure checks for alarms
-   if (conf_.getRunState() == conf_.StateRunOn) {
+   if ((conf_.getRunState() == conf_.StateRunOn) && (cycleCountReal_ > 5) ) {
 
       // Max pressure threshold exceeded
       if ( press_.scaledValue() > conf_.getPipMax() )  {
@@ -84,7 +91,7 @@ void CycleControl::update(uint32_t ctime) {
    }
 
    // Check 9V level, double check if below threshold
-   if ( ( val = analogRead(pin9V_)) < 230 ) {
+   if ( (( val = analogRead(pin9V_)) < 230 ) && (cycleCountReal_ > 5) ) {
       if ( ( val = analogRead(pin9V_)) < 230 ) {
          cycleStatus_ |= StatusWarn9V;
          currStatus_  |= StatusWarn9V;
@@ -95,7 +102,7 @@ void CycleControl::update(uint32_t ctime) {
    }
 
    // Check 12V level, double check if below threshold
-   if ( ( val = analogRead(pin12V_)) < 300 ) {
+   if ( ( ( val = analogRead(pin12V_)) < 300  ) && (cycleCountReal_ > 5)) {
       if ( ( val = analogRead(pin12V_)) < 300 ) {
          cycleStatus_ |= StatusAlarm12V;
          currStatus_  |= StatusAlarm12V;
@@ -161,24 +168,31 @@ void CycleControl::update(uint32_t ctime) {
          if (conf_.getRunState() == conf_.StateRunOn) {
 
             // Volume on previous cycle never exceeded 100mL
-            if ( currVmax_ < 100.0 ) cycleStatus_ |= StatusAlarmVolLow;
+            if ( (currVmax_ < 100.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmVolLow;
 
             // Pressure on previous cycle never exceeded 5cmH20
-            if ( currPmax_ < 5.0 ) cycleStatus_ |= StatusAlarmPressLow;
+            if ( (currPmax_ < 5.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmPressLow;
+
+            // Update adjust volume max
+            conf_.updateAdjVolMax(currVmax_);
          }
 
          // Clear counters
          prevVmax_ = currVmax_;
-         currVmax_ = 0;
+         currVmax_ = 0.0;
          prevPmax_ = currPmax_;
-         currPmax_ = 0;
+         currPmax_ = 0.0;
+         prevPmin_ = currPmin_;
+         currPmin_ = 99.9;
 
          // Update status to current cycle values to clear old alarms
          currStatus_  = cycleStatus_;
          cycleStatus_ = 0;
 
          // Increment cycle count
-         cycleCount_++;
+         cycleCountTotal_++;
+         if (conf_.getRunState() == conf_.StateRunOn) cycleCountReal_++;
+         else cycleCountReal_ = 0;
       }
 
       // Going to off
@@ -250,7 +264,7 @@ void CycleControl::update(uint32_t ctime) {
    // Alarm Audio
    if ( ( (currStatus_ & StatusAlarmPipMax   ) ||
           (currStatus_ & StatusAlarmVolLow   ) ||
-          (currStatus_ & StatusAlarmPressLow ) ) && ((ctime - muteTime_) > 300000) ) {
+          (currStatus_ & StatusAlarmPressLow ) ) && ((ctime - muteTime_) > 120000) ) {
 
       digitalWrite(piezoPin_, PIEZO_ON);
    }

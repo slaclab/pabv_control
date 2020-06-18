@@ -1,6 +1,6 @@
 
 #include <Wire.h>
-#include <AmbuConfigNano.h>
+#include <AmbuConfig.h>
 #include <CycleControl.h>
 #include <SensorDlcL20D4.h>
 #include <SensorSp110Sm02Flow.h>
@@ -20,7 +20,7 @@
 #define SENSOR_PERIOD_MILLIS 9
 #define DISPLAY_PERIOD_MILLIS 999
 //#define SerialPort Serial
-#define SerialPort Serial1
+#define SerialPort Serial1  // Interface to the MAX3232
 
 // Uart on pin D9/10 for display communication
 // https://stackoverflow.com/questions/57175348/softwareserial-for-arduino-nano-33-iot
@@ -38,10 +38,10 @@ void SERCOM1_Handler()
 #error Unsupported Hardware
 #endif
 
-Comm displayComm(uart);
-Comm serComm(SerialPort);
+Comm displayComm(uart);    // To second NANO for local-display
+Comm serComm(SerialPort);  // To MAX3232
 
-AmbuConfigNano conf(serComm);
+AmbuConfig conf(serComm,displayComm);
 SensorDlcL20D4 press;
 SensorSp110Sm02Flow flow;
 SensorVolume vol(flow);
@@ -107,11 +107,18 @@ void loop() {
    // Update display every second
    if ((currTime - displayTime) > DISPLAY_PERIOD_MILLIS )  {
      Message m;
-      float sendFloat[3];
-      sendFloat[0]=relay.prevVmax();
+      float sendFloat[9];
+      float parms[6];
+      sendFloat[0]=relay.prevPmin();
       sendFloat[1]=relay.prevPmax();
-      sendFloat[2]=press.scaledValue();
-     m.writeData(Message::DATA,currTime,3,sendFloat,0,0);
+      sendFloat[2]=relay.prevVmax();
+      sendFloat[3]=conf.getRespRate();
+      sendFloat[4]=conf.getInhTime();
+      sendFloat[5]=conf.getVolInThold();
+      sendFloat[6]=conf.getVolMax();
+      sendFloat[7]=conf.getPeepMin();
+      sendFloat[8]=conf.getPipMax();
+     m.writeData(Message::DATA,currTime,9,sendFloat,0,0);
      displayComm.send(m);
      displayTime=currTime;
    }
