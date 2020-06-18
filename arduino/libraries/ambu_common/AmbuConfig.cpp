@@ -14,23 +14,48 @@ const char *git_version= "unknown";
 const char *git_version=QUOTE(GIT_VERSION);
 #endif
 
+
+
+FlashStorage(ambuflash,AmbuParameters);
+
+
 AmbuConfig::AmbuConfig (Comm &serial,Comm &display) : rxCount_(0),serial_(serial),display_(display),cfgSerialNum_(1) {
   deviceID(cpuId_);
   memset(rxBuffer_,0,20);
 }
 
 void AmbuConfig::setup () {
-   conf_.respRate   = 20.0;
-   conf_.inhTime    = 1.0;
-   conf_.pipMax     = 100.0;
-   conf_.pipOffset  = 0.0;
-   conf_.volMax     = 200.0;
-   conf_.volOffset  = 0.0;
-   conf_.volInThold = -10.0;
-   conf_.peepMin    = 0.0;
-   conf_.runState   = StateRunOn;
+
+   // load configuration from flash
+   AmbuParameters storedConf = ambuflash.read();
+   uint16_t checksum = storedConf.checksum;
+   storedConf.checksum = 0;     // checksum was calculated with checksum field set to 0
+
+   // is checksum OK?
+   uint16_t cs = _fletcher16((uint8_t *) &storedConf,sizeof(storedConf));
+   if (cs == checksum) {
+      conf_ = storedConf;
+      Serial.println("Valid checksum. Loaded config from flash");
+   }
+   else {
+     // checksum invalid, load default configuration and write to flash
+     Serial.println("Invalid checksum, initializing configuration with defaults");
+     conf_.respRate   = 20.0;
+     conf_.inhTime    = 1.0;
+     conf_.pipMax     = 100.0;
+     conf_.pipOffset  = 0.0;
+     conf_.volMax     = 200.0;
+     conf_.volOffset  = 0.0;
+     conf_.volInThold = -10.0;
+     conf_.peepMin    = 0.0;
+     conf_.runState   = StateRunOn;
+     storeConfig();
+   }
    confTime_ = millis();
 }
+
+
+
 bool AmbuConfig::update_(Message &m,CycleControl &cycle) {
   bool sendConfig=false;
   uint8_t id=m.id();
@@ -221,5 +246,25 @@ void AmbuConfig::deviceID(cpuId &id) {
 }
 
 void AmbuConfig::storeConfig() {
-  // to be implemented
+
+  // calculate checksum with checksum field set to 0
+  conf_.checksum = 0;
+  uint16_t checksum = _fletcher16((uint8_t *) &conf_, sizeof(conf_));
+  conf_.checksum = checksum;
+  ambuflash.write(conf_);
 }
+
+
+
+uint16_t  AmbuConfig::_fletcher16(const uint8_t *data,uint8_t len) {
+  uint16_t sum1 = 0;
+  uint16_t sum2 = 0;
+
+  for ( uint8_t i = 0; i < len; ++i )
+    {
+      sum1 = (sum1 + data[i]) % 255;
+      sum2 = (sum2 + sum1) % 255;
+    }
+  return (sum2 << 8) | sum1;
+}
+
