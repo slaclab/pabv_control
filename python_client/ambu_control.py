@@ -20,7 +20,7 @@ class AmbuControl(object):
 
     # Config constants
     ConfigKey = { 'GetConfig'    : 0, 'SetRespRate' : 1, 'SetInhTime'   : 2, 'SetPipMax'     : 3,
-                  'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolOffset' : 6, 'SetVolInThold' : 7,
+                  'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolFactor' : 6, 'SetVolInThold' : 7,
                   'SetPeepMin'   : 8, 'SetRunState' : 9, 'MuteAlarm'    : 10 }
 
     # Status constants
@@ -43,7 +43,7 @@ class AmbuControl(object):
         self._pipMax = 0
         self._pipOffset = 0
         self._volMax = 0
-        self._volOffset = 0
+        self._volFactor = 0
         self._volInThold = 0
         self._peepMin = 0
         self._runState = 0
@@ -143,14 +143,14 @@ class AmbuControl(object):
         self._ser.write(data)
 
     @property
-    def volOffset(self):
-        return self._volOffset
+    def volFactor(self):
+        return self._volFactor
 
-    @volOffset.setter
-    def volOffset(self,value):
-        self._volOffset = value
+    @volFactor.setter
+    def volFactor(self,value):
+        self._volFactor = value
         m=message.Message()
-        data=m.writeData(m.PARAM_FLOAT,0,[self._volOffset],[self.ConfigKey['SetVolOffset']])
+        data=m.writeData(m.PARAM_FLOAT,0,[self._volFactor],[self.ConfigKey['SetVolFactor']])
         self._ser.write(data)
 
     @property
@@ -279,7 +279,7 @@ class AmbuControl(object):
                     self._pipMax      = m.floatData[2]
                     self._pipOffset   = m.floatData[3]
                     self._volMax      = m.floatData[4]
-                    self._volOffset   = m.floatData[5]
+                    self._volFactor   = m.floatData[5]
                     self._volInThold  = m.floatData[6]
                     self._peepMin     = m.floatData[7]
                     self._runState    = m.intData[0]

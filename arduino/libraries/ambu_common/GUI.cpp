@@ -5,10 +5,10 @@
 
 GUI::GUI(bool invert) : invert_colors(invert)
 {
-  for(unsigned int i=0;i<nItems;i++) {
+  //for(unsigned int i=0;i<nItems;i++) {
     // This just sets empty GUI items up to nItems=16
-    items[i]={0,0,nullptr,0.0f,0.0f,0.0f,0.0f,0};
-  }
+  //  items[i]={0,0,nullptr,0.0f,0.0f,0.0f,0.0f,0};
+  //}
 }
 
 void GUI::addItem(const GUI_value &gui_value,const GUI_elem &elem) {
