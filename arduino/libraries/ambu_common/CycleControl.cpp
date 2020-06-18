@@ -55,6 +55,8 @@ void CycleControl::setup() {
    prevVmax_ = 0;
    currPmax_ = 0;
    prevPmax_ = 0;
+   currPmin_ = 99.9;
+   prevPmin_ = 99.9;
 }
 
 void CycleControl::update(uint32_t ctime) {
@@ -66,8 +68,11 @@ void CycleControl::update(uint32_t ctime) {
    // Keep track of vmax
    if ( vol_.scaledValue() > currVmax_ ) currVmax_ = vol_.scaledValue();
 
-   // Keep track of pmax
+   // Keep track of pmax (PIP)
    if ( press_.scaledValue() > currPmax_ ) currPmax_ = press_.scaledValue();
+
+   // Keep track of pmin (PEEP)
+   if ( press_.scaledValue() < currPmin_ ) currPmin_ = press_.scaledValue();
 
    // Pressure checks for alarms
    if ((conf_.getRunState() == conf_.StateRunOn) && (cycleCountReal_ > 5) ) {
@@ -171,9 +176,11 @@ void CycleControl::update(uint32_t ctime) {
 
          // Clear counters
          prevVmax_ = currVmax_;
-         currVmax_ = 0;
+         currVmax_ = 0.0;
          prevPmax_ = currPmax_;
-         currPmax_ = 0;
+         currPmax_ = 0.0;
+         prevPmin_ = currPmin_;
+         currPmin_ = 99.9;
 
          // Update status to current cycle values to clear old alarms
          currStatus_  = cycleStatus_;

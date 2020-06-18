@@ -58,6 +58,8 @@ class CycleControl {
       double   prevVmax_;
       double   currPmax_;
       double   prevPmax_;
+      double   currPmin_;
+      double   prevPmin_;
 
    public:
 
@@ -83,6 +85,7 @@ class CycleControl {
       uint32_t cycleCount() { return cycleCountTotal_;}
       float prevPmax() {return prevPmax_;}
       float prevVmax() {return prevVmax_;}
+      float prevPmin() {return prevPmin_;}
 };
 
 #endif
