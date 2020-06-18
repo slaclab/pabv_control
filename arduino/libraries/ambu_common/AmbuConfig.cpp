@@ -6,6 +6,8 @@
 #include "CycleControl.h"
 
 
+
+
 #ifndef GIT_VERSION
 const char *git_version= "unknown";
 #else
@@ -14,6 +16,8 @@ const char *git_version= "unknown";
 const char *git_version=QUOTE(GIT_VERSION);
 #endif
 
+
+const uint16_t cs_field = 0xbeef;
 
 
 FlashStorage(ambuflash,AmbuParameters);
@@ -26,10 +30,12 @@ AmbuConfig::AmbuConfig (Comm &serial,Comm &display) : rxCount_(0),serial_(serial
 
 void AmbuConfig::setup () {
 
+   delay(3000);
+
    // load configuration from flash
    AmbuParameters storedConf = ambuflash.read();
    uint16_t checksum = storedConf.checksum;
-   storedConf.checksum = 0;     // checksum was calculated with checksum field set to 0
+   storedConf.checksum = cs_field;     // checksum was calculated with checksum field set to cs_field
 
    // is checksum OK?
    uint16_t cs = _fletcher16((uint8_t *) &storedConf,sizeof(storedConf));
@@ -248,7 +254,7 @@ void AmbuConfig::deviceID(cpuId &id) {
 void AmbuConfig::storeConfig() {
 
   // calculate checksum with checksum field set to 0
-  conf_.checksum = 0;
+  conf_.checksum = cs_field;
   uint16_t checksum = _fletcher16((uint8_t *) &conf_, sizeof(conf_));
   conf_.checksum = checksum;
   ambuflash.write(conf_);
