@@ -195,7 +195,7 @@ double AmbuConfig::getAdjVolMax() {
 }
 
 void AmbuConfig::updateAdjVolMax(double maxVol) {
-   conf_.volMaxAdj -= (conf_.volFactor * maxVol) - conf_.volMax;
+   conf_.volMaxAdj -= conf_.volFactor * (maxVol - conf_.volMax);
 }
 
 double   AmbuConfig::getAdjPipMax() {
