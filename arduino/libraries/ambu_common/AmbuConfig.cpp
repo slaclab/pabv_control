@@ -30,8 +30,6 @@ AmbuConfig::AmbuConfig (Comm &serial,Comm &display) : rxCount_(0),serial_(serial
 
 void AmbuConfig::setup () {
 
-   delay(3000);
-
    // load configuration from flash
    AmbuParameters storedConf = ambuflash.read();
    uint16_t checksum = storedConf.checksum;
