@@ -854,9 +854,20 @@ class ControlGui(QWidget):
         xa =  ambu_data[0,:]
         xa=xa-xa[-1]
         try:
-            self.plot[0].setYRange(float(self.pMinValue.text()),float(self.pMaxValue.text()))
-            self.plot[1].setYRange(float(self.fMinValue.text()),float(self.fMaxValue.text()))
-            self.plot[2].setYRange(float(self.vMinValue.text()),float(self.vMaxValue.text()))
+            pMin=float(self.pMinValue.text())
+            pMax=float(self.pMaxValue.text())
+            fMin=float(self.fMinValue.text())
+            fMax=float(self.fMaxValue.text())
+            vMin=float(self.vMinValue.text())
+            vMax=float(self.vMaxValue.text())
+            self.plot[0].setYRange(pMin,pMax)
+            self.plot[1].setYRange(fMin,fMax)
+            self.plot[2].setYRange(vMin,vMax)
+
+            self.plot[0].getAxis('left').setTickSpacing(10, 5)
+            self.plot[1].getAxis('left').setTickSpacing(25, 10)
+            self.plot[2].getAxis('left').setTickSpacing(200, 50)
+
             data=[None]*7
             data[0]=ambu_data[2,:]
             data[1]=ambu_data[6,:]

@@ -1,5 +1,6 @@
 
 import sys
+import os
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore    import *
@@ -10,7 +11,8 @@ import ambu_control
 ambu = ambu_control.AmbuControl()
 appTop = QApplication(sys.argv)
 font_db = QFontDatabase()
-font_id = font_db.addApplicationFont("fonts/Oxygen-Regular.ttf")
+fontfile=os.path.dirname(os.path.realpath(__file__))+"/../fonts/Oxygen-Regular.ttf"
+font_id = font_db.addApplicationFont(fontfile)
 font = font_db.font("Oxygen","Regular",14)
 appTop.setFont(font)
 
