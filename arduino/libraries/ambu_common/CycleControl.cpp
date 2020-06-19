@@ -177,6 +177,12 @@ void CycleControl::update(uint32_t ctime) {
             conf_.updateAdjVolMax(currVmax_);
          }
 
+         else {
+
+            // init adjust volume max
+            conf_.initAdjVolMax();
+         }
+
          // Clear counters
          prevVmax_ = currVmax_;
          currVmax_ = 0.0;
