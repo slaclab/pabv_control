@@ -26,7 +26,8 @@ CycleControl::CycleControl (AmbuConfig &conf,
              stateTime_(0),
              cycleCountTotal_(0),
              cycleCountReal_(0),
-             muteTime_(0)
+             muteTime_(0),
+             wasOff_(true)
 {  }
 
 
@@ -174,14 +175,12 @@ void CycleControl::update(uint32_t ctime) {
             if ( (currPmax_ < 5.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmPressLow;
 
             // Update adjust volume max
-            conf_.updateAdjVolMax(currVmax_);
+            if ( wasOff_ ) conf_.initAdjVolMax();
+            else conf_.updateAdjVolMax(currVmax_);
+            wasOff_ = false;
          }
 
-         else {
-
-            // init adjust volume max
-            conf_.initAdjVolMax();
-         }
+         else wasOff_ = true;
 
          // Clear counters
          prevVmax_ = currVmax_;
