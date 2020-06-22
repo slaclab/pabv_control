@@ -8,6 +8,10 @@
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #include "Comm.h"
+#include <FlashStorage.h>
+
+
+
 class CycleControl;
 
 class AmbuParameters {
@@ -21,8 +25,8 @@ class AmbuParameters {
       double volMaxAdj;
       double volInThold;
       double peepMin;
-
       uint8_t runState;
+      uint16_t checksum;
 };
 
 class AmbuConfig {
@@ -63,6 +67,10 @@ class AmbuConfig {
       cpuId cpuId_;
 
       uint32_t cfgSerialNum_;
+
+   private:
+       uint16_t  _fletcher16(const uint8_t *data,uint8_t len);
+
 
    public:
 

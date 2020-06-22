@@ -10,3 +10,6 @@
 [submodule "arduino/libraries/base64"]
 	path = arduino/libraries/base64
 	url = https://github.com/slaclab/arduino-base64.git
+[submodule "arduino/libraries/FlashStorage"]
+	path = arduino/libraries/FlashStorage
+	url = https://github.com/cmaglie/FlashStorage.git
