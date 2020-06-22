@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <HardwareSerial.h>
 #include <Comm.h>
+#include <WDTZero.h>
 #include <Arduino.h>
-
 #define RELAYA_PIN 8
 #define RELAYB_PIN 7
 #define REDLED_PIN 3
@@ -38,8 +38,14 @@ void SERCOM1_Handler()
 #error Unsupported Hardware
 #endif
 
+
+
+WDTZero watchdog;
+
+
 Comm displayComm(uart);    // To second NANO for local-display
 Comm serComm(SerialPort);  // To MAX3232
+
 
 AmbuConfig conf(serComm,displayComm);
 SensorDlcL20D4 press;
@@ -79,6 +85,8 @@ void setup() {
    sensorTime = millis();
    m.writeString(Message::DEBUG,millis(),"Setup Done");
    serComm.send(m);
+   watchdog.setup(WDT_HARDCYCLE62m);
+   watchdog.attachShutdown(restart);
 }
 
 void loop() {
@@ -127,5 +135,12 @@ void loop() {
 
    relay.update(currTime);
    conf.update(currTime,relay);
+   // reset watchdog
+   watchdog.clear();
+   
 
+}
+void restart()
+{
+  //do something here
 }
