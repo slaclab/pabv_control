@@ -21,6 +21,7 @@ class AmbuParameters {
       double pipMax;
       double pipOffset;
       double volMax;
+      double volOffset;
       double volFactor;
       double volMaxAdj;
       double volInThold;
