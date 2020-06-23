@@ -108,6 +108,7 @@ class AmbuConfig {
       uint32_t getOnTimeMillis();
       double   getAdjVolMax();
       void     updateAdjVolMax(double maxVol);
+      void     initAdjVolMax();
       double   getAdjPipMax();
 
 };
