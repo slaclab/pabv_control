@@ -61,6 +61,8 @@ class CycleControl {
       double   currPmin_;
       double   prevPmin_;
 
+      bool     wasOff_;
+
    public:
 
       CycleControl (AmbuConfig &conf,
