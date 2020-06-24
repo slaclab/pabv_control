@@ -47,11 +47,12 @@ void AmbuConfig::setup () {
      Serial.println("Invalid checksum, initializing configuration with defaults");
      conf_.respRate   = 20.0;
      conf_.inhTime    = 1.0;
-     conf_.pipMax     = 100.0;
+     conf_.pipMax     = 40.0;
      conf_.pipOffset  = 0.0;
      conf_.volMax     = 200.0;
-     conf_.volOffset  = 0.0;
-     conf_.volInThold = -10.0;
+     conf_.volFactor  = 0.5;
+     conf_.volMaxAdj  = 0.0;
+     conf_.volInThold = -2.0;
      conf_.peepMin    = 0.0;
      conf_.runState   = StateRunOn;
      storeConfig();
@@ -229,7 +230,7 @@ void AmbuConfig::updateAdjVolMax(double maxVol) {
 }
 
 void AmbuConfig::initAdjVolMax() {
-   conf_.volMaxAdj = conf_.volMax * conf_.volFactor;
+   conf_.volMaxAdj = 0;
 }
 
 double   AmbuConfig::getAdjPipMax() {
