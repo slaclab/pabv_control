@@ -102,15 +102,17 @@ class ControlGui(QWidget):
         self.volMax       = None
         self.stateControl = None
         self.runControl   = None
+        self.blink_time   = time.time()
+
         top = QVBoxLayout()
         self.setLayout(top)
         self.alarmStatus = QLabel()
         self.blinkStat=True
         self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
-        self.alarmStatus.setText("Clear")
+        self.alarmStatus.setText("")
         self.alarmStatus.setAlignment(Qt.AlignCenter);
         font = self.alarmStatus.font();
-        font.setPointSize(36);
+        font.setPointSize(24);
         font.setBold(True);
         self.alarmStatus.setFont(font)
         self.tabs = QTabWidget()
@@ -129,7 +131,6 @@ class ControlGui(QWidget):
         top.addWidget(self.tabs)
         self.last_update=time.time()
         QTimer.singleShot(100,self.updateAll)
-        QTimer.singleShot(1000,self.blink)
     def setupPageOne(self):
 
         top = QHBoxLayout()
@@ -285,7 +286,7 @@ class ControlGui(QWidget):
         top.addLayout(right)
 
         # Period Control
-        gb = QGroupBox('GUI Control')
+        gb = QGroupBox('Control Parameters')
         left.addWidget(gb)
 
         vl = QVBoxLayout()
@@ -316,7 +317,17 @@ class ControlGui(QWidget):
         self.volFactor.returnPressed.connect(self.setVolFactor)
         self.updateVolFactor.connect(self.volFactor.setText)
         fl.addRow('Vol Factor:',self.volFactor)
+        gb = QGroupBox('Vertial Limits for Time Plots')
+        left.addWidget(gb)
 
+        vl = QVBoxLayout()
+        gb.setLayout(vl)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        vl.addLayout(fl)
         self.pMinValue = QLineEdit()
         self.pMinValue.setText("-5")
 
@@ -530,7 +541,14 @@ class ControlGui(QWidget):
         vbox = QVBoxLayout()
 
         #Text field and control buttons for instructions
-
+        self.alarmsText= { "alarmVolLow" :  "Alarm: Peak Patient Inspiratory pressure exceeded. Check PIP Valve!",
+                       "alarm12V" : "Alarm: Low Tidal Volume. Check Ventilator, patient circuit!",
+                       "alarmPresLow" : "Alarm: Patient Inspiratory Pressure low, Check patient circuit!",
+                       "warn9V" : "Warning: Battery low. Replace soon!",
+                       "warnPeepMin" : "Warning: Pressure below PEEP. Check patient circuit!"
+        }
+        self.alarmsActive= list()
+        self.alarmCount=0
         self.instructions = []
 
         self.instructions.append("Click 'Next' to begin calibration procedure")
@@ -799,7 +817,7 @@ class ControlGui(QWidget):
             state=not self.beginLog.isEnabled() and not self.endLog.isEnabled()
             if(state):
                 self.beginLog.setEnabled(True)
-                self.logFile.setText(f)
+            self.logFile.setText(f)
             self.logFile.update()
 
 
@@ -821,7 +839,13 @@ class ControlGui(QWidget):
             self.runControl.setChecked(False)
 
         self.updateVersion.emit(str(self.ambu.version))
-
+    def setAlarm(self,tag,cond):
+        if(cond):
+            if(tag not in self.alarmsActive):
+                self.alarmsActive.append(tag)
+        else:
+            if(tag in self.alarmsActive):
+                self.alarmsActive.remove(tag)     
     def updateDisplay(self,count,rate,stime,artime,volMax,pipMax):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
@@ -836,17 +860,41 @@ class ControlGui(QWidget):
         self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
         self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
         self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
-        if self.ambu.alarmPipMax or self.ambu.alarmVolLow or self.ambu.alarm12V or self.ambu.alarmPresLow:
-            #self.alarmStatus.setStyleheet("""QLabel { background-color: red; color: black }""")
-            self.alarmStatus.setText("Alarm")
-        elif self.ambu.warn9V or self.ambu.warnPeepMin:
-            #self.alarmStatus.setStyleSheet("""QLabel { background-color: yellow; color: black }""")
-            self.alarmStatus.setText("Warning")
+        if(time.time()-self.blink_time  > 1):            
+            self.blink_time=time.time()        
+            self.setAlarm("alarmPipMax",self.ambu.alarmPipMax)
+            self.setAlarm("alarmVolLow",self.ambu.alarmVolLow)
+            self.setAlarm("alarm12V",self.ambu.alarm12V)
+            self.setAlarm("alarmPresLow",self.ambu.alarmPresLow)
+            self.setAlarm("warn9V",self.ambu.warn9V)
+            self.setAlarm("warnPeepMin",self.ambu.warnPeepMin)
 
-        else:
-            self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
-            self.alarmStatus.setText("Clear")
-
+            nAlarms=len(self.alarmsActive)
+            if(nAlarms==0):
+                self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
+                self.alarmStatus.setText("")
+            else:
+                if(self.alarmCount==nAlarms): self.alarmCount=0
+                text=self.alarmsText[self.alarmsActive[self.alarmCount]]
+                self.alarmStatus.setText(text)
+                if(text.startswith("Alarm")):
+                    label=self.alarmStatus
+                    if(self.blinkStat):
+                        self.alarmStatus.setStyleSheet("""QLabel { background-color: red; color: black }""")
+                        self.blinkStat=False
+                    else:
+                        self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: black  }""")
+                        self.blinkStat=True
+                else:
+                    label=self.alarmStatus
+                    if(self.blinkStat):
+                        self.alarmStatus.setStyleSheet("""QLabel { background-color: #FFC200; color: black }""")
+                        self.blinkStat=False
+                    else:
+                        self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: black  }""")
+                        self.blinkStat=True
+            if(self.blinkStat):
+                self.alarmCount=self.alarmCount+1
     def updatePlot(self,inData):
         ambu_data = inData.get_data()
         if type(ambu_data) == type(None):
@@ -899,23 +947,3 @@ class ControlGui(QWidget):
         if(corr>=(rate/2) or dt>=rate): corr=0
         self.last_update=time.time()
         QTimer.singleShot(rate-corr, self.updateAll)
-
-    def blink(self):
-        text=self.alarmStatus.text()
-        if(text=="Alarm"):
-            label=self.alarmStatus
-            if(self.blinkStat):
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: red; color: black }""")
-                self.blinkStat=False
-            else:
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: red  }""")
-                self.blinkStat=True
-        if(text=="Warning"):
-            label=self.alarmStatus
-            if(self.blinkStat):
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: #FFC200; color: black }""")
-                self.blinkStat=False
-            else:
-                self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: #FFC200  }""")
-                self.blinkStat=True
-        QTimer.singleShot(1000, self.blink)
