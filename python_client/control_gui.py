@@ -317,7 +317,7 @@ class ControlGui(QWidget):
         self.volFactor.returnPressed.connect(self.setVolFactor)
         self.updateVolFactor.connect(self.volFactor.setText)
         fl.addRow('Vol Factor:',self.volFactor)
-        gb = QGroupBox('Vertial Limits for Time Plots')
+        gb = QGroupBox('Vertical Limits for Time Plots')
         left.addWidget(gb)
 
         vl = QVBoxLayout()
@@ -541,11 +541,14 @@ class ControlGui(QWidget):
         vbox = QVBoxLayout()
 
         #Text field and control buttons for instructions
-        self.alarmsText= { "alarmVolLow" :  "Alarm: Peak Patient Inspiratory pressure exceeded. Check PIP Valve!",
-                       "alarm12V" : "Alarm: Low Tidal Volume. Check Ventilator, patient circuit!",
-                       "alarmPresLow" : "Alarm: Patient Inspiratory Pressure low, Check patient circuit!",
-                       "warn9V" : "Warning: Battery low. Replace soon!",
-                       "warnPeepMin" : "Warning: Pressure below PEEP. Check patient circuit!"
+
+        self.alarmsText= { 
+            "alarmPipMax" : "Alarm: Peak Patient Inspiratory pressure exceeded. Check PIP Valve!",
+            "alarmVolLow" :  "Alarm: Low Tidal Volume. Check Ventilator, patient circuit!",
+            "alarm12V" : "Alarm: Electrical power lost!",
+            "alarmPresLow" : "Alarm: Patient Inspiratory Pressure low, Check patient circuit!",
+            "warn9V" : "Warning: Battery low. Replace soon!",
+            "warnPeepMin" : "Warning: Pressure below PEEP. Check patient circuit!"
         }
         self.alarmsActive= list()
         self.alarmCount=0
