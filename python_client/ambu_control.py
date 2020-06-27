@@ -73,7 +73,7 @@ class AmbuControl(object):
 
     @property
     def version(self):
-        return self._version
+        return self._version.decode("utf8")
 
     @property
     def respRate(self):
@@ -205,7 +205,15 @@ class AmbuControl(object):
     @property
     def currState(self):
         return ((self._status >> 24) & 0xFF)
-
+    @property
+    def serialNum(self):
+        return self._cfgSerialNum
+    @property
+    def cpuId(self):
+        return self._cpuid
+    @property
+    def com(self):
+        return self._ser.port
     def muteAlarm(self):
         m=message.Message()
         data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['MuteAlarm']  ])
@@ -246,7 +254,7 @@ class AmbuControl(object):
             if(m.id == m.VERSION):
                 self._version=m.string
             if(m.id == m.CPU_ID and m.nInt==4):
-                self._cpuid=m.intData
+                self._cpuid="%08x%08x%08x%08x" % m.intData
             elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==2:
                 newSerial = m.intData[1]
 

@@ -85,6 +85,8 @@ class ControlGui(QWidget):
     updateWarn9V       = pyqtSignal(str)
     updateAlarmPresLow = pyqtSignal(str)
     updateWarnPeepMin  = pyqtSignal(str)
+    updateSerial       = pyqtSignal(str)
+    updateCom          = pyqtSignal(str)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -119,14 +121,16 @@ class ControlGui(QWidget):
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
-
+        self.tab4 = QWidget()
         self.tabs.addTab(self.tab1,"AMBU Control")
         self.tabs.addTab(self.tab2,"AMBU Expert")
         self.tabs.addTab(self.tab3,"Setup and Test")
+        self.tabs.addTab(self.tab4,"About")
         self.tabs.setTabPosition(QTabWidget.East)
         self.setupPageOne()
         self.setupPageTwo()
         self.setupPageThree()
+        self.setupPageFour()
         top.addWidget(self.alarmStatus)
         top.addWidget(self.tabs)
         self.last_update=time.time()
@@ -264,8 +268,6 @@ class ControlGui(QWidget):
         cycleRunTime.setReadOnly(True)
         # I think we want the time since they last clicked to start a cycle. there are a lot of times, I’ll try to find a way to make this less confusing.
         fl.addRow('Cycle run time:',cycleRunTime)
-
-
         cycles = QLineEdit()
         cycles.setText("0")
         cycles.setReadOnly(True)
@@ -362,7 +364,7 @@ class ControlGui(QWidget):
 
         # moved from front page
         # Status
-        gb = QGroupBox('Status')
+        gb = QGroupBox('Alarms')
         right.addWidget(gb)
 
         fl = QFormLayout()
@@ -383,11 +385,33 @@ class ControlGui(QWidget):
         self.updateAlarmVolLow.connect(alarmVolLow.setText)
         fl.addRow('Vol Low Alarm:',alarmVolLow)
 
+        alarmPresLow = QLineEdit()
+        alarmPresLow.setText("0")
+        alarmPresLow.setReadOnly(True)
+        self.updateAlarmPresLow.connect(alarmPresLow.setText)
+        fl.addRow('Press Low Alarm:',alarmPresLow)
+
+
         alarm12V = QLineEdit()
         alarm12V.setText("0")
         alarm12V.setReadOnly(True)
         self.updateAlarm12V.connect(alarm12V.setText)
         fl.addRow('12V Alarm:',alarm12V)
+
+        gb = QGroupBox('Warnings')
+        right.addWidget(gb)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
+
+        warnPeepMin = QLineEdit()
+        warnPeepMin.setText("0")
+        warnPeepMin.setReadOnly(True)
+        self.updateWarnPeepMin.connect(warnPeepMin.setText)
+        fl.addRow('Peep Min Warning:',warnPeepMin)
 
         warn9V = QLineEdit()
         warn9V.setText("0")
@@ -395,17 +419,14 @@ class ControlGui(QWidget):
         self.updateWarn9V.connect(warn9V.setText)
         fl.addRow('9V Alarm:',warn9V)
 
-        alarmPresLow = QLineEdit()
-        alarmPresLow.setText("0")
-        alarmPresLow.setReadOnly(True)
-        self.updateAlarmPresLow.connect(alarmPresLow.setText)
-        fl.addRow('Press Low Alarm:',alarmPresLow)
+        gb = QGroupBox('Status')
+        right.addWidget(gb)
 
-        warnPeepMin = QLineEdit()
-        warnPeepMin.setText("0")
-        warnPeepMin.setReadOnly(True)
-        self.updateWarnPeepMin.connect(warnPeepMin.setText)
-        fl.addRow('Peep Min Warning:',warnPeepMin)
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
 
         cycles = QLineEdit()
         cycles.setText("0")
@@ -430,24 +451,6 @@ class ControlGui(QWidget):
         cycPipMax.setReadOnly(True)
         self.updateCycPipMax.connect(cycPipMax.setText)
         fl.addRow('Max Pip (cmH20):',cycPipMax)
-
-        timeSinceStart=QLineEdit()
-        timeSinceStart.setText("0")
-        timeSinceStart.setReadOnly(True)
-        self.updateTime.connect(timeSinceStart.setText)
-        fl.addRow('Seconds since start:',timeSinceStart)
-
-        arduinoUptime=QLineEdit()
-        arduinoUptime.setText("0")
-        arduinoUptime.setReadOnly(True)
-        self.updateArTime.connect(arduinoUptime.setText)
-        fl.addRow('Arduino uptime (s):',arduinoUptime)
-
-        guiVersion = QLineEdit()
-        guiVersion.setText(git_version)
-        guiVersion.setReadOnly(True)
-        fl.addRow('GUI version:',guiVersion)
-
 
         # Log File
         gb = QGroupBox('Log File')
@@ -519,21 +522,10 @@ class ControlGui(QWidget):
         self.stateControl2.addItem("Relay Force On")
         self.stateControl2.addItem("Relay Run Off")
         self.stateControl2.addItem("Relay Run On")
-        #self.stateControl.setCurrentIndex(3)
-        #self.updateState.connect(self.stateControl.setCurrentIndex)
-        #self.stateControl.currentIndexChanged.connect(self.setState)
+
         fl.addRow('State:',self.stateControl2)
-
-
-        #} end controls gb
-
-        #using self.plot makes it disappear from other page... this is placeholder for now
-
-
-        # left
         gb = QGroupBox('Calibration Instructions')
         left.addWidget(gb)
-        #left.addSpacing(300)
         gb.setMinimumWidth(450)
         gb.setMaximumHeight(500)
 
@@ -631,6 +623,59 @@ class ControlGui(QWidget):
         #results_hbox.addLayout(nameofthing)
         self.doInit=True
         self.line=[None]*7
+    def setupPageFour(self):
+        top = QHBoxLayout()
+        self.tab4.setLayout(top)
+
+        left = QVBoxLayout()
+        top.addLayout(left)
+
+        right = QVBoxLayout()
+        top.addLayout(right)
+        gb = QGroupBox('Status')
+        gb.setFixedWidth(800)
+        left.addWidget(gb)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
+        timeSinceStart=QLineEdit()
+        timeSinceStart.setText("0")
+        timeSinceStart.setReadOnly(True)
+        self.updateTime.connect(timeSinceStart.setText)
+        fl.addRow('GUI uptime:',timeSinceStart)
+
+        arduinoUptime=QLineEdit()
+        arduinoUptime.setText("0")
+        arduinoUptime.setReadOnly(True)
+        self.updateArTime.connect(arduinoUptime.setText)
+        fl.addRow('Device uptime (s):',arduinoUptime)
+
+        guiVersion = QLineEdit()
+        guiVersion.setText(git_version)
+        guiVersion.setReadOnly(True)
+        fl.addRow('GUI version:',guiVersion)
+
+        deviceVersion = QLineEdit()
+        deviceVersion.setText("")
+        deviceVersion.setReadOnly(True)
+        self.updateVersion.connect(deviceVersion.setText)
+        fl.addRow('Control SW version:',deviceVersion)
+
+        deviceSerial = QLineEdit()
+        deviceSerial.setText("")
+        deviceSerial.setReadOnly(True)
+        self.updateSerial.connect(deviceSerial.setText)
+        fl.addRow('Device Serial Nr:',deviceSerial)
+
+        comPort = QLineEdit()
+        comPort.setText("")
+        comPort.setReadOnly(True)
+        self.updateCom.connect(comPort.setText)
+        fl.addRow('COM port',comPort)
+
 
     def performAction(self):
         try:
@@ -841,8 +886,6 @@ class ControlGui(QWidget):
         else:
             self.runControl.setChecked(False)
 
-        self.updateVersion.emit(str(self.ambu.version))
-
     def setAlarm(self,tag,cond):
         if(cond):
             if(tag not in self.alarmsActive):
@@ -857,6 +900,9 @@ class ControlGui(QWidget):
         self.updateArTime.emit(f"{artime:.1f}")
         self.updateCycVolMax.emit(f"{volMax:.1f}")
         self.updateCycPipMax.emit(f"{pipMax:.1f}")
+        self.updateVersion.emit(str(self.ambu.version))
+        self.updateSerial.emit(self.ambu.cpuId)
+        self.updateCom.emit(self.ambu.com)
 
     def updateAlarms(self):
         self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
