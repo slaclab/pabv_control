@@ -434,12 +434,6 @@ class ControlGui(QWidget):
         self.updateCount.connect(cycles.setText)
         fl.addRow('Breaths:',cycles)
 
-        sampRate = QLineEdit()
-        sampRate.setText("0")
-        sampRate.setReadOnly(True)
-        self.updateRate.connect(sampRate.setText)
-        fl.addRow('Sample Rate:',sampRate)
-
         cycVolMax = QLineEdit()
         cycVolMax.setText("0")
         cycVolMax.setReadOnly(True)
@@ -641,11 +635,18 @@ class ControlGui(QWidget):
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
+
+        sampRate = QLineEdit()
+        sampRate.setText("0")
+        sampRate.setReadOnly(True)
+        self.updateRate.connect(sampRate.setText)
+        fl.addRow('Sample Rate:',sampRate)
+
         timeSinceStart=QLineEdit()
         timeSinceStart.setText("0")
         timeSinceStart.setReadOnly(True)
         self.updateTime.connect(timeSinceStart.setText)
-        fl.addRow('GUI uptime:',timeSinceStart)
+        fl.addRow('GUI uptime (s):',timeSinceStart)
 
         arduinoUptime=QLineEdit()
         arduinoUptime.setText("0")
