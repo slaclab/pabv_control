@@ -30,10 +30,8 @@ class AmbuControl(object):
 
     def __init__(self):
 
-        self._ser = comm.Comm() #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
-        #self._queue = queue.LifoQueue(1)
+        self._ser = comm.Comm()
         self._runEn = False
-        self._dataCallBack  = self._debugCallBack
         self._configCallBack = None
         self._file = None
         self._last = None
@@ -69,16 +67,6 @@ class AmbuControl(object):
     def closeLog(self):
         self._file.close()
         self._file = None
-
-    def _debugCallBack(self,data,count,*args):
-        l = len(self._data.get_i())
-        print(f"Got data. Len={l} count={count}")
-
-    def setDataCallBack(self, callBack):
-        self._dataCallBack = callBack
-
-    def setPlotCallBack(self, callBack):
-        self._plotCallBack = callBack
 
     def setConfigCallBack(self, callBack):
         self._configCallBack = callBack
@@ -230,16 +218,6 @@ class AmbuControl(object):
         self._ser.write(data)
     def setQueue(self,queue):
         self._queue=queue
-
-#    def _queueMgrThread(self):
-#        while self._runEn:
-#            try:
-#                # need to block with timeout - otherwise wait is uninterruptible on Windows
-#                (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True,timeout=1)
-#                self._dataCallBack(count, rate, stime, artime, volMax, pipMax)
-#                self._plotCallBack(data)
-#            except:
-#                pass
 
     def stop(self):
         self._runEn = False

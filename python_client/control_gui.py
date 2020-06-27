@@ -842,6 +842,7 @@ class ControlGui(QWidget):
             self.runControl.setChecked(False)
 
         self.updateVersion.emit(str(self.ambu.version))
+
     def setAlarm(self,tag,cond):
         if(cond):
             if(tag not in self.alarmsActive):
@@ -857,27 +858,30 @@ class ControlGui(QWidget):
         self.updateCycVolMax.emit(f"{volMax:.1f}")
         self.updateCycPipMax.emit(f"{pipMax:.1f}")
 
+    def updateAlarms(self):
         self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
         self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
         self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
         self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
         self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
         self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
-        if(time.time()-self.blink_time  > 1):            
-            self.blink_time=time.time()        
+        ts=time.time()
+        dt=ts-self.blink_time
+        if(dt > 1):
+            self.blink_time=ts
             self.setAlarm("alarmPipMax",self.ambu.alarmPipMax)
             self.setAlarm("alarmVolLow",self.ambu.alarmVolLow)
             self.setAlarm("alarm12V",self.ambu.alarm12V)
             self.setAlarm("alarmPresLow",self.ambu.alarmPresLow)
             self.setAlarm("warn9V",self.ambu.warn9V)
             self.setAlarm("warnPeepMin",self.ambu.warnPeepMin)
-
             nAlarms=len(self.alarmsActive)
             if(nAlarms==0):
                 self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
                 self.alarmStatus.setText("")
+                self.alarmCount=0
             else:
-                if(self.alarmCount==nAlarms): self.alarmCount=0
+                if(self.alarmCount>=nAlarms): self.alarmCount=0
                 text=self.alarmsText[self.alarmsActive[self.alarmCount]]
                 self.alarmStatus.setText(text)
                 if(text.startswith("Alarm")):
@@ -898,6 +902,7 @@ class ControlGui(QWidget):
                         self.blinkStat=True
             if(self.blinkStat):
                 self.alarmCount=self.alarmCount+1
+
     def updatePlot(self,inData):
         ambu_data = inData.get_data()
         if type(ambu_data) == type(None):
@@ -938,11 +943,11 @@ class ControlGui(QWidget):
     def updateAll(self):
         ts=time.time()
         rate=100
-
         try:
             (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=False)
             self.updateDisplay(count,rate,stime,artime,volMax,pipMax)
             self.updatePlot(data)
+            self.updateAlarms()
         except:
             pass
         dt=(time.time()-self.last_update)*1000
