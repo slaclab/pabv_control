@@ -85,8 +85,7 @@ void setup() {
    sensorTime = millis();
    m.writeString(Message::DEBUG,millis(),"Setup Done");
    serComm.send(m);
-   watchdog.setup(WDT_HARDCYCLE62m);
-   watchdog.attachShutdown(restart);
+   watchdog.setup(WDT_HARDCYCLE2S );
 }
 
 void loop() {
@@ -129,18 +128,15 @@ void loop() {
      m.writeData(Message::DATA,currTime,9,sendFloat,0,0);
      displayComm.send(m);
      displayTime=currTime;
+     // reset watchdog
+     watchdog.clear();
    }
 
 
 
    relay.update(currTime);
    conf.update(currTime,relay);
-   // reset watchdog
-   watchdog.clear();
+ 
    
 
-}
-void restart()
-{
-  //do something here
 }
