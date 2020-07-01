@@ -127,6 +127,7 @@ class ControlGui(QWidget):
         self.tabs.addTab(self.tab3,"Setup and Test")
         self.tabs.addTab(self.tab4,"About")
         self.tabs.setTabPosition(QTabWidget.East)
+        self.setupPlots()
         self.setupPageOne()
         self.setupPageTwo()
         self.setupPageThree()
@@ -135,6 +136,85 @@ class ControlGui(QWidget):
         top.addWidget(self.tabs)
         self.last_update=time.time()
         QTimer.singleShot(100,self.updateAll)
+    def setupPlots(self):
+        self.gl1=pg.GraphicsLayoutWidget(border=pg.mkPen(color=None,width=2))
+        self.gl1.setBackground("w")
+        self.gl1.setFrameStyle(QFrame.Box)
+        self.gl2=pg.GraphicsLayoutWidget(border=pg.mkPen(color=None,width=2))
+        self.gl2.setBackground("w")
+        self.gl2.setFrameStyle(QFrame.Box)
+        self.plot1=[None]*3
+        self.plot1[0]=self.gl1.addPlot(row=1,col=1)
+        self.plot1[1]=self.gl1.addPlot(row=2,col=1)
+        self.plot1[2]=self.gl1.addPlot(row=3,col=1)
+        self.plot1[0].setLabel('bottom',"Time",color='black')
+        self.plot1[1].setLabel('bottom',"Time",color='black')
+        self.plot1[2].setLabel('bottom',"Time",color='black')
+        self.plot2=[None]*3
+        self.plot2[0]=self.gl2.addPlot(row=1,col=1)
+        self.plot2[1]=self.gl2.addPlot(row=2,col=1)
+        self.plot2[2]=self.gl2.addPlot(row=3,col=1)
+        self.plot2[0].setLabel('bottom',"Time",color='black')
+        self.plot2[1].setLabel('bottom',"Time",color='black')
+        self.plot2[2].setLabel('bottom',"Time",color='black')
+        self.legend1=[None]*3
+        self.legend2=[None]*3
+        for i in range(3):
+            self.legend1[i]=self.plot1[i].addLegend(offset=(15,0),brush=pg.mkBrush((0,0,0,0)))
+            self.legend1[i].anchor((0,0), (0,0))
+        for i in range(3):
+            self.legend2[i]=self.plot2[i].addLegend(offset=(15,0),brush=pg.mkBrush((0,0,0,0)))
+            self.legend2[i].anchor((0,0), (0,0))
+        if self.refPlot:
+            self.plot1[0].setLabel('left',"Ref Flow SL/Min",color='black')
+        else:
+            self.plot1[0].setLabel('left',"Press cmH20",color='black')
+
+        self.plot1[1].setLabel('left',"Flow L/Min",color='black')
+        self.plot1[2].setLabel('left',"Volume mL",color='black')
+        if self.refPlot:
+            self.plot2[0].setLabel('left',"Ref Flow SL/Min",color='black')
+        else:
+            self.plot2[0].setLabel('left',"Press cmH20",color='black')
+
+        self.plot2[1].setLabel('left',"Flow L/Min",color='black')
+        self.plot2[2].setLabel('left',"Volume mL",color='black')
+        for p in self.plot1:
+            p.setXRange(-60,0)
+            p.setAutoVisible(x=False,y=False)
+            p.enableAutoRange('x',False)
+            p.enableAutoRange('y',False)
+            p.setMouseEnabled(x=False,y=False)
+            p.setMenuEnabled(False)
+            p.hideButtons()
+        for p in self.plot2:
+            p.setXRange(-60,0)
+            p.setAutoVisible(x=False,y=False)
+            p.enableAutoRange('x',False)
+            p.enableAutoRange('y',False)
+            p.setMouseEnabled(x=False,y=False)
+            p.setMenuEnabled(False)
+            p.hideButtons()
+
+        self.curve1=[None]*7
+        self.curve2=[None]*7
+        width=3
+        self.curve1[0]=self.plot1[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
+        self.curve1[1]=self.plot1[0].plot(pen=pg.mkPen("r",width=width),name="P-thresh-high")
+        self.curve1[2]=self.plot1[0].plot(pen=pg.mkPen("g",width=width),name="P-thresh-low")
+        self.curve1[3]=self.plot1[0].plot(pen=pg.mkPen("r",width=width),name="Peep min")
+        self.curve1[4]=self.plot1[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
+        self.curve1[5]=self.plot1[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
+        self.curve1[6]=self.plot1[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
+        self.curve2[0]=self.plot2[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
+        self.curve2[1]=self.plot2[0].plot(pen=pg.mkPen("r",width=width),name="P-thresh-high")
+        self.curve2[2]=self.plot2[0].plot(pen=pg.mkPen("g",width=width),name="P-thresh-low")
+        self.curve2[3]=self.plot2[0].plot(pen=pg.mkPen("r",width=width),name="Peep min")
+        self.curve2[4]=self.plot2[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
+        self.curve2[5]=self.plot2[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
+        self.curve2[6]=self.plot2[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
+
+
     def setupPageOne(self):
 
         top = QHBoxLayout()
@@ -144,49 +224,7 @@ class ControlGui(QWidget):
         top.addLayout(left)
 
         # Plot on right
-        self.gl=pg.GraphicsLayoutWidget(border=pg.mkPen(color=None,width=2))
-        self.gl.setBackground("w")
-        self.gl.setFrameStyle(QFrame.Box)
-        self.plot=[None]*3
-        self.item=[None]*3
-        self.plot[0]=self.gl.addPlot(row=1,col=1)
-        self.plot[1]=self.gl.addPlot(row=2,col=1)
-        self.plot[2]=self.gl.addPlot(row=3,col=1)
-        item=pg.PlotItem()
-        self.hidden=item.plot(pen=pg.mkPen((0,0,0,0)))
-        self.plot[0].setLabel('bottom',"Time",color='black')
-        self.plot[1].setLabel('bottom',"Time",color='black')
-        self.plot[2].setLabel('bottom',"Time",color='black')
-        self.legend=[None]*3
-        for i in range(3):
-            self.legend[i]=self.plot[i].addLegend(offset=(15,0),brush=pg.mkBrush((0,0,0,0)))
-            self.legend[i].anchor((0,0), (0,0))
-        if self.refPlot:
-            self.plot[0].setLabel('left',"Ref Flow SL/Min",color='black')
-        else:
-            self.plot[0].setLabel('left',"Press cmH20",color='black')
-        self.plot[1].setLabel('left',"Flow L/Min",color='black')
-        self.plot[2].setLabel('left',"Volume mL",color='black')
-        for p in self.plot:
-            p.setXRange(-60,0)
-            p.setAutoVisible(x=False,y=False)
-            p.enableAutoRange('x',False)
-            p.enableAutoRange('y',False)
-            p.setMouseEnabled(x=False,y=False)
-            p.setMenuEnabled(False)
-            p.hideButtons()
-
-        self.curve=[None]*7
-        width=3
-        self.curve[0]=self.plot[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
-        self.curve[1]=self.plot[0].plot(pen=pg.mkPen("r",width=width),name="P-thresh-high")
-        self.curve[2]=self.plot[0].plot(pen=pg.mkPen("g",width=width),name="P-thresh-low")
-        self.curve[3]=self.plot[0].plot(pen=pg.mkPen("r",width=width),name="Peep min")
-        self.curve[4]=self.plot[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
-        self.curve[5]=self.plot[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
-        self.curve[6]=self.plot[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
-
-        top.addWidget(self.gl)
+        top.addWidget(self.gl1)
         # Controls on left
         gb = QGroupBox('Control')
         gb.setFixedWidth(300)
@@ -499,7 +537,7 @@ class ControlGui(QWidget):
 
         #controls group box{
         gb = QGroupBox('Relay Control (Disabled for now to avoid conflict)')
-        right.addWidget(gb)
+        left.addWidget(gb)
 
         right.addSpacing(20)
 
@@ -606,7 +644,8 @@ class ControlGui(QWidget):
 
         #add results groupbox
         gb_results = QGroupBox('Results')
-        left.addWidget(gb_results)
+        #left.addWidget(gb_results)
+        right.addWidget(self.gl2)
         #left.addSpacing(300)
         gb_results.setMinimumWidth(450)
         gb_results.setMinimumHeight(300)
@@ -957,19 +996,27 @@ class ControlGui(QWidget):
         xa =  ambu_data[0,:]
         xa=xa-xa[-1]
         try:
+            index=self.tabs.currentIndex()
             pMin=float(self.pMinValue.text())
             pMax=float(self.pMaxValue.text())
             fMin=float(self.fMinValue.text())
             fMax=float(self.fMaxValue.text())
             vMin=float(self.vMinValue.text())
             vMax=float(self.vMaxValue.text())
-            self.plot[0].setYRange(pMin,pMax)
-            self.plot[1].setYRange(fMin,fMax)
-            self.plot[2].setYRange(vMin,vMax)
-
-            self.plot[0].getAxis('left').setTickSpacing(10, 5)
-            self.plot[1].getAxis('left').setTickSpacing(25, 10)
-            self.plot[2].getAxis('left').setTickSpacing(200, 50)
+            if(index==0):
+                self.plot1[0].setYRange(pMin,pMax)
+                self.plot1[1].setYRange(fMin,fMax)
+                self.plot1[2].setYRange(vMin,vMax)
+                self.plot1[0].getAxis('left').setTickSpacing(10, 5)
+                self.plot1[1].getAxis('left').setTickSpacing(25, 10)
+                self.plot1[2].getAxis('left').setTickSpacing(200, 50)
+            else:
+                self.plot2[0].setYRange(pMin,pMax)
+                self.plot2[1].setYRange(fMin,fMax)
+                self.plot2[2].setYRange(vMin,vMax)
+                self.plot2[0].getAxis('left').setTickSpacing(10, 5)
+                self.plot2[1].getAxis('left').setTickSpacing(25, 10)
+                self.plot2[2].getAxis('left').setTickSpacing(200, 50)
 
             data=[None]*7
             data[0]=ambu_data[2,:]
@@ -981,8 +1028,10 @@ class ControlGui(QWidget):
             data[6]=ambu_data[7,:]
 
             for i in range(7):
-                self.curve[i].setData(xa,data[i])
-            #self.gl.update()
+                if(index==0):
+                    self.curve1[i].setData(xa,data[i])
+                else:
+                    self.curve2[i].setData(xa,data[i])
         except Exception as e:
             #print(e)
             pass
