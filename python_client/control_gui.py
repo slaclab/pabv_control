@@ -270,6 +270,14 @@ class ControlGui(QWidget):
         self.updatePeepMin.connect(self.peepMin.setText)
         fl.addRow('Peep Min (cmH20):',self.peepMin)
 
+        self.modeControl = QComboBox()
+        self.modeControl.addItem("Volume")
+        self.modeControl.addItem("Pressure")
+        self.modeControl.setCurrentIndex(0)
+        self.updateMode.connect(self.modeControl.setCurrentIndex)
+        self.modeControl.currentIndexChanged.connect(self.setMode)
+        fl.addRow('Mode:',self.modeControl)
+
         self.runControl = PowerSwitch()
         self.runControl.clicked.connect(self.setRunState)
         fl.addRow('Run Enable:',self.runControl)
@@ -352,14 +360,6 @@ class ControlGui(QWidget):
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
         vl.addLayout(fl)
-
-        self.modeControl = QComboBox()
-        self.modeControl.addItem("Volume")
-        self.modeControl.addItem("Pressure")
-        self.modeControl.setCurrentIndex(0)
-        self.updateMode.connect(self.modeControl.setCurrentIndex)
-        self.modeControl.currentIndexChanged.connect(self.setMode)
-        fl.addRow('Mode:',self.modeControl)
 
         self.stateControl = QComboBox()
         self.stateControl.addItem("Relay Force Off")
@@ -952,7 +952,7 @@ class ControlGui(QWidget):
         self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
 
         self.updateState.emit(self.ambu.runState)
-        self.updateMode emit(self.ambu.runMode)
+        self.updateMode.emit(self.ambu.runMode)
 
         if self.ambu.runState == 3:
             self.runControl.setChecked(True)
