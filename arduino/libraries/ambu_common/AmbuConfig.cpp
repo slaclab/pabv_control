@@ -55,6 +55,7 @@ void AmbuConfig::setup () {
      conf_.volInThold = -2.0;
      conf_.peepMin    = 0.0;
      conf_.runState   = StateRunOn;
+     conf_.runMode    = ModeVolume;
      storeConfig();
    }
 
@@ -75,7 +76,7 @@ bool AmbuConfig::update_(Message &m,CycleControl &cycle) {
       Serial.println(param,HEX);
       Serial.print("Value: ");
       Serial.println(f);
-      if(     param==SetRespRate)        conf_.respRate = f;
+      if(     param==SetRespRate)   conf_.respRate = f;
       else if(param==SetInhTime)    conf_.inhTime = f;
       else if(param==SetPipMax)     conf_.pipMax = f;
       else if(param==SetPipOffset)  conf_.pipOffset = f;
@@ -91,6 +92,7 @@ bool AmbuConfig::update_(Message &m,CycleControl &cycle) {
       //Serial.print("Value: ");
       //Serial.println(d);
       if(param==SetRunState)        conf_.runState = d;
+      else if(param==SetRunMode)    conf_.runMode  = d;
       storeConfig();
     } else if (id==Message::PARAM_SET && m.nFloat()==0 && m.nInt()==1 ) {
        if(param==MuteAlarm) {
@@ -118,7 +120,7 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
    if (sendConfig) {
      Message m;
      float config[8];
-     uint32_t intConf[2];
+     uint32_t intConf[3];
      config[0]=conf_.respRate;
      config[1]=conf_.inhTime;
      config[2]=conf_.pipMax;
@@ -129,7 +131,8 @@ void AmbuConfig::update(uint32_t ctime, CycleControl &cycle) {
      config[7]=conf_.peepMin;
      intConf[0]=conf_.runState;
      intConf[1]=cfgSerialNum_;
-     m.writeData(Message::CONFIG,ctime,8,config,2,intConf);
+     intConf[2]=conf_.runMode;
+     m.writeData(Message::CONFIG,ctime,8,config,3,intConf);
      serial_.send(m);
      m.writeString(Message::VERSION,ctime,git_version);
      serial_.send(m);
@@ -202,6 +205,15 @@ void AmbuConfig::setRunState(uint8_t value) {
    storeConfig();
 }
 
+uint8_t AmbuConfig::getRunMode() {
+   return conf_.runMode;
+}
+
+void AmbuConfig::setRunMode(uint8_t value) {
+   conf_.runMode = value;
+   storeConfig();
+}
+
 uint32_t AmbuConfig::getOffTimeMillis() {
    double period;
    uint32_t ret;
@@ -222,15 +234,18 @@ uint32_t AmbuConfig::getOnTimeMillis() {
 }
 
 double AmbuConfig::getAdjVolMax() {
+   if ( conf_.runMode == ModePressure ) return 800.0;
    return conf_.volMaxAdj;
 }
 
 void AmbuConfig::updateAdjVolMax(double maxVol) {
-   conf_.volMaxAdj -= conf_.volFactor * (maxVol - conf_.volMax);
+   if ( conf_.runMode == ModeVolume )
+      conf_.volMaxAdj -= conf_.volFactor * (maxVol - conf_.volMax);
 }
 
 void AmbuConfig::initAdjVolMax() {
-   conf_.volMaxAdj = 0;
+   if ( conf_.runMode == ModeVolume )
+      conf_.volMaxAdj = 0;
 }
 
 double   AmbuConfig::getAdjPipMax() {

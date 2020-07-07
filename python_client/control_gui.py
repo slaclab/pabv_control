@@ -73,6 +73,7 @@ class ControlGui(QWidget):
     updateVolInhThold = pyqtSignal(str)
     updatePeepMin     = pyqtSignal(str)
     updateState       = pyqtSignal(int)
+    updateMode        = pyqtSignal(int)
 
     updateVersion     = pyqtSignal(str)
     updateArTime      = pyqtSignal(str)
@@ -338,6 +339,14 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         vl.addLayout(fl)
 
+        self.modeControl = QComboBox()
+        self.modeControl.addItem("Volume")
+        self.modeControl.addItem("Pressure")
+        self.modeControl.setCurrentIndex(0)
+        self.updateMode.connect(self.modeControl.setCurrentIndex)
+        self.modeControl.currentIndexChanged.connect(self.setMode)
+        fl.addRow('Mode:',self.modeControl)
+
         self.stateControl = QComboBox()
         self.stateControl.addItem("Relay Force Off")
         self.stateControl.addItem("Relay Force On")
@@ -566,7 +575,7 @@ class ControlGui(QWidget):
 
         #Text field and control buttons for instructions
 
-        self.alarmsText= { 
+        self.alarmsText= {
             "alarmPipMax" : "Alarm: Peak Patient Inspiratory pressure exceeded. Check PIP Valve!",
             "alarmVolLow" :  "Alarm: Low Tidal Volume. Check Ventilator, patient circuit!",
             "alarm12V" : "Alarm: Electrical power lost!",
@@ -870,6 +879,15 @@ class ControlGui(QWidget):
             #print(f"Got GUI value error {e}")
             pass
 
+    @pyqtSlot(int)
+    def setMode(self,value):
+        try:
+            self.ambu.runMode = value
+
+        except Exception as e:
+            #print(f"Got GUI value error {e}")
+            pass
+
     @pyqtSlot(bool)
     def setRunState(self,st):
         pass
@@ -920,6 +938,7 @@ class ControlGui(QWidget):
         self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
 
         self.updateState.emit(self.ambu.runState)
+        self.updateMode emit(self.ambu.runMode)
 
         if self.ambu.runState == 3:
             self.runControl.setChecked(True)
@@ -932,7 +951,7 @@ class ControlGui(QWidget):
                 self.alarmsActive.append(tag)
         else:
             if(tag in self.alarmsActive):
-                self.alarmsActive.remove(tag)     
+                self.alarmsActive.remove(tag)
     def updateDisplay(self,count,rate,stime,artime,volMax,pipMax):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
