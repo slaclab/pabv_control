@@ -290,7 +290,7 @@ void CycleControl::update(uint32_t ctime) {
 
    // Calculate time since going to on state
    if (conf_.getRunState() == conf_.StateRunOn) {
-       onTime_ = float(ctime - onStartTime_) / 1000.0;
+       onTime_ = (ctime - onStartTime_) / 1000;
    }
    else {
        onStartTime_ = ctime;
