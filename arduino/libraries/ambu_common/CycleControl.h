@@ -43,6 +43,8 @@ class CycleControl {
       uint8_t  state_;
       uint32_t stateTime_;
       uint32_t muteTime_;
+      uint32_t onStartTime_;
+      uint32_t onTime_;
       uint8_t  relayAPin_;
       uint8_t  relayBPin_;
       uint8_t  redLedPin_;
@@ -60,6 +62,9 @@ class CycleControl {
       double   prevPmax_;
       double   currPmin_;
       double   prevPmin_;
+      double   ieRatio_;
+      uint32_t inhTime_;
+      uint32_t exhTime_;
 
       bool     wasOff_;
 
@@ -85,6 +90,8 @@ class CycleControl {
 
       uint32_t status() { return currStatus_;}
       uint32_t cycleCount() { return cycleCountTotal_;}
+      uint32_t onTime()     { return onTime_;}
+      float    ieRatio()    { return ieRatio_;}
       float prevPmax() {return prevPmax_;}
       float prevVmax() {return prevVmax_;}
       float prevPmin() {return prevPmin_;}
