@@ -303,7 +303,6 @@ void CycleControl::update(uint32_t ctime) {
    }
    else {
        onStartTime_ = ctime;
-       onTime_      = 0;
    }
 }
 

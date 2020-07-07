@@ -57,6 +57,38 @@ class PowerSwitch(QPushButton):
         painter.drawRoundedRect(sw_rect, radius, radius)
         painter.drawText(sw_rect, Qt.AlignCenter, label)
 
+class ModeSwitch(QPushButton):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self.setCheckable(True)
+        self.setMinimumWidth(100)
+        self.setMinimumHeight(40)
+
+    def paintEvent(self, event):
+        label = "Press" if self.isChecked() else "Vol"
+        bg_color = Qt.blue if self.isChecked() else Qt.green
+
+        radius = 14
+        width = 50
+        center = self.rect().center()
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.translate(center)
+        painter.setBrush(QColor(0,0,0))
+
+        pen = QPen(Qt.black)
+        pen.setWidth(2)
+        painter.setPen(pen)
+
+        painter.drawRoundedRect(QRect(-width, -radius, 2*width, 2*radius), radius, radius)
+        painter.setBrush(QBrush(bg_color))
+        sw_rect = QRect(-radius, -radius, width + radius, 2*radius)
+        if not self.isChecked():
+            sw_rect.moveLeft(-width)
+        painter.drawRoundedRect(sw_rect, radius, radius)
+        painter.drawText(sw_rect, Qt.AlignCenter, label)
+
 
 class ControlGui(QWidget):
 
@@ -270,13 +302,9 @@ class ControlGui(QWidget):
         self.updatePeepMin.connect(self.peepMin.setText)
         fl.addRow('Peep Min (cmH20):',self.peepMin)
 
-        self.modeControl = QComboBox()
-        self.modeControl.addItem("Volume")
-        self.modeControl.addItem("Pressure")
-        self.modeControl.setCurrentIndex(0)
-        self.updateMode.connect(self.modeControl.setCurrentIndex)
-        self.modeControl.currentIndexChanged.connect(self.setMode)
-        fl.addRow('Mode:',self.modeControl)
+        self.modeControl = ModeSwitch()
+        self.modeControl.clicked.connect(self.setMode)
+        fl.addRow('Volume - Pressure:',self.modeControl)
 
         self.runControl = PowerSwitch()
         self.runControl.clicked.connect(self.setRunState)
@@ -315,20 +343,13 @@ class ControlGui(QWidget):
         cycleRunTime=QLineEdit()
         cycleRunTime.setText("0")
         cycleRunTime.setReadOnly(True)
-        # I think we want the time since they last clicked to start a cycle. there are a lot of times, I’ll try to find a way to make this less confusing.
-        fl.addRow('Cycle run time:',cycleRunTime)
+        self.updateOnTime.connect(cycleRunTime.setText)
+        fl.addRow('Cycle run time (s):',cycleRunTime)
         cycles = QLineEdit()
         cycles.setText("0")
         cycles.setReadOnly(True)
         self.updateCount.connect(cycles.setText)
         fl.addRow('Breaths:',cycles)
-        # I think we want breaths since cycle start rather than software start?
-
-        timeSinceOn=QLineEdit()
-        timeSinceOn.setText("0")
-        timeSinceOn.setReadOnly(True)
-        self.updateOnTime.connect(timeSinceOn.setText)
-        fl.addRow('On State Time (s):',timeSinceOn)
 
         ieRatio=QLineEdit()
         ieRatio.setText("0")
@@ -893,10 +914,14 @@ class ControlGui(QWidget):
             #print(f"Got GUI value error {e}")
             pass
 
-    @pyqtSlot(int)
-    def setMode(self,value):
+    @pyqtSlot(bool)
+    def setMode(self,st):
         try:
-            self.ambu.runMode = value
+
+            if st:
+                self.ambu.runMode = 1
+            else:
+                self.ambu.runMode = 0
 
         except Exception as e:
             #print(f"Got GUI value error {e}")
