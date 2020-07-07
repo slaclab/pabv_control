@@ -15,13 +15,16 @@ class AmbuControl(object):
     # State constants
     RunStates = { 0:'StateForceOff', 1:'StateForceOn', 2:'StateRunOff', 3:'StateRunOn' }
 
+    # Mode constants
+    RunModes = { 0:'ModeVolume', 1:'ModePressure' }
+
     # Cycle States
     CycleStates = { 0:'StateOff', 1:'StateOn', 2:'StateHold' }
 
     # Config constants
-    ConfigKey = { 'GetConfig'    : 0, 'SetRespRate' : 1, 'SetInhTime'   : 2, 'SetPipMax'     : 3,
-                  'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolFactor' : 6, 'SetVolInThold' : 7,
-                  'SetPeepMin'   : 8, 'SetRunState' : 9, 'MuteAlarm'    : 10 }
+    ConfigKey = { 'GetConfig'    : 0, 'SetRespRate' : 1, 'SetInhTime'   : 2,  'SetPipMax'     : 3,
+                  'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolFactor' : 6,  'SetVolInThold' : 7,
+                  'SetPeepMin'   : 8, 'SetRunState' : 9, 'MuteAlarm'    : 10, 'SetRunMode'    : 11}
 
     # Status constants
     StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolLow' : 0x02, 'Alarm12V'     : 0x04,
@@ -175,6 +178,17 @@ class AmbuControl(object):
         self._ser.write(data)
 
     @property
+    def runMode(self):
+        return self._runMode
+
+    @runMode.setter
+    def runMode(self,value):
+        self._runMode = value
+        m=message.Message()
+        data=m.writeData(m.PARAM_INTEGER,0,[],[self.ConfigKey['SetRunMode'],self._runMode])
+        self._ser.write(data)
+
+    @property
     def alarmPipMax(self):
         return ((self._status & self.StatusKey['AlarmPipMax']) != 0)
 
@@ -255,7 +269,7 @@ class AmbuControl(object):
                 self._version=m.string
             if(m.id == m.CPU_ID and m.nInt==4):
                 self._cpuid="%08x%08x%08x%08x" % m.intData
-            elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==2:
+            elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==3:
                 newSerial = m.intData[1]
 
                 if newSerial != self._cfgSerialNum:
@@ -269,6 +283,7 @@ class AmbuControl(object):
                     self._volInThold  = m.floatData[6]
                     self._peepMin     = m.floatData[7]
                     self._runState    = m.intData[0]
+                    self._runMode     = m.intData[2]
 
                     if (self._configCallBack is not None):
                         self._configCallBack()

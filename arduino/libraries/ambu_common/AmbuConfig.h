@@ -16,18 +16,19 @@ class CycleControl;
 
 class AmbuParameters {
    public:
-      double respRate;
-      double inhTime;
-      double pipMax;
-      double pipOffset;
-      double volMax;
-      double volOffset;
-      double volFactor;
-      double volMaxAdj;
-      double volInThold;
-      double peepMin;
-      uint8_t runState;
+      double   respRate;
+      double   inhTime;
+      double   pipMax;
+      double   pipOffset;
+      double   volMax;
+      double   volOffset;
+      double   volFactor;
+      double   volMaxAdj;
+      double   volInThold;
+      double   peepMin;
+      uint8_t  runState;
       uint16_t checksum;
+      uint8_t  runMode;
 };
 
 class AmbuConfig {
@@ -51,6 +52,11 @@ class AmbuConfig {
       static constexpr  uint8_t SetPeepMin    = 8;
       static constexpr  uint8_t SetRunState   = 9;
       static constexpr  uint8_t MuteAlarm     = 10;
+      static constexpr  uint8_t SetRunMode    = 11;
+
+      // Run Mode constants
+      static const uint8_t ModeVolume   = 0;
+      static const uint8_t ModePressure = 1;
 
    protected:
 
@@ -102,6 +108,9 @@ class AmbuConfig {
 
       uint8_t getRunState();
       void setRunState(uint8_t value);
+
+      uint8_t getRunMode();
+      void setRunMode(uint8_t value);
 
       // Unused only by internal engine
       uint32_t getOffTimeMillis();

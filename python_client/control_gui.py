@@ -75,6 +75,7 @@ class ControlGui(QWidget):
     updateVolInhThold = pyqtSignal(str)
     updatePeepMin     = pyqtSignal(str)
     updateState       = pyqtSignal(int)
+    updateMode        = pyqtSignal(int)
 
     updateVersion     = pyqtSignal(str)
     updateArTime      = pyqtSignal(str)
@@ -351,6 +352,14 @@ class ControlGui(QWidget):
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
         vl.addLayout(fl)
+
+        self.modeControl = QComboBox()
+        self.modeControl.addItem("Volume")
+        self.modeControl.addItem("Pressure")
+        self.modeControl.setCurrentIndex(0)
+        self.updateMode.connect(self.modeControl.setCurrentIndex)
+        self.modeControl.currentIndexChanged.connect(self.setMode)
+        fl.addRow('Mode:',self.modeControl)
 
         self.stateControl = QComboBox()
         self.stateControl.addItem("Relay Force Off")
@@ -884,6 +893,15 @@ class ControlGui(QWidget):
             #print(f"Got GUI value error {e}")
             pass
 
+    @pyqtSlot(int)
+    def setMode(self,value):
+        try:
+            self.ambu.runMode = value
+
+        except Exception as e:
+            #print(f"Got GUI value error {e}")
+            pass
+
     @pyqtSlot(bool)
     def setRunState(self,st):
         pass
@@ -934,6 +952,7 @@ class ControlGui(QWidget):
         self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
 
         self.updateState.emit(self.ambu.runState)
+        self.updateMode emit(self.ambu.runMode)
 
         if self.ambu.runState == 3:
             self.runControl.setChecked(True)
