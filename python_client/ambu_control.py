@@ -288,18 +288,21 @@ class AmbuControl(object):
                     if (self._configCallBack is not None):
                         self._configCallBack()
 
-            elif self._cfgSerialNum != 0 and m.id == m.DATA and m.nFloat==5 and m.nInt==2:
+            elif self._cfgSerialNum != 0 and m.id == m.DATA and m.nFloat==6 and m.nInt==3:
                 #print(f"Got status: {line.rstrip()}")
                 millis = m.millis
-                data=  m.floatData
+                data   = m.floatData
                 idata  = m.intData
-                count  = idata[0]
-                status = idata[1]
-                volMax = data[0]
-                pipMax = data[1]
-                press  = data[2]
-                flow   = data[3]
-                vol    = data[4]
+
+                count   = idata[0]
+                status  = idata[1]
+                onTime  = idata[2]
+                volMax  = data[0]
+                pipMax  = data[1]
+                press   = data[2]
+                flow    = data[3]
+                vol     = data[4]
+                ieRatio = data[5]
 
                 self._status = status
 
@@ -338,7 +341,7 @@ class AmbuControl(object):
                         rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
                     else:
                         rate=0
-                    qe=[self._data, count, rate, stime, artime, volMax, pipMax]
+                    qe=[self._data, count, rate, stime, artime, volMax, pipMax, ieRatio, onTime]
                     try:
                         self._queue.put(qe,block=False)
                     except:
