@@ -209,22 +209,13 @@ void CycleControl::update(uint32_t ctime) {
 
          // compute i/e ratio
          ieRatio_ = float(inhTime_) / float(ctime - stateTime_);
-
          stateTime_ = ctime;
       }
 
       // Going to off
       else if ( newState == StateOff ) {
-
-          // Transitioning from on directly to off
-          if ( state_ == StateOn ) inhTime_ = (ctime - stateTime_);
-
+         inhTime_ = (ctime - stateTime_);
          stateTime_ = ctime;
-      }
-
-      // Going to hold, store inhalation time
-      else if ( newState == StateHold ) {
-          inhTime_ = (ctime - stateTime_);
       }
 
       state_ = newState;
