@@ -63,6 +63,8 @@ class ControlGui(QWidget):
     updateCount       = pyqtSignal(str)
     updateRate        = pyqtSignal(str)
     updateTime        = pyqtSignal(str)
+    updateOnTime      = pyqtSignal(str)
+    updateIeRatio     = pyqtSignal(str)
 
     updateRespRate    = pyqtSignal(str)
     updateInhTime     = pyqtSignal(str)
@@ -313,6 +315,18 @@ class ControlGui(QWidget):
         self.updateCount.connect(cycles.setText)
         fl.addRow('Breaths:',cycles)
         # I think we want breaths since cycle start rather than software start?
+
+        timeSinceOn=QLineEdit()
+        timeSinceOn.setText("0")
+        timeSinceOn.setReadOnly(True)
+        self.updateOnTime.connect(timeSinceOn.setText)
+        fl.addRow('On State Time (s):',timeSinceOn)
+
+        ieRatio=QLineEdit()
+        ieRatio.setText("0")
+        ieRatio.setReadOnly(True)
+        self.updateIeRatio.connect(ieRatio.setText)
+        fl.addRow('IE Ratio:',ieRatio)
 
 
     def setupPageTwo(self):
@@ -952,7 +966,7 @@ class ControlGui(QWidget):
         else:
             if(tag in self.alarmsActive):
                 self.alarmsActive.remove(tag)
-    def updateDisplay(self,count,rate,stime,artime,volMax,pipMax):
+    def updateDisplay(self,count,rate,stime,artime,volMax,pipMax,ieRatio,onTime):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
         self.updateTime.emit(f"{stime:.1f}")
@@ -962,6 +976,8 @@ class ControlGui(QWidget):
         self.updateVersion.emit(str(self.ambu.version))
         self.updateSerial.emit(self.ambu.cpuId)
         self.updateCom.emit(self.ambu.com)
+        self.updateOnTime.emit(f"{onTime:.1f}")
+        self.updateIeRatio.emit(f"{ieRatio:.1f}")
 
     def updateAlarms(self):
         self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
@@ -1059,8 +1075,8 @@ class ControlGui(QWidget):
         ts=time.time()
         rate=100
         try:
-            (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=False)
-            self.updateDisplay(count,rate,stime,artime,volMax,pipMax)
+            (data, count, rate, stime, artime, volMax, pipMax, ieRatio, onTime) = self._queue.get(block=False)
+            self.updateDisplay(count,rate,stime,artime,volMax,pipMax,ieRatio,onTime)
             self.updatePlot(data)
             self.updateAlarms()
         except:
