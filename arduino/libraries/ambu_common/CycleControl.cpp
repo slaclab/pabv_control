@@ -26,6 +26,10 @@ CycleControl::CycleControl (AmbuConfig &conf,
              stateTime_(0),
              cycleCountTotal_(0),
              cycleCountReal_(0),
+             onTime_(0),
+             onStartTime_(0),
+             ieRatio_(0),
+             inhTime_(0),
              muteTime_(0),
              wasOff_(true)
 {  }
@@ -33,6 +37,11 @@ CycleControl::CycleControl (AmbuConfig &conf,
 
 void CycleControl::setup() {
    stateTime_ = millis();
+   onTime_ = 0;
+   onStartTime_ = millis();
+   ieRatio_ = 0.0;
+   inhTime_ = 0;
+
    cycleCountTotal_ = 0;
    cycleCountReal_ = 0;
 
@@ -163,7 +172,6 @@ void CycleControl::update(uint32_t ctime) {
 
       // Start of a new cycle
       if ( newState == StateOn ) {
-         stateTime_ = ctime;
          vol_.reset(ctime);
 
          if (conf_.getRunState() == conf_.StateRunOn) {
@@ -198,11 +206,25 @@ void CycleControl::update(uint32_t ctime) {
          cycleCountTotal_++;
          if (conf_.getRunState() == conf_.StateRunOn) cycleCountReal_++;
          else cycleCountReal_ = 0;
+
+         // compute i/e ratio
+         ieRatio_ = float(inhTime_) / float(ctime - stateTime_);
+
+         stateTime_ = ctime;
       }
 
       // Going to off
       else if ( newState == StateOff ) {
+
+          // Transitioning from on directly to off
+          if ( state_ == StateOn ) inhTime_ = (ctime - stateTime_);
+
          stateTime_ = ctime;
+      }
+
+      // Going to hold, store inhalation time
+      else if ( newState == StateHold ) {
+          inhTime_ = (ctime - stateTime_);
       }
 
       state_ = newState;
@@ -230,19 +252,19 @@ void CycleControl::update(uint32_t ctime) {
       digitalWrite(relayBPin_, RELAY_ON);
    }
 
-   // On state, paddle down
+   // On state, paddle down, opening valve1, closing valve 2
    else if ( state_ == StateOn ) {
       digitalWrite(relayAPin_, RELAY_ON);
       digitalWrite(relayBPin_, RELAY_OFF);
    }
 
-   // Off state, paddle up
+   // Off state, paddle up, closing valve 1, opening valve 2
    else if ( state_ == StateOff ) {
       digitalWrite(relayAPin_, RELAY_OFF);
       digitalWrite(relayBPin_, RELAY_ON);
    }
 
-   // Hold state
+   // Hold state, closing both valve 1 and valve 2
    else {
       digitalWrite(relayAPin_, RELAY_OFF);
       digitalWrite(relayBPin_, RELAY_OFF);
@@ -274,6 +296,15 @@ void CycleControl::update(uint32_t ctime) {
       digitalWrite(piezoPin_, PIEZO_ON);
    }
    else digitalWrite(piezoPin_, PIEZO_OFF);
+
+   // Calculate time since going to on state
+   if (conf_.getRunState() == conf_.StateRunOn) {
+       onTime_ = float(ctime - onStartTime_) / 1000.0;
+   }
+   else {
+       onStartTime_ = ctime;
+       onTime_      = 0;
+   }
 }
 
 void CycleControl::muteAlarm() {

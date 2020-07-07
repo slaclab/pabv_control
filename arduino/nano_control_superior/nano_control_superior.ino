@@ -96,18 +96,20 @@ void loop() {
       press.update(currTime);
       flow.update(currTime);
       vol.update(currTime);
-      float sendFloat[5];
-      uint32_t sendInt[2];
+      float sendFloat[6];
+      uint32_t sendInt[3];
       sendFloat[0]=relay.prevVmax();
       sendFloat[1]=relay.prevPmax();
       sendFloat[2]=press.scaledValue();
       sendFloat[3]=flow.scaledValue();
       sendFloat[4]=vol.scaledValue();
+      sendFloat[5]=relay.ieRatio();
       sendInt[0]=relay.cycleCount();
       sendInt[1]=relay.status();
+      sendInt[2]=relay.onTime();
       // Update display every second
       Message m;
-      m.writeData(Message::DATA,currTime,5,sendFloat,2,sendInt);
+      m.writeData(Message::DATA,currTime,6,sendFloat,3,sendInt);
       serComm.send(m);
       sensorTime = currTime;
    }
@@ -136,7 +138,7 @@ void loop() {
 
    relay.update(currTime);
    conf.update(currTime,relay);
- 
-   
+
+
 
 }
