@@ -992,7 +992,7 @@ class ControlGui(QWidget):
             if(tag in self.alarmsActive):
                 self.alarmsActive.remove(tag)
                 
-    def calculateIERatio(ie_float):
+    def calculateIERatio(self, ie_float):
         if ie_float > 1.0:
             # Then we want to display 1:1.1 or wiatever
             return '1:%.1f'%(1.0/ie_float)
@@ -1011,7 +1011,7 @@ class ControlGui(QWidget):
         self.updateSerial.emit(self.ambu.cpuId)
         self.updateCom.emit(self.ambu.com)
         self.updateOnTime.emit(f"{onTime:.1f}")
-        self.updateIeRatio.emit(str(calculateIERatio(ieRatio)))
+        self.updateIeRatio.emit(str(self.calculateIERatio(ieRatio)))
 
     def updateAlarms(self):
         self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
