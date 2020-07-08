@@ -995,10 +995,10 @@ class ControlGui(QWidget):
     def calculateIERatio(self, ie_float):
         if ie_float < 1.0:
             # Then we want to display 1:1.1 or wiatever
-            return '1:%.1f'%(1.0/ie_float)
+            return '1 : %.1f'%(1.0/ie_float)
         else: #ie_float<1.0
             # then we want to display "2:1 or whatever"
-            return '%.1f:1'%(ie_float)
+            return '%.1f : 1'%(ie_float)
 
     def updateDisplay(self,count,rate,stime,artime,volMax,pipMax,ieRatio,onTime):
         self.updateCount.emit(str(count))
