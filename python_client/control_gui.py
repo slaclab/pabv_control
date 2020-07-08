@@ -295,7 +295,7 @@ class ControlGui(QWidget):
         self.volMax = QLineEdit()
         self.volMax.returnPressed.connect(self.setVolMax)
         self.updateVolMax.connect(self.volMax.setText)
-        fl.addRow('V Max (mL):',self.volMax)
+        fl.addRow('VMax (mL):',self.volMax)
 
         self.peepMin = QLineEdit()
         self.peepMin.returnPressed.connect(self.setPeepMin)
@@ -993,7 +993,7 @@ class ControlGui(QWidget):
                 self.alarmsActive.remove(tag)
                 
     def calculateIERatio(self, ie_float):
-        if ie_float > 1.0:
+        if ie_float < 1.0:
             # Then we want to display 1:1.1 or wiatever
             return '1:%.1f'%(1.0/ie_float)
         else: #ie_float<1.0
