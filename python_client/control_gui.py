@@ -66,7 +66,7 @@ class ModeSwitch(QPushButton):
 
     def paintEvent(self, event):
         label = "Press" if self.isChecked() else "Vol"
-        bg_color = Qt.blue if self.isChecked() else Qt.green
+        bg_color = Qt.magenta if self.isChecked() else Qt.cyan
 
         radius = 14
         width = 50
@@ -235,19 +235,19 @@ class ControlGui(QWidget):
         self.curve2=[None]*7
         width=3
         self.curve1[0]=self.plot1[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
-        self.curve1[1]=self.plot1[0].plot(pen=pg.mkPen("r",width=width),name="P-thresh-high")
-        self.curve1[2]=self.plot1[0].plot(pen=pg.mkPen("g",width=width),name="P-thresh-low")
-        self.curve1[3]=self.plot1[0].plot(pen=pg.mkPen("r",width=width),name="Peep min")
+        self.curve1[1]=self.plot1[0].plot(pen=pg.mkPen("r",width=width),name="PMax")
+        self.curve1[2]=self.plot1[0].plot(pen=pg.mkPen("g",width=width),name="PSV Trg")
+        self.curve1[3]=self.plot1[0].plot(pen=pg.mkPen("r",width=width),name="PEEP min")
         self.curve1[4]=self.plot1[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
         self.curve1[5]=self.plot1[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
-        self.curve1[6]=self.plot1[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
+        self.curve1[6]=self.plot1[2].plot(pen=pg.mkPen("r",width=width),name="VMax")
         self.curve2[0]=self.plot2[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
-        self.curve2[1]=self.plot2[0].plot(pen=pg.mkPen("r",width=width),name="P-thresh-high")
-        self.curve2[2]=self.plot2[0].plot(pen=pg.mkPen("g",width=width),name="P-thresh-low")
-        self.curve2[3]=self.plot2[0].plot(pen=pg.mkPen("r",width=width),name="Peep min")
+        self.curve2[1]=self.plot2[0].plot(pen=pg.mkPen("r",width=width),name="PMax")
+        self.curve2[2]=self.plot2[0].plot(pen=pg.mkPen("g",width=width),name="PSV Trg")
+        self.curve2[3]=self.plot2[0].plot(pen=pg.mkPen("r",width=width),name="PEEP min")
         self.curve2[4]=self.plot2[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
         self.curve2[5]=self.plot2[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
-        self.curve2[6]=self.plot2[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
+        self.curve2[6]=self.plot2[2].plot(pen=pg.mkPen("r",width=width),name="VMax")
 
 
     def setupPageOne(self):
@@ -262,7 +262,7 @@ class ControlGui(QWidget):
         top.addWidget(self.gl1)
         # Controls on left
         gb = QGroupBox('Control')
-        gb.setFixedWidth(300)
+        gb.setFixedWidth(320)
         left.addWidget(gb)
 
         fl = QFormLayout()
@@ -280,27 +280,27 @@ class ControlGui(QWidget):
         self.inhTime = QLineEdit()
         self.inhTime.returnPressed.connect(self.setInhTime)
         self.updateInhTime.connect(self.inhTime.setText)
-        fl.addRow('Inhalation Time (S):',self.inhTime)
+        fl.addRow('Inhalation Time (sec):',self.inhTime)
 
         self.volInhThold = QLineEdit()
         self.volInhThold.returnPressed.connect(self.setVolInhThold)
         self.updateVolInhThold.connect(self.volInhThold.setText)
-        fl.addRow('Vol Inh P (cmH20):',self.volInhThold)
+        fl.addRow('PSV Trigger (cmH20):',self.volInhThold)
 
         self.pipMax = QLineEdit()
         self.pipMax.returnPressed.connect(self.setPipMax)
         self.updatePipMax.connect(self.pipMax.setText)
-        fl.addRow('Pip Max (cmH20):',self.pipMax)
+        fl.addRow('PMax (cmH20):',self.pipMax)
 
         self.volMax = QLineEdit()
         self.volMax.returnPressed.connect(self.setVolMax)
         self.updateVolMax.connect(self.volMax.setText)
-        fl.addRow('V Max (mL):',self.volMax)
+        fl.addRow('VMax (mL):',self.volMax)
 
         self.peepMin = QLineEdit()
         self.peepMin.returnPressed.connect(self.setPeepMin)
         self.updatePeepMin.connect(self.peepMin.setText)
-        fl.addRow('Peep Min (cmH20):',self.peepMin)
+        fl.addRow('PEEP Min (cmH20):',self.peepMin)
 
         self.modeControl = ModeSwitch()
         self.modeControl.clicked.connect(self.setMode)
@@ -392,10 +392,10 @@ class ControlGui(QWidget):
         self.stateControl.currentIndexChanged.connect(self.setState)
         fl.addRow('State:',self.stateControl)
 
-        self.pipOffset = QLineEdit()
-        self.pipOffset.returnPressed.connect(self.setPipOffset)
-        self.updatePipOffset.connect(self.pipOffset.setText)
-        fl.addRow('Pip Offset (cmH20):',self.pipOffset)
+        #self.pipOffset = QLineEdit()  #Issue111 - no longer used
+        #self.pipOffset.returnPressed.connect(self.setPipOffset)
+        #self.updatePipOffset.connect(self.pipOffset.setText)
+        #fl.addRow('PIP Offset (cmH20):',self.pipOffset)
 
         self.volFactor = QLineEdit()
         self.volFactor.returnPressed.connect(self.setVolFactor)
@@ -459,7 +459,7 @@ class ControlGui(QWidget):
         alarmPipMax.setText("0")
         alarmPipMax.setReadOnly(True)
         self.updateAlarmPipMax.connect(alarmPipMax.setText)
-        fl.addRow('Pip Max Alarm:',alarmPipMax)
+        fl.addRow('Press High Alarm:',alarmPipMax)
 
         alarmVolLow = QLineEdit()
         alarmVolLow.setText("0")
@@ -493,7 +493,7 @@ class ControlGui(QWidget):
         warnPeepMin.setText("0")
         warnPeepMin.setReadOnly(True)
         self.updateWarnPeepMin.connect(warnPeepMin.setText)
-        fl.addRow('Peep Min Warning:',warnPeepMin)
+        fl.addRow('PEEP Min Warning:',warnPeepMin)
 
         warn9V = QLineEdit()
         warn9V.setText("0")
@@ -526,7 +526,7 @@ class ControlGui(QWidget):
         cycPipMax.setText("0")
         cycPipMax.setReadOnly(True)
         self.updateCycPipMax.connect(cycPipMax.setText)
-        fl.addRow('Max Pip (cmH20):',cycPipMax)
+        fl.addRow('Max PIP (cmH20):',cycPipMax)
 
         # Log File
         gb = QGroupBox('Log File')
@@ -991,6 +991,15 @@ class ControlGui(QWidget):
         else:
             if(tag in self.alarmsActive):
                 self.alarmsActive.remove(tag)
+                
+    def calculateIERatio(self, ie_float):
+        if ie_float < 1.0:
+            # Then we want to display 1:1.1 or wiatever
+            return '1 : %.1f'%(1.0/ie_float)
+        else: #ie_float<1.0
+            # then we want to display "2:1 or whatever"
+            return '%.1f : 1'%(ie_float)
+
     def updateDisplay(self,count,rate,stime,artime,volMax,pipMax,ieRatio,onTime):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
@@ -1002,7 +1011,7 @@ class ControlGui(QWidget):
         self.updateSerial.emit(self.ambu.cpuId)
         self.updateCom.emit(self.ambu.com)
         self.updateOnTime.emit(f"{onTime:.1f}")
-        self.updateIeRatio.emit(f"{ieRatio:.1f}")
+        self.updateIeRatio.emit(str(self.calculateIERatio(ieRatio)))
 
     def updateAlarms(self):
         self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
