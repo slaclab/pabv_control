@@ -290,7 +290,7 @@ class ControlGui(QWidget):
         self.pipMax = QLineEdit()
         self.pipMax.returnPressed.connect(self.setPipMax)
         self.updatePipMax.connect(self.pipMax.setText)
-        fl.addRow('PIP Max (cmH20):',self.pipMax)
+        fl.addRow('PMax (cmH20):',self.pipMax)
 
         self.volMax = QLineEdit()
         self.volMax.returnPressed.connect(self.setVolMax)
