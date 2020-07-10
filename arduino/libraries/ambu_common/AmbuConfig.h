@@ -8,8 +8,9 @@
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #include "Comm.h"
+#ifdef ARDUINO_ARCH_SAMD
 #include <FlashStorage.h>
-
+#endif
 
 
 class CycleControl;

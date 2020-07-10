@@ -19,9 +19,9 @@ const char *git_version=QUOTE(GIT_VERSION);
 
 const uint16_t cs_field = 0xbeef;
 
-
+#ifdef ARDUINO_ARCH_SAMD
 FlashStorage(ambuflash,AmbuParameters);
-
+#endif
 
 AmbuConfig::AmbuConfig (Comm &serial,Comm &display) : rxCount_(0),serial_(serial),display_(display),cfgSerialNum_(1) {
   deviceID(cpuId_);
@@ -32,7 +32,9 @@ void AmbuConfig::setup () {
 
 
    // load configuration from flash
+#ifdef ARDUINO_ARCH_SAMD
    AmbuParameters storedConf = ambuflash.read();
+
    uint16_t checksum = storedConf.checksum;
    storedConf.checksum = cs_field;     // checksum was calculated with checksum field set to cs_field
 
@@ -58,7 +60,7 @@ void AmbuConfig::setup () {
      conf_.runMode    = ModeVolume;
      storeConfig();
    }
-
+#endif
    confTime_ = millis();
 }
 
@@ -281,7 +283,9 @@ void AmbuConfig::storeConfig() {
   conf_.checksum = cs_field;
   uint16_t checksum = _fletcher16((uint8_t *) &conf_, sizeof(conf_));
   conf_.checksum = checksum;
+#ifdef ARDUINO_ARCH_SAMD
   ambuflash.write(conf_);
+#endif
 }
 
 
