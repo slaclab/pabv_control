@@ -88,8 +88,10 @@ void GUI::setup(){
   I setup the display with the fixed labels and such
   */
   tft=Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
-  SPI.begin();
-  tft.begin();
+
+  //  SPI.begin();
+
+  tft.begin(400000);
   tft.setRotation(2);
   tft.fillScreen(_color(ILI9341_BLACK));
   Serial.println("Start....");
