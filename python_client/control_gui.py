@@ -1037,8 +1037,8 @@ class ControlGui(QWidget):
         self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
         self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
         self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
-        self.updateWarnVolLow.emit("{}").format(self.ambu.warnVolLow)
-        self.updateWarnVolMax.emit("{}").format(self.ambu.warnVolMax)
+        self.updateWarnVolLow.emit("{}".format(self.ambu.warnVolLow))
+        self.updateWarnVolMax.emit("{}".format(self.ambu.warnVolMax))
 
         ts=time.time()
         dt=ts-self.blink_time
