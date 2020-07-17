@@ -188,8 +188,10 @@ void CycleControl::update(uint32_t ctime) {
             if ( (currPmax_ < 5.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmPressLow;
 
             // Update adjust volume max
-            if ( wasOff_ ) conf_.initAdjVolMax();
-            else conf_.updateAdjVolMax(currVmax_);
+            if ( (cycleStatus_ & StatusAlarmWarnMask) == 0 ) {
+                if ( wasOff_ ) conf_.initAdjVolMax();
+                else conf_.updateAdjVolMax(currVmax_);
+            }
             wasOff_ = false;
          }
 
