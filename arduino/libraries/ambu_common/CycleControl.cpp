@@ -176,8 +176,13 @@ void CycleControl::update(uint32_t ctime) {
 
          if (conf_.getRunState() == conf_.StateRunOn) {
 
-            // Volume on previous cycle never exceeded 100mL
-            if ( (currVmax_ < 100.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmVolLow;
+            if ( conf_.getRunMode() == AmbuConfig::ModeVolume ) {
+               if ( (currVmax_ > (conf_.getVolMax() * 1.2)) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusWarnVolMax;
+               if ( (currVmax_ < (conf_.getVolMax() * 0.8)) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusWarnVolLow;
+            }
+            else {
+               if ( (currVmax_ < 250.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmVolLow;
+            }
 
             // Pressure on previous cycle never exceeded 5cmH20
             if ( (currPmax_ < 5.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmPressLow;
@@ -273,6 +278,8 @@ void CycleControl::update(uint32_t ctime) {
 
    // Warning LED
    if ( (currStatus_ & StatusWarn9V        ) ||
+        (currStatus_ & StatusWarnVolMax    ) ||
+        (currStatus_ & StatusWarnVolLow    ) ||
         (currStatus_ & StatusWarnPeepMin   ) ) {
 
       digitalWrite(yelLedPin_, LED_ON);
