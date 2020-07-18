@@ -35,6 +35,7 @@ class CycleControl {
       static const uint16_t StatusWarnVolLow     = 0x0080;
       static const uint16_t StatusWarnVolMax     = 0x0100;
 
+      // Used to block adjustd vol max updates
       static const uint16_t StatusAlarmWarnMask  = 0x1EF;
 
       // Min off period
