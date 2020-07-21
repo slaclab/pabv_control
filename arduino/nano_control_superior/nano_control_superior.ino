@@ -116,18 +116,22 @@ void loop() {
    // Update display every second
    if ((currTime - displayTime) > DISPLAY_PERIOD_MILLIS )  {
      Message m;
-      float sendFloat[9];
+      float sendFloat[10];
+      uint32_t sendInt[2];
       float parms[6];
       sendFloat[0]=relay.prevPmin();
       sendFloat[1]=relay.prevPmax();
       sendFloat[2]=relay.prevVmax();
-      sendFloat[3]=conf.getRespRate();
-      sendFloat[4]=conf.getInhTime();
-      sendFloat[5]=conf.getVolInThold();
-      sendFloat[6]=conf.getVolMax();
-      sendFloat[7]=conf.getPeepMin();
-      sendFloat[8]=conf.getPipMax();
-     m.writeData(Message::DATA,currTime,9,sendFloat,0,0);
+      sendFloat[3]=relay.ieRatio();
+      sendFloat[4]=conf.getRespRate();
+      sendFloat[5]=conf.getInhTime();
+      sendFloat[6]=conf.getVolInThold();
+      sendFloat[7]=conf.getVolMax();
+      sendFloat[8]=conf.getPeepMin();
+      sendFloat[9]=conf.getPipMax();
+      sendInt[0]=conf.getRunState();
+      sendInt[1]=conf.getRunMode();
+     m.writeData(Message::DATA,currTime,9,sendFloat,2,sendInt);
      displayComm.send(m);
      displayTime=currTime;
      // reset watchdog
