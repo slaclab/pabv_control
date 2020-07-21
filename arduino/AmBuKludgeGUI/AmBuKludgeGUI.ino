@@ -88,8 +88,8 @@ float vTH = 0.0;
 float vVMax = 0.0;
 float vPMax = 0.0;
 float vPMin = 0.0;
-bool vMode = 0;    // 0=Volume, 1=Pressure
-bool vRun = 0;     // 0=OFF, 1=On
+bool vMode = false;    // 0=Volume, 1=Pressure
+bool vRun = false;     // 0=OFF, 1=On
 // setting limits - structure is {delta, min, max}
 float pRR[]   = {1.0, 10.0, 30.0};  // breaths/min
 float pIT[]   = {0.1, 0.5, 2.5};    // inspiration time
@@ -172,7 +172,7 @@ void setup_display() {
 
   // -- ROW 3
   tft.setCursor(tTH_x, r3_label_y);
-  tft.print("Insp");
+  tft.print("InspP");
   // 
   tft.setCursor(tPMin_x, r3_label_y);
   tft.print("PMin");
@@ -187,8 +187,6 @@ void setup_display() {
 
 // Parameters used in the display to control the interface
 uint32_t measTime = 0;
-unsigned counter=0;
-//char s[64];
 uint32_t curTime;
 uint32_t prevUpdateTime;
 int8_t encDT;   // -1 for CCW, +1 for CW turn
@@ -252,6 +250,8 @@ void update_cycle_values(){
 }
 void update_parms(){
   /*
+  Clears the area behind all values in row-2/3
+  Updates all parameters in white (not selected)
   */
   tft.setTextSize(2);
   tft.writeFillRect(0, r2_value_y, TFT_HEIGHT, 16, ILI9341_BLACK);
@@ -311,10 +311,11 @@ void highlight_changeable_parameter(uint8_t nparm){
   else tft.setTextColor(ILI9341_WHITE); 
   tft.setCursor(tMode_x, r2_label_y);
   tft.print("Mode");
+  //
   if (nparm == 5) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tTH_x, r3_label_y);
-  tft.print("Insp");
+  tft.print("InspP");
   if (nparm == 6) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tPMin_x, r3_label_y);
@@ -331,8 +332,9 @@ void highlight_changeable_parameter(uint8_t nparm){
 
 void select_changeable_parameter(uint8_t nparm){
   /*
-  This means a parameter is selected so the label should be white
-  but 
+  Runs over all labels and vlaues. Setting the highlighted one
+  to orange-label and greenyellow-value.
+  Can also be used to clear highlighting by seinging nparm=0
   */
   tft.setTextSize(2);
   //
@@ -442,33 +444,33 @@ void change_parameter_value(uint8_t nparm, int8_t delta){
       change_Mode();
       tft.writeFillRect(tMode_x, r2_value_y, 70, 16, ILI9341_BLACK);
       tft.setCursor(tMode_x, r2_value_y);
-      if (vMode==false) tft.print("Vol");
+      if (vMode) tft.print("Vol");
       else tft.print("Pres");
       break;
     case 5:
       change_TH(delta);
-      tft.writeFillRect(tTH_x, r2_value_y, 70, 16, ILI9341_BLACK);
-      tft.setCursor(tTH_x, r2_value_y);
+      tft.writeFillRect(tTH_x, r3_value_y, 70, 16, ILI9341_BLACK);
+      tft.setCursor(tTH_x, r3_value_y);
       tft.print(String(vTH, 1));
       break;
     case 6:
       change_PMin(delta);
-      tft.writeFillRect(tPMin_x, r2_value_y, 70, 16, ILI9341_BLACK);
-      tft.setCursor(tPMin_x, r2_value_y);
+      tft.writeFillRect(tPMin_x, r3_value_y, 70, 16, ILI9341_BLACK);
+      tft.setCursor(tPMin_x, r3_value_y);
       tft.print(String(vPMin,1));
       break;
     case 7:
       change_PMax(delta);
-      tft.writeFillRect(tPMax_x, r2_value_y, 70, 16, ILI9341_BLACK);
-      tft.setCursor(tPMax_x, r2_value_y);
+      tft.writeFillRect(tPMax_x, r3_value_y, 70, 16, ILI9341_BLACK);
+      tft.setCursor(tPMax_x, r3_value_y);
       tft.print(String(vPMax,1));
       break;
     case 8:
       change_Run();
-      tft.writeFillRect(tRun_x, r2_value_y, 70, 16, ILI9341_BLACK);
-      tft.setCursor(tRun_x, r2_value_y);
-      if (vRun==false) tft.print("OFF");
-      else tft.print("ON");      
+      tft.writeFillRect(tRun_x, r3_value_y, 70, 16, ILI9341_BLACK);
+      tft.setCursor(tRun_x, r3_value_y);
+      if (vRun) tft.print("ON");
+      else tft.print("OFF");      
       break;
   }
 }
@@ -575,40 +577,57 @@ void loop(){
         */
         Message msg;
         Serial.print("Sending MSG: ");
+        Serial.print(guiParamSelected);
+        Serial.print("=");
+        // msg.writeData(Message::PARAM_FLOAT,0,1,&floatData,1,intData);
+        uint32_t iA[2];
         switch (guiParamSelected){
           case 1: // RR = 0
-            msg.writeData(Message::PARAM_FLOAT,0,1,vRR,1,0);
+            iA[0] = 1;
+            msg.writeData(Message::PARAM_FLOAT,0,1,&vRR,1,&iA[0]);
+            Serial.print(String(vRR));
             break;
           case 2: // IT = 1
-            msg.writeData(Message::PARAM_FLOAT,0,1,vIT,1,1);
+            iA[0] = 2;
+            msg.writeData(Message::PARAM_FLOAT,0,1,&vIT,1,&iA[0]);
+            Serial.print(String(vIT));
             break;
           case 3: // VMax
-            msg.writeData(Message::PARAM_FLOAT,0,1,vVMax,1,4);
+            iA[0] = 5;
+            msg.writeData(Message::PARAM_FLOAT,0,1,&vVMax,1,&iA[0]);
+            Serial.print(String(vVMax));
             break;
           case 4: // Mode
-            uint32_t intArray[2];
-            intArray[0] = 2;
-            if (vMode == true) intArray[1]=0; //ModeVolume
-            else intArray[1] = 1;
-            msg.writeData(Message::PARAM_INTEGER,0,0,NULL,2,intArray);
+            iA[0] = 11;
+            if (vMode == true) iA[1]=0; // 0=Vol
+            else iA[1] = 1; // 1=Press
+            msg.writeData(Message::PARAM_INTEGER,0,0,NULL,2,iA);
+            Serial.print("(VMode)");
+            Serial.print(vMode);
             break;
           case 5: // TH
-            msg.writeData(Message::PARAM_FLOAT,0,1,vTH,1,6);
+            iA[0] = 7;
+            msg.writeData(Message::PARAM_FLOAT,0,1,&vTH,1,&iA[0]);
+            Serial.print(String(vTH));
             break;
           case 6: // PMin
-            msg.writeData(Message::PARAM_FLOAT,0,1,vPMin,1,7);
+            iA[0] = 8;
+            msg.writeData(Message::PARAM_FLOAT,0,1,&vPMin,1,&iA[0]);
+            Serial.print(String(vPMin));
             break;
           case 7: // PMax
-            msg.writeData(Message::PARAM_FLOAT,0,1,vPMax,1,2);
+            iA[0] = 3;
+            msg.writeData(Message::PARAM_FLOAT,0,1,&vPMax,1,&iA[0]);
+            Serial.print(String(vPMax));
             break;
           case 8: // Run
-            uint32_t intArray[2];
-            intArray[0] = 0;
-            if (vRun == true) intArray[1]=3; //2=runOff, 3=runOn
-            else intArray[1] = 2;
-            msg.writeData(Message::PARAM_INTEGER,0,0,NULL,2,intArray);
+            iA[0] = 9;
+            if (vRun == true) iA[1]=3; //2=runOff, 3=runOn
+            else iA[1] = 2;
+            msg.writeData(Message::PARAM_INTEGER,0,0,NULL,2,iA);
             break;
         }
+
         masterComm.send(msg);
       }
     }
@@ -636,7 +655,7 @@ void loop(){
     Message msg;
     masterComm.read(msg);
     /* 
-    From AmBuConfig expect 8 floats and 3 ints
+    From nano_control_superior.ino (~L122) expect 10 floats and 2 ints
       void getFloat(float *f) {for (unsigned i=0;i<_nFloat;i++) f[i]=_tempFloat[i]; }
       void getInt(uint32_t *d)  {for (unsigned i=0;i<_nInt;i++) d[i]=_tempInt[i];   }
     */
@@ -647,36 +666,36 @@ void loop(){
       vPIP  = ambu_float[1];
       vVOL  = ambu_float[2];
       vIE   = ambu_float[3];
-      if (vRR != ambu_float[4]){
+      if (vRR != ambu_float[4] && !(guiParamSelected==1 && guiParamEditing==true)){
         vRR   = ambu_float[4];
         updateParms = true;
       }
-      if (vIT != ambu_float[5]){
+      if (vIT != ambu_float[5] && !(guiParamSelected==2 && guiParamEditing==true)){
         vIT   = ambu_float[5];
         updateParms = true;
       }
-      if (vTH != ambu_float[6]){
+      if (vTH != ambu_float[6] && !(guiParamSelected==5 && guiParamEditing==true)){
         vTH   = ambu_float[6];
         updateParms = true;
       }
-      if (vVMax != ambu_float[7]){
+      if (vVMax != ambu_float[7] && !(guiParamSelected==3 && guiParamEditing==true)){
         vVMax = ambu_float[7];
         updateParms = true;
       }
-      if (vPMin != ambu_float[8]){
+      if (vPMin != ambu_float[8] && !(guiParamSelected==6 && guiParamEditing==true)){
         vPMin = ambu_float[8];
         updateParms = true;
       }
-      if (vPMax != ambu_float[9]){
+      if (vPMax != ambu_float[9] && !(guiParamSelected==7 && guiParamEditing==true)){
         vPMax = ambu_float[9];
         updateParms = true;
       }
-      if (vMode != parseMode(ambu_int[0])){
+      if (vMode != parseMode(ambu_int[0]) && !(guiParamSelected==4 && guiParamEditing==true)){
         //Run State (0=forceOff, 1=forceOn, 2=runOff, 3=runOn)
         vMode = parseMode(ambu_int[0]);
         updateParms = true;
       }
-      if (vRun != parseRun(ambu_int[1])){
+      if (vRun != parseRun(ambu_int[1]) && !(guiParamSelected==8 && guiParamEditing==true)){
         // Run Mode (0=Vol, 1=Press)
         vRun = parseRun(ambu_int[1]);
         updateParms = true;
