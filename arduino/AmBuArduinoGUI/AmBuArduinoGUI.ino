@@ -16,6 +16,7 @@ Comm masterComm(SerialPort);
 #define pin_encoderA 6
 #define pin_encoderB 5
 
+//nParam defined in GUI.h
 float update_parms[nParam] = {0.f};
 
 //gets data from master
@@ -51,6 +52,16 @@ GUI_value gui_value[nParam]={
    min:000.0f, 
    max:1000.0f,
    fmt:"%3.0f"
+  },
+  {name:"I:E",  // I:E ratio in Dr format if possible
+   id:pIE,
+   ambucfg:0,
+   val:&parms[pVol],
+   dval:500.0f, 
+   dx:10.0f, 
+   min:000.0f, 
+   max:1000.0f,
+   fmt:"%0.1f:%0.1f"
   },
   {name:"RR",    // resp rate in Hz
    id:pRR,

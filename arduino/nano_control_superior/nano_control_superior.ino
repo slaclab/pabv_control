@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <HardwareSerial.h>
 #include <Comm.h>
+#include <WDTZero.h>
 #include <Arduino.h>
-
 #define RELAYA_PIN 8
 #define RELAYB_PIN 7
 #define REDLED_PIN 3
@@ -38,8 +38,14 @@ void SERCOM1_Handler()
 #error Unsupported Hardware
 #endif
 
+
+
+WDTZero watchdog;
+
+
 Comm displayComm(uart);    // To second NANO for local-display
 Comm serComm(SerialPort);  // To MAX3232
+
 
 AmbuConfig conf(serComm,displayComm);
 SensorDlcL20D4 press;
@@ -79,6 +85,7 @@ void setup() {
    sensorTime = millis();
    m.writeString(Message::DEBUG,millis(),"Setup Done");
    serComm.send(m);
+   watchdog.setup(WDT_HARDCYCLE2S );
 }
 
 void loop() {
@@ -89,43 +96,53 @@ void loop() {
       press.update(currTime);
       flow.update(currTime);
       vol.update(currTime);
-      float sendFloat[5];
-      uint32_t sendInt[2];
+      float sendFloat[6];
+      uint32_t sendInt[3];
       sendFloat[0]=relay.prevVmax();
       sendFloat[1]=relay.prevPmax();
       sendFloat[2]=press.scaledValue();
       sendFloat[3]=flow.scaledValue();
       sendFloat[4]=vol.scaledValue();
+      sendFloat[5]=relay.ieRatio();
       sendInt[0]=relay.cycleCount();
       sendInt[1]=relay.status();
+      sendInt[2]=relay.onTime();
       // Update display every second
       Message m;
-      m.writeData(Message::DATA,currTime,5,sendFloat,2,sendInt);
+      m.writeData(Message::DATA,currTime,6,sendFloat,3,sendInt);
       serComm.send(m);
       sensorTime = currTime;
    }
    // Update display every second
    if ((currTime - displayTime) > DISPLAY_PERIOD_MILLIS )  {
      Message m;
-      float sendFloat[9];
+      float sendFloat[10];
+      uint32_t sendInt[2];
       float parms[6];
       sendFloat[0]=relay.prevPmin();
       sendFloat[1]=relay.prevPmax();
       sendFloat[2]=relay.prevVmax();
-      sendFloat[3]=conf.getRespRate();
-      sendFloat[4]=conf.getInhTime();
-      sendFloat[5]=conf.getVolInThold();
-      sendFloat[6]=conf.getVolMax();
-      sendFloat[7]=conf.getPeepMin();
-      sendFloat[8]=conf.getPipMax();
-     m.writeData(Message::DATA,currTime,9,sendFloat,0,0);
+      sendFloat[3]=relay.ieRatio();
+      sendFloat[4]=conf.getRespRate();
+      sendFloat[5]=conf.getInhTime();
+      sendFloat[6]=conf.getVolInThold();
+      sendFloat[7]=conf.getVolMax();
+      sendFloat[8]=conf.getPeepMin();
+      sendFloat[9]=conf.getPipMax();
+      sendInt[0]=conf.getRunState();
+      sendInt[1]=conf.getRunMode();
+     m.writeData(Message::DATA,currTime,9,sendFloat,2,sendInt);
      displayComm.send(m);
      displayTime=currTime;
+     // reset watchdog
+     watchdog.clear();
    }
 
 
 
    relay.update(currTime);
    conf.update(currTime,relay);
+
+
 
 }

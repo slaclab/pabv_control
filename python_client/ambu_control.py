@@ -15,25 +15,26 @@ class AmbuControl(object):
     # State constants
     RunStates = { 0:'StateForceOff', 1:'StateForceOn', 2:'StateRunOff', 3:'StateRunOn' }
 
+    # Mode constants
+    RunModes = { 0:'ModeVolume', 1:'ModePressure' }
+
     # Cycle States
     CycleStates = { 0:'StateOff', 1:'StateOn', 2:'StateHold' }
 
     # Config constants
-    ConfigKey = { 'GetConfig'    : 0, 'SetRespRate' : 1, 'SetInhTime'   : 2, 'SetPipMax'     : 3,
-                  'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolFactor' : 6, 'SetVolInThold' : 7,
-                  'SetPeepMin'   : 8, 'SetRunState' : 9, 'MuteAlarm'    : 10 }
+    ConfigKey = { 'GetConfig'    : 0, 'SetRespRate' : 1, 'SetInhTime'   : 2,  'SetPipMax'     : 3,
+                  'SetPipOffset' : 4, 'SetVolMax'   : 5, 'SetVolFactor' : 6,  'SetVolInThold' : 7,
+                  'SetPeepMin'   : 8, 'SetRunState' : 9, 'MuteAlarm'    : 10, 'SetRunMode'    : 11}
 
     # Status constants
-    StatusKey = { 'AlarmPipMax'  : 0x01, 'AlarmVolLow' : 0x02, 'Alarm12V'     : 0x04,
-                  'Warn9V'       : 0x08, 'VolInh'      : 0x10, 'AlarmPresLow' : 0x20,
-                  'WarnPeepMin'  : 0x40 }
+    StatusKey = { 'AlarmPipMax'  : 0x0001, 'AlarmVolLow' : 0x0002, 'Alarm12V'     : 0x0004,
+                  'Warn9V'       : 0x0008, 'VolInh'      : 0x0010, 'AlarmPresLow' : 0x0020,
+                  'WarnPeepMin'  : 0x0040, 'WarnVolLow'  : 0x0080, 'WarnVolMax'   : 0x0100 }
 
     def __init__(self):
 
-        self._ser = comm.Comm() #serial.Serial(port=dev, baudrate=57600, timeout=1.0)
-        #self._queue = queue.LifoQueue(1)
+        self._ser = comm.Comm()
         self._runEn = False
-        self._dataCallBack  = self._debugCallBack
         self._configCallBack = None
         self._file = None
         self._last = None
@@ -70,22 +71,12 @@ class AmbuControl(object):
         self._file.close()
         self._file = None
 
-    def _debugCallBack(self,data,count,*args):
-        l = len(self._data.get_i())
-        print(f"Got data. Len={l} count={count}")
-
-    def setDataCallBack(self, callBack):
-        self._dataCallBack = callBack
-
-    def setPlotCallBack(self, callBack):
-        self._plotCallBack = callBack
-
     def setConfigCallBack(self, callBack):
         self._configCallBack = callBack
 
     @property
     def version(self):
-        return self._version
+        return self._version.decode("utf8")
 
     @property
     def respRate(self):
@@ -187,6 +178,17 @@ class AmbuControl(object):
         self._ser.write(data)
 
     @property
+    def runMode(self):
+        return self._runMode
+
+    @runMode.setter
+    def runMode(self,value):
+        self._runMode = value
+        m=message.Message()
+        data=m.writeData(m.PARAM_INTEGER,0,[],[self.ConfigKey['SetRunMode'],self._runMode])
+        self._ser.write(data)
+
+    @property
     def alarmPipMax(self):
         return ((self._status & self.StatusKey['AlarmPipMax']) != 0)
 
@@ -215,9 +217,25 @@ class AmbuControl(object):
         return ((self._status & self.StatusKey['WarnPeepMin']) != 0)
 
     @property
+    def warnVolLow(self):
+        return ((self._status & self.StatusKey['WarnVolLow']) != 0)
+
+    @property
+    def warnVolMax(self):
+        return ((self._status & self.StatusKey['WarnVolMax']) != 0)
+
+    @property
     def currState(self):
         return ((self._status >> 24) & 0xFF)
-
+    @property
+    def serialNum(self):
+        return self._cfgSerialNum
+    @property
+    def cpuId(self):
+        return self._cpuid
+    @property
+    def com(self):
+        return self._ser.port
     def muteAlarm(self):
         m=message.Message()
         data=m.writeData(m.PARAM_SET,0,[],[self.ConfigKey['MuteAlarm']  ])
@@ -230,16 +248,6 @@ class AmbuControl(object):
         self._ser.write(data)
     def setQueue(self,queue):
         self._queue=queue
-
-#    def _queueMgrThread(self):
-#        while self._runEn:
-#            try:
-#                # need to block with timeout - otherwise wait is uninterruptible on Windows
-#                (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=True,timeout=1)
-#                self._dataCallBack(count, rate, stime, artime, volMax, pipMax)
-#                self._plotCallBack(data)
-#            except:
-#                pass
 
     def stop(self):
         self._runEn = False
@@ -268,8 +276,8 @@ class AmbuControl(object):
             if(m.id == m.VERSION):
                 self._version=m.string
             if(m.id == m.CPU_ID and m.nInt==4):
-                self._cpuid=m.intData
-            elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==2:
+                self._cpuid="%08x%08x%08x%08x" % m.intData
+            elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==3:
                 newSerial = m.intData[1]
 
                 if newSerial != self._cfgSerialNum:
@@ -283,22 +291,26 @@ class AmbuControl(object):
                     self._volInThold  = m.floatData[6]
                     self._peepMin     = m.floatData[7]
                     self._runState    = m.intData[0]
+                    self._runMode     = m.intData[2]
 
                     if (self._configCallBack is not None):
                         self._configCallBack()
 
-            elif self._cfgSerialNum != 0 and m.id == m.DATA and m.nFloat==5 and m.nInt==2:
+            elif self._cfgSerialNum != 0 and m.id == m.DATA and m.nFloat==6 and m.nInt==3:
                 #print(f"Got status: {line.rstrip()}")
                 millis = m.millis
-                data=  m.floatData
+                data   = m.floatData
                 idata  = m.intData
-                count  = idata[0]
-                status = idata[1]
-                volMax = data[0]
-                pipMax = data[1]
-                press  = data[2]
-                flow   = data[3]
-                vol    = data[4]
+
+                count   = idata[0]
+                status  = idata[1]
+                onTime  = idata[2]
+                volMax  = data[0]
+                pipMax  = data[1]
+                press   = data[2]
+                flow    = data[3]
+                vol     = data[4]
+                ieRatio = data[5]
 
                 self._status = status
 
@@ -337,7 +349,7 @@ class AmbuControl(object):
                         rate = num_points / (self._data.A[0,-1] - self._data.get_nextout_time())
                     else:
                         rate=0
-                    qe=[self._data, count, rate, stime, artime, volMax, pipMax]
+                    qe=[self._data, count, rate, stime, artime, volMax, pipMax, ieRatio, onTime]
                     try:
                         self._queue.put(qe,block=False)
                     except:

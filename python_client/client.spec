@@ -35,6 +35,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
+          Tree('fonts/',prefix='fonts/'),
            [],
           name="client_%s_%s" %(target,git_tag),
           debug=False,
@@ -43,4 +44,4 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True )
+          console=False )

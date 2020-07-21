@@ -57,12 +57,46 @@ class PowerSwitch(QPushButton):
         painter.drawRoundedRect(sw_rect, radius, radius)
         painter.drawText(sw_rect, Qt.AlignCenter, label)
 
+class ModeSwitch(QPushButton):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self.setCheckable(True)
+        self.setMinimumWidth(100)
+        self.setMinimumHeight(40)
+
+    def paintEvent(self, event):
+        label = "Press" if self.isChecked() else "Vol"
+        bg_color = Qt.magenta if self.isChecked() else Qt.cyan
+
+        radius = 14
+        width = 50
+        center = self.rect().center()
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.translate(center)
+        painter.setBrush(QColor(0,0,0))
+
+        pen = QPen(Qt.black)
+        pen.setWidth(2)
+        painter.setPen(pen)
+
+        painter.drawRoundedRect(QRect(-width, -radius, 2*width, 2*radius), radius, radius)
+        painter.setBrush(QBrush(bg_color))
+        sw_rect = QRect(-radius, -radius, width + radius, 2*radius)
+        if not self.isChecked():
+            sw_rect.moveLeft(-width)
+        painter.drawRoundedRect(sw_rect, radius, radius)
+        painter.drawText(sw_rect, Qt.AlignCenter, label)
+
 
 class ControlGui(QWidget):
 
     updateCount       = pyqtSignal(str)
     updateRate        = pyqtSignal(str)
     updateTime        = pyqtSignal(str)
+    updateOnTime      = pyqtSignal(str)
+    updateIeRatio     = pyqtSignal(str)
 
     updateRespRate    = pyqtSignal(str)
     updateInhTime     = pyqtSignal(str)
@@ -73,6 +107,7 @@ class ControlGui(QWidget):
     updateVolInhThold = pyqtSignal(str)
     updatePeepMin     = pyqtSignal(str)
     updateState       = pyqtSignal(int)
+    updateMode        = pyqtSignal(int)
 
     updateVersion     = pyqtSignal(str)
     updateArTime      = pyqtSignal(str)
@@ -85,6 +120,11 @@ class ControlGui(QWidget):
     updateWarn9V       = pyqtSignal(str)
     updateAlarmPresLow = pyqtSignal(str)
     updateWarnPeepMin  = pyqtSignal(str)
+    updateWarnVolLow   = pyqtSignal(str)
+    updateWarnVolMax   = pyqtSignal(str)
+
+    updateSerial       = pyqtSignal(str)
+    updateCom          = pyqtSignal(str)
 
     def __init__(self, *, ambu, refPlot=False, parent=None):
         super(ControlGui, self).__init__(parent)
@@ -104,24 +144,117 @@ class ControlGui(QWidget):
         self.volMax       = None
         self.stateControl = None
         self.runControl   = None
+        self.blink_time   = time.time()
+
         top = QVBoxLayout()
         self.setLayout(top)
-
+        self.alarmStatus = QLabel()
+        self.blinkStat=True
+        self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
+        self.alarmStatus.setText("")
+        self.alarmStatus.setAlignment(Qt.AlignCenter);
+        font = self.alarmStatus.font();
+        font.setPointSize(24);
+        font.setBold(True);
+        self.alarmStatus.setFont(font)
         self.tabs = QTabWidget()
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
-
+        self.tab4 = QWidget()
         self.tabs.addTab(self.tab1,"AMBU Control")
         self.tabs.addTab(self.tab2,"AMBU Expert")
-        self.tabs.addTab(self.tab3,"Calibration and Test")
-
+        self.tabs.addTab(self.tab3,"Setup and Test")
+        self.tabs.addTab(self.tab4,"About")
+        self.tabs.setTabPosition(QTabWidget.East)
+        self.setupPlots()
         self.setupPageOne()
         self.setupPageTwo()
         self.setupPageThree()
+        self.setupPageFour()
+        top.addWidget(self.alarmStatus)
         top.addWidget(self.tabs)
         self.last_update=time.time()
         QTimer.singleShot(100,self.updateAll)
+    def setupPlots(self):
+        self.gl1=pg.GraphicsLayoutWidget(border=pg.mkPen(color=None,width=2))
+        self.gl1.setBackground("w")
+        self.gl1.setFrameStyle(QFrame.Box)
+        self.gl2=pg.GraphicsLayoutWidget(border=pg.mkPen(color=None,width=2))
+        self.gl2.setBackground("w")
+        self.gl2.setFrameStyle(QFrame.Box)
+        self.plot1=[None]*3
+        self.plot1[0]=self.gl1.addPlot(row=1,col=1)
+        self.plot1[1]=self.gl1.addPlot(row=2,col=1)
+        self.plot1[2]=self.gl1.addPlot(row=3,col=1)
+        self.plot1[0].setLabel('bottom',"Time",color='black')
+        self.plot1[1].setLabel('bottom',"Time",color='black')
+        self.plot1[2].setLabel('bottom',"Time",color='black')
+        self.plot2=[None]*3
+        self.plot2[0]=self.gl2.addPlot(row=1,col=1)
+        self.plot2[1]=self.gl2.addPlot(row=2,col=1)
+        self.plot2[2]=self.gl2.addPlot(row=3,col=1)
+        self.plot2[0].setLabel('bottom',"Time",color='black')
+        self.plot2[1].setLabel('bottom',"Time",color='black')
+        self.plot2[2].setLabel('bottom',"Time",color='black')
+        self.legend1=[None]*3
+        self.legend2=[None]*3
+        for i in range(3):
+            self.legend1[i]=self.plot1[i].addLegend(offset=(15,0),brush=pg.mkBrush((0,0,0,0)))
+            self.legend1[i].anchor((0,0), (0,0))
+        for i in range(3):
+            self.legend2[i]=self.plot2[i].addLegend(offset=(15,0),brush=pg.mkBrush((0,0,0,0)))
+            self.legend2[i].anchor((0,0), (0,0))
+        if self.refPlot:
+            self.plot1[0].setLabel('left',"Ref Flow SL/Min",color='black')
+        else:
+            self.plot1[0].setLabel('left',"Press cmH20",color='black')
+
+        self.plot1[1].setLabel('left',"Flow L/Min",color='black')
+        self.plot1[2].setLabel('left',"Volume mL",color='black')
+        if self.refPlot:
+            self.plot2[0].setLabel('left',"Ref Flow SL/Min",color='black')
+        else:
+            self.plot2[0].setLabel('left',"Press cmH20",color='black')
+
+        self.plot2[1].setLabel('left',"Flow L/Min",color='black')
+        self.plot2[2].setLabel('left',"Volume mL",color='black')
+        for p in self.plot1:
+            p.setXRange(-60,0)
+            p.setAutoVisible(x=False,y=False)
+            p.enableAutoRange('x',False)
+            p.enableAutoRange('y',False)
+            p.setMouseEnabled(x=False,y=False)
+            p.setMenuEnabled(False)
+            p.hideButtons()
+        for p in self.plot2:
+            p.setXRange(-60,0)
+            p.setAutoVisible(x=False,y=False)
+            p.enableAutoRange('x',False)
+            p.enableAutoRange('y',False)
+            p.setMouseEnabled(x=False,y=False)
+            p.setMenuEnabled(False)
+            p.hideButtons()
+
+        self.curve1=[None]*7
+        self.curve2=[None]*7
+        width=3
+        self.curve1[0]=self.plot1[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
+        self.curve1[1]=self.plot1[0].plot(pen=pg.mkPen("r",width=width),name="PMax")
+        self.curve1[2]=self.plot1[0].plot(pen=pg.mkPen("g",width=width),name="Trg Thresh")
+        self.curve1[3]=self.plot1[0].plot(pen=pg.mkPen("r",width=width),name="PEEP min")
+        self.curve1[4]=self.plot1[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
+        self.curve1[5]=self.plot1[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
+        self.curve1[6]=self.plot1[2].plot(pen=pg.mkPen("r",width=width),name="VMax")
+        self.curve2[0]=self.plot2[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
+        self.curve2[1]=self.plot2[0].plot(pen=pg.mkPen("r",width=width),name="PMax")
+        self.curve2[2]=self.plot2[0].plot(pen=pg.mkPen("g",width=width),name="Trg Thresh")
+        self.curve2[3]=self.plot2[0].plot(pen=pg.mkPen("r",width=width),name="PEEP min")
+        self.curve2[4]=self.plot2[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
+        self.curve2[5]=self.plot2[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
+        self.curve2[6]=self.plot2[2].plot(pen=pg.mkPen("r",width=width),name="VMax")
+
+
     def setupPageOne(self):
 
         top = QHBoxLayout()
@@ -131,68 +264,10 @@ class ControlGui(QWidget):
         top.addLayout(left)
 
         # Plot on right
-        #self.plotWidget=pg.GraphicsView()
-        self.gl=pg.GraphicsLayoutWidget()
-        self.gl.setBackground("w")
-        self.plot=[None]*3
-        self.item=[None]*3
-        self.plot[0]=self.gl.addPlot(row=1,col=1)
-        self.plot[1]=self.gl.addPlot(row=2,col=1)
-        self.plot[2]=self.gl.addPlot(row=3,col=1)
-        item=pg.PlotItem()
-        self.hidden=item.plot(pen=pg.mkPen("w"))
-
-        self.plot[0].setLabel('bottom',"Time",color='black')
-        self.plot[1].setLabel('bottom',"Time",color='black')
-        self.plot[2].setLabel('bottom',"Time",color='black')
-        legend=[None]*3
-        legend[0]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-25)
-        self.gl.addItem(legend[0],row=1,col=2)
-        legend[1]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-100)
-        self.gl.addItem(legend[1],row=2,col=2)
-        legend[2]=pg.LegendItem(brush=pg.mkBrush("w"),horSpacing=-25)
-        self.gl.addItem(legend[2],row=3,col=2)
-        if self.refPlot:
-            self.plot[0].setLabel('left',"Ref Flow SL/Min",color='black')
-        else:
-            self.plot[0].setLabel('left',"Press cmH20",color='black')
-        self.plot[1].setLabel('left',"Flow L/Min",color='black')
-        self.plot[2].setLabel('left',"Volume mL",color='black')
-        for l in legend:
-            pass
-        for p in self.plot:
-            p.setXRange(-60,0)
-            p.setAutoVisible(x=False,y=False)
-            p.enableAutoRange('x',False)
-            p.enableAutoRange('y',False)
-            p.setMouseEnabled(x=False,y=False)
-            p.setMenuEnabled(False)
-            p.hideButtons()
-
-        self.curve=[None]*7
-        width=3
-        self.curve[0]=self.plot[0].plot(pen=pg.mkPen("m",width=width),name="Pressure")
-        self.curve[1]=self.plot[0].plot(pen=pg.mkPen("r",width=width),name="P-thresh-high")
-        self.curve[2]=self.plot[0].plot(pen=pg.mkPen("g",width=width),name="P-thresh-low")
-        self.curve[3]=self.plot[0].plot(pen=pg.mkPen("r",width=width),name="Peep min")
-        self.curve[4]=self.plot[1].plot(pen=pg.mkPen("g",width=width),name="Flow")
-        self.curve[5]=self.plot[2].plot(pen=pg.mkPen("b",width=width),name="Volume")
-        self.curve[6]=self.plot[2].plot(pen=pg.mkPen("r",width=width),name="V-thresh-high")
-
-        legend[0].addItem(self.curve[0],"Pressure")
-        legend[0].addItem(self.curve[1],"P-thresh-high")
-        legend[0].addItem(self.curve[2],"P-thresh-low")
-        legend[0].addItem(self.curve[3],"Peep min")
-        for i in range(3): legend[0].addItem(self.hidden,"")
-        legend[1].addItem(self.curve[4],"Flow")
-        for i in range(6): legend[1].addItem(self.hidden,"")
-        legend[2].addItem(self.curve[5],"Volume")
-        legend[2].addItem(self.curve[6],"V-thresh-high")
-        for i in range(5): legend[2].addItem(self.hidden,"")
-        top.addWidget(self.gl,66)
-
+        top.addWidget(self.gl1)
         # Controls on left
         gb = QGroupBox('Control')
+        gb.setFixedWidth(320)
         left.addWidget(gb)
 
         fl = QFormLayout()
@@ -209,27 +284,31 @@ class ControlGui(QWidget):
         self.inhTime = QLineEdit()
         self.inhTime.returnPressed.connect(self.setInhTime)
         self.updateInhTime.connect(self.inhTime.setText)
-        fl.addRow('Inhalation Time (S):',self.inhTime)
+        fl.addRow('Inhalation Time (sec):',self.inhTime)
 
         self.volInhThold = QLineEdit()
         self.volInhThold.returnPressed.connect(self.setVolInhThold)
         self.updateVolInhThold.connect(self.volInhThold.setText)
-        fl.addRow('Vol Inh P (cmH20):',self.volInhThold)
+        fl.addRow('Trg. Thresh. (cmH20):',self.volInhThold)
 
         self.pipMax = QLineEdit()
         self.pipMax.returnPressed.connect(self.setPipMax)
         self.updatePipMax.connect(self.pipMax.setText)
-        fl.addRow('Pip Max (cmH20):',self.pipMax)
+        fl.addRow('PMax (cmH20):',self.pipMax)
 
         self.volMax = QLineEdit()
         self.volMax.returnPressed.connect(self.setVolMax)
         self.updateVolMax.connect(self.volMax.setText)
-        fl.addRow('V Max (mL):',self.volMax)
+        fl.addRow('VMax (mL):',self.volMax)
 
         self.peepMin = QLineEdit()
         self.peepMin.returnPressed.connect(self.setPeepMin)
         self.updatePeepMin.connect(self.peepMin.setText)
-        fl.addRow('Peep Min (cmH20):',self.peepMin)
+        fl.addRow('PEEP Min (cmH20):',self.peepMin)
+
+        self.modeControl = ModeSwitch()
+        self.modeControl.clicked.connect(self.setMode)
+        fl.addRow('Volume - Pressure:',self.modeControl)
 
         self.runControl = PowerSwitch()
         self.runControl.clicked.connect(self.setRunState)
@@ -271,16 +350,19 @@ class ControlGui(QWidget):
         cycleRunTime=QLineEdit()
         cycleRunTime.setText("0")
         cycleRunTime.setReadOnly(True)
-        # I think we want the time since they last clicked to start a cycle. there are a lot of times, I’ll try to find a way to make this less confusing.
-        fl.addRow('Cycle run time:',cycleRunTime)
-
-
+        self.updateOnTime.connect(cycleRunTime.setText)
+        fl.addRow('Cycle run time (s):',cycleRunTime)
         cycles = QLineEdit()
         cycles.setText("0")
         cycles.setReadOnly(True)
         self.updateCount.connect(cycles.setText)
         fl.addRow('Breaths:',cycles)
-        # I think we want breaths since cycle start rather than software start?
+
+        ieRatio=QLineEdit()
+        ieRatio.setText("0")
+        ieRatio.setReadOnly(True)
+        self.updateIeRatio.connect(ieRatio.setText)
+        fl.addRow('IE Ratio:',ieRatio)
 
 
     def setupPageTwo(self):
@@ -295,7 +377,7 @@ class ControlGui(QWidget):
         top.addLayout(right)
 
         # Period Control
-        gb = QGroupBox('GUI Control')
+        gb = QGroupBox('Control Parameters')
         left.addWidget(gb)
 
         vl = QVBoxLayout()
@@ -317,16 +399,26 @@ class ControlGui(QWidget):
         self.stateControl.currentIndexChanged.connect(self.setState)
         fl.addRow('State:',self.stateControl)
 
-        self.pipOffset = QLineEdit()
-        self.pipOffset.returnPressed.connect(self.setPipOffset)
-        self.updatePipOffset.connect(self.pipOffset.setText)
-        fl.addRow('Pip Offset (cmH20):',self.pipOffset)
+        #self.pipOffset = QLineEdit()  #Issue111 - no longer used
+        #self.pipOffset.returnPressed.connect(self.setPipOffset)
+        #self.updatePipOffset.connect(self.pipOffset.setText)
+        #fl.addRow('PIP Offset (cmH20):',self.pipOffset)
 
         self.volFactor = QLineEdit()
         self.volFactor.returnPressed.connect(self.setVolFactor)
         self.updateVolFactor.connect(self.volFactor.setText)
         fl.addRow('Vol Factor:',self.volFactor)
+        gb = QGroupBox('Vertical Limits for Time Plots')
+        left.addWidget(gb)
 
+        vl = QVBoxLayout()
+        gb.setLayout(vl)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        vl.addLayout(fl)
         self.pMinValue = QLineEdit()
         self.pMinValue.setText("-5")
 
@@ -361,7 +453,7 @@ class ControlGui(QWidget):
 
         # moved from front page
         # Status
-        gb = QGroupBox('Status')
+        gb = QGroupBox('Alarms')
         right.addWidget(gb)
 
         fl = QFormLayout()
@@ -374,7 +466,7 @@ class ControlGui(QWidget):
         alarmPipMax.setText("0")
         alarmPipMax.setReadOnly(True)
         self.updateAlarmPipMax.connect(alarmPipMax.setText)
-        fl.addRow('Pip Max Alarm:',alarmPipMax)
+        fl.addRow('Press High Alarm:',alarmPipMax)
 
         alarmVolLow = QLineEdit()
         alarmVolLow.setText("0")
@@ -382,41 +474,66 @@ class ControlGui(QWidget):
         self.updateAlarmVolLow.connect(alarmVolLow.setText)
         fl.addRow('Vol Low Alarm:',alarmVolLow)
 
-        alarm12V = QLineEdit()
-        alarm12V.setText("0")
-        alarm12V.setReadOnly(True)
-        self.updateAlarm12V.connect(alarm12V.setText)
-        fl.addRow('12V Alarm:',alarm12V)
-
-        warn9V = QLineEdit()
-        warn9V.setText("0")
-        warn9V.setReadOnly(True)
-        self.updateWarn9V.connect(warn9V.setText)
-        fl.addRow('9V Alarm:',warn9V)
-
         alarmPresLow = QLineEdit()
         alarmPresLow.setText("0")
         alarmPresLow.setReadOnly(True)
         self.updateAlarmPresLow.connect(alarmPresLow.setText)
         fl.addRow('Press Low Alarm:',alarmPresLow)
 
+
+        alarm12V = QLineEdit()
+        alarm12V.setText("0")
+        alarm12V.setReadOnly(True)
+        self.updateAlarm12V.connect(alarm12V.setText)
+        fl.addRow('12V Alarm:',alarm12V)
+
+        gb = QGroupBox('Warnings')
+        right.addWidget(gb)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
+
         warnPeepMin = QLineEdit()
         warnPeepMin.setText("0")
         warnPeepMin.setReadOnly(True)
         self.updateWarnPeepMin.connect(warnPeepMin.setText)
-        fl.addRow('Peep Min Warning:',warnPeepMin)
+        fl.addRow('PEEP Min Warning:',warnPeepMin)
+
+        warnVolLow  = QLineEdit()
+        warnVolLow.setText("0")
+        warnVolLow.setReadOnly(True)
+        self.updateWarnVolLow.connect(warnVolLow.setText)
+        fl.addRow('Vol Low Warning:',warnVolLow)
+
+        warnVolMax  = QLineEdit()
+        warnVolMax.setText("0")
+        warnVolMax.setReadOnly(True)
+        self.updateWarnVolMax.connect(warnVolMax.setText)
+        fl.addRow('Vol Max Warning:',warnVolMax)
+
+        warn9V = QLineEdit()
+        warn9V.setText("0")
+        warn9V.setReadOnly(True)
+        self.updateWarn9V.connect(warn9V.setText)
+        fl.addRow('9V Warn:',warn9V)
+
+        gb = QGroupBox('Status')
+        right.addWidget(gb)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
 
         cycles = QLineEdit()
         cycles.setText("0")
         cycles.setReadOnly(True)
         self.updateCount.connect(cycles.setText)
         fl.addRow('Breaths:',cycles)
-
-        sampRate = QLineEdit()
-        sampRate.setText("0")
-        sampRate.setReadOnly(True)
-        self.updateRate.connect(sampRate.setText)
-        fl.addRow('Sample Rate:',sampRate)
 
         cycVolMax = QLineEdit()
         cycVolMax.setText("0")
@@ -428,25 +545,7 @@ class ControlGui(QWidget):
         cycPipMax.setText("0")
         cycPipMax.setReadOnly(True)
         self.updateCycPipMax.connect(cycPipMax.setText)
-        fl.addRow('Max Pip (cmH20):',cycPipMax)
-
-        timeSinceStart=QLineEdit()
-        timeSinceStart.setText("0")
-        timeSinceStart.setReadOnly(True)
-        self.updateTime.connect(timeSinceStart.setText)
-        fl.addRow('Seconds since start:',timeSinceStart)
-
-        arduinoUptime=QLineEdit()
-        arduinoUptime.setText("0")
-        arduinoUptime.setReadOnly(True)
-        self.updateArTime.connect(arduinoUptime.setText)
-        fl.addRow('Arduino uptime (s):',arduinoUptime)
-
-        guiVersion = QLineEdit()
-        guiVersion.setText(git_version)
-        guiVersion.setReadOnly(True)
-        fl.addRow('GUI version:',guiVersion)
-
+        fl.addRow('Max PIP (cmH20):',cycPipMax)
 
         # Log File
         gb = QGroupBox('Log File')
@@ -501,7 +600,7 @@ class ControlGui(QWidget):
 
         #controls group box{
         gb = QGroupBox('Relay Control (Disabled for now to avoid conflict)')
-        right.addWidget(gb)
+        left.addWidget(gb)
 
         right.addSpacing(20)
 
@@ -518,21 +617,10 @@ class ControlGui(QWidget):
         self.stateControl2.addItem("Relay Force On")
         self.stateControl2.addItem("Relay Run Off")
         self.stateControl2.addItem("Relay Run On")
-        #self.stateControl.setCurrentIndex(3)
-        #self.updateState.connect(self.stateControl.setCurrentIndex)
-        #self.stateControl.currentIndexChanged.connect(self.setState)
+
         fl.addRow('State:',self.stateControl2)
-
-
-        #} end controls gb
-
-        #using self.plot makes it disappear from other page... this is placeholder for now
-
-
-        # left
         gb = QGroupBox('Calibration Instructions')
         left.addWidget(gb)
-        #left.addSpacing(300)
         gb.setMinimumWidth(450)
         gb.setMaximumHeight(500)
 
@@ -541,6 +629,18 @@ class ControlGui(QWidget):
 
         #Text field and control buttons for instructions
 
+        self.alarmsText= {
+            "alarmPipMax" : "Alarm: Peak Patient Inspiratory pressure exceeded. Check PIP Valve!",
+            "alarmVolLow" :  "Alarm: Low Tidal Volume. Check Ventilator, patient circuit!",
+            "alarm12V" : "Alarm: Electrical power lost!",
+            "alarmPresLow" : "Alarm: Patient Inspiratory Pressure low, Check patient circuit!",
+            "warn9V" : "Warning: Battery low. Replace soon!",
+            "warnPeepMin" : "Warning: Pressure below PEEP. Check patient circuit!",
+            "warnVolLow"  : "Warning: Low tidal Volume.!",
+            "warnVolMax"  : "Warning: High tidal Volume.!"
+        }
+        self.alarmsActive= list()
+        self.alarmCount=0
         self.instructions = []
 
         self.instructions.append("Click 'Next' to begin calibration procedure")
@@ -609,7 +709,8 @@ class ControlGui(QWidget):
 
         #add results groupbox
         gb_results = QGroupBox('Results')
-        left.addWidget(gb_results)
+        #left.addWidget(gb_results)
+        right.addWidget(self.gl2)
         #left.addSpacing(300)
         gb_results.setMinimumWidth(450)
         gb_results.setMinimumHeight(300)
@@ -620,6 +721,66 @@ class ControlGui(QWidget):
         #results_hbox.addLayout(nameofthing)
         self.doInit=True
         self.line=[None]*7
+    def setupPageFour(self):
+        top = QHBoxLayout()
+        self.tab4.setLayout(top)
+
+        left = QVBoxLayout()
+        top.addLayout(left)
+
+        right = QVBoxLayout()
+        top.addLayout(right)
+        gb = QGroupBox('Status')
+        gb.setFixedWidth(800)
+        left.addWidget(gb)
+
+        fl = QFormLayout()
+        fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        fl.setLabelAlignment(Qt.AlignRight)
+        gb.setLayout(fl)
+
+        sampRate = QLineEdit()
+        sampRate.setText("0")
+        sampRate.setReadOnly(True)
+        self.updateRate.connect(sampRate.setText)
+        fl.addRow('Sample Rate:',sampRate)
+
+        timeSinceStart=QLineEdit()
+        timeSinceStart.setText("0")
+        timeSinceStart.setReadOnly(True)
+        self.updateTime.connect(timeSinceStart.setText)
+        fl.addRow('GUI uptime (s):',timeSinceStart)
+
+        arduinoUptime=QLineEdit()
+        arduinoUptime.setText("0")
+        arduinoUptime.setReadOnly(True)
+        self.updateArTime.connect(arduinoUptime.setText)
+        fl.addRow('Device uptime (s):',arduinoUptime)
+
+        guiVersion = QLineEdit()
+        guiVersion.setText(git_version)
+        guiVersion.setReadOnly(True)
+        fl.addRow('GUI version:',guiVersion)
+
+        deviceVersion = QLineEdit()
+        deviceVersion.setText("")
+        deviceVersion.setReadOnly(True)
+        self.updateVersion.connect(deviceVersion.setText)
+        fl.addRow('Control SW version:',deviceVersion)
+
+        deviceSerial = QLineEdit()
+        deviceSerial.setText("")
+        deviceSerial.setReadOnly(True)
+        self.updateSerial.connect(deviceSerial.setText)
+        fl.addRow('Device Serial Nr:',deviceSerial)
+
+        comPort = QLineEdit()
+        comPort.setText("")
+        comPort.setReadOnly(True)
+        self.updateCom.connect(comPort.setText)
+        fl.addRow('COM port',comPort)
+
 
     def performAction(self):
         try:
@@ -775,6 +936,19 @@ class ControlGui(QWidget):
             pass
 
     @pyqtSlot(bool)
+    def setMode(self,st):
+        try:
+
+            if st:
+                self.ambu.runMode = 1
+            else:
+                self.ambu.runMode = 0
+
+        except Exception as e:
+            #print(f"Got GUI value error {e}")
+            pass
+
+    @pyqtSlot(bool)
     def setRunState(self,st):
         pass
         if st and self.stateControl.currentIndex() != 3:
@@ -809,7 +983,7 @@ class ControlGui(QWidget):
             state=not self.beginLog.isEnabled() and not self.endLog.isEnabled()
             if(state):
                 self.beginLog.setEnabled(True)
-                self.logFile.setText(f)
+            self.logFile.setText(f)
             self.logFile.update()
 
 
@@ -824,38 +998,91 @@ class ControlGui(QWidget):
         self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
 
         self.updateState.emit(self.ambu.runState)
+        self.updateMode.emit(self.ambu.runMode)
 
         if self.ambu.runState == 3:
             self.runControl.setChecked(True)
         else:
             self.runControl.setChecked(False)
 
-        self.updateVersion.emit(str(self.ambu.version))
+    def setAlarm(self,tag,cond):
+        if(cond):
+            if(tag not in self.alarmsActive):
+                self.alarmsActive.append(tag)
+        else:
+            if(tag in self.alarmsActive):
+                self.alarmsActive.remove(tag)
 
-    def updateDisplay(self,count,rate,stime,artime,volMax,pipMax):
+    def calculateIERatio(self, ie_float):
+        if ie_float < 1.0:
+            # Then we want to display 1:1.1 or wiatever
+            return '1 : %.1f'%(1.0/ie_float)
+        else: #ie_float<1.0
+            # then we want to display "2:1 or whatever"
+            return '%.1f : 1'%(ie_float)
+
+    def updateDisplay(self,count,rate,stime,artime,volMax,pipMax,ieRatio,onTime):
         self.updateCount.emit(str(count))
         self.updateRate.emit(f"{rate:.1f}")
         self.updateTime.emit(f"{stime:.1f}")
         self.updateArTime.emit(f"{artime:.1f}")
         self.updateCycVolMax.emit(f"{volMax:.1f}")
         self.updateCycPipMax.emit(f"{pipMax:.1f}")
+        self.updateVersion.emit(str(self.ambu.version))
+        self.updateSerial.emit(self.ambu.cpuId)
+        self.updateCom.emit(self.ambu.com)
+        self.updateOnTime.emit(f"{onTime:.1f}")
+        self.updateIeRatio.emit(str(self.calculateIERatio(ieRatio)))
 
+    def updateAlarms(self):
         self.updateAlarmPipMax.emit("{}".format(self.ambu.alarmPipMax))
         self.updateAlarmVolLow.emit("{}".format(self.ambu.alarmVolLow))
         self.updateAlarm12V.emit("{}".format(self.ambu.alarm12V))
         self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
         self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
         self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
-        if self.ambu.alarmPipMax or self.ambu.alarmVolLow or self.ambu.alarm12V or self.ambu.alarmPresLow:
-            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: red; color: black }""")
-            self.alarmStatus.setText("Alarm")
-        elif self.ambu.warn9V or self.ambu.warnPeepMin:
-            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: yellow; color: black }""")
-            self.alarmStatus.setText("Warning")
+        self.updateWarnVolLow.emit("{}".format(self.ambu.warnVolLow))
+        self.updateWarnVolMax.emit("{}".format(self.ambu.warnVolMax))
 
-        else:
-            self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
-            self.alarmStatus.setText("Clear")
+        ts=time.time()
+        dt=ts-self.blink_time
+        if(dt > 1):
+            self.blink_time=ts
+            self.setAlarm("alarmPipMax",self.ambu.alarmPipMax)
+            self.setAlarm("alarmVolLow",self.ambu.alarmVolLow)
+            self.setAlarm("alarm12V",self.ambu.alarm12V)
+            self.setAlarm("alarmPresLow",self.ambu.alarmPresLow)
+            self.setAlarm("warn9V",self.ambu.warn9V)
+            self.setAlarm("warnPeepMin",self.ambu.warnPeepMin)
+            self.setAlarm("warnVolLow",self.ambu.warnVolLow)
+            self.setAlarm("warnVolMax",self.ambu.warnVolMax)
+            nAlarms=len(self.alarmsActive)
+            if(nAlarms==0):
+                self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")
+                self.alarmStatus.setText("")
+                self.alarmCount=0
+            else:
+                if(self.alarmCount>=nAlarms): self.alarmCount=0
+                text=self.alarmsText[self.alarmsActive[self.alarmCount]]
+                self.alarmStatus.setText(text)
+                if(text.startswith("Alarm")):
+                    label=self.alarmStatus
+                    if(self.blinkStat):
+                        self.alarmStatus.setStyleSheet("""QLabel { background-color: red; color: black }""")
+                        self.blinkStat=False
+                    else:
+                        self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: black  }""")
+                        self.blinkStat=True
+                else:
+                    label=self.alarmStatus
+                    if(self.blinkStat):
+                        self.alarmStatus.setStyleSheet("""QLabel { background-color: #FFC200; color: black }""")
+                        self.blinkStat=False
+                    else:
+                        self.alarmStatus.setStyleSheet("""QLabel { background-color: rgba(0, 0, 0, 0); color: black  }""")
+                        self.blinkStat=True
+            if(self.blinkStat):
+                self.alarmCount=self.alarmCount+1
 
     def updatePlot(self,inData):
         ambu_data = inData.get_data()
@@ -864,9 +1091,28 @@ class ControlGui(QWidget):
         xa =  ambu_data[0,:]
         xa=xa-xa[-1]
         try:
-            self.plot[0].setYRange(float(self.pMinValue.text()),float(self.pMaxValue.text()))
-            self.plot[1].setYRange(float(self.fMinValue.text()),float(self.fMaxValue.text()))
-            self.plot[2].setYRange(float(self.vMinValue.text()),float(self.vMaxValue.text()))
+            index=self.tabs.currentIndex()
+            pMin=float(self.pMinValue.text())
+            pMax=float(self.pMaxValue.text())
+            fMin=float(self.fMinValue.text())
+            fMax=float(self.fMaxValue.text())
+            vMin=float(self.vMinValue.text())
+            vMax=float(self.vMaxValue.text())
+            if(index==0):
+                self.plot1[0].setYRange(pMin,pMax)
+                self.plot1[1].setYRange(fMin,fMax)
+                self.plot1[2].setYRange(vMin,vMax)
+                self.plot1[0].getAxis('left').setTickSpacing(10, 5)
+                self.plot1[1].getAxis('left').setTickSpacing(25, 10)
+                self.plot1[2].getAxis('left').setTickSpacing(200, 50)
+            else:
+                self.plot2[0].setYRange(pMin,pMax)
+                self.plot2[1].setYRange(fMin,fMax)
+                self.plot2[2].setYRange(vMin,vMax)
+                self.plot2[0].getAxis('left').setTickSpacing(10, 5)
+                self.plot2[1].getAxis('left').setTickSpacing(25, 10)
+                self.plot2[2].getAxis('left').setTickSpacing(200, 50)
+
             data=[None]*7
             data[0]=ambu_data[2,:]
             data[1]=ambu_data[6,:]
@@ -877,8 +1123,10 @@ class ControlGui(QWidget):
             data[6]=ambu_data[7,:]
 
             for i in range(7):
-                self.curve[i].setData(xa,data[i])
-            #self.gl.update()
+                if(index==0):
+                    self.curve1[i].setData(xa,data[i])
+                else:
+                    self.curve2[i].setData(xa,data[i])
         except Exception as e:
             #print(e)
             pass
@@ -886,11 +1134,11 @@ class ControlGui(QWidget):
     def updateAll(self):
         ts=time.time()
         rate=100
-
         try:
-            (data, count, rate, stime, artime, volMax, pipMax) = self._queue.get(block=False)
-            self.updateDisplay(count,rate,stime,artime,volMax,pipMax)
+            (data, count, rate, stime, artime, volMax, pipMax, ieRatio, onTime) = self._queue.get(block=False)
+            self.updateDisplay(count,rate,stime,artime,volMax,pipMax,ieRatio,onTime)
             self.updatePlot(data)
+            self.updateAlarms()
         except:
             pass
         dt=(time.time()-self.last_update)*1000

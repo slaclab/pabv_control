@@ -15,16 +15,18 @@ the ability to change the set value.
 #include "Adafruit_ILI9341.h"
 #include <stdint.h>
 
-static inline constexpr uint8_t pPEEP=0;
+static inline constexpr uint8_t pPEEP= 0;
 static inline constexpr uint8_t pPIP= 1;
 static inline constexpr uint8_t pVol=  2;
-static inline constexpr uint8_t pRR= 3;
-static inline constexpr uint8_t pIH= 4;
-static inline constexpr uint8_t pTH= 5;
-static inline constexpr uint8_t pVmax= 6;
-static inline constexpr uint8_t pPmin= 7;
-static inline constexpr uint8_t pPmax= 8;
-static inline constexpr uint8_t nParam = 9;
+static inline constexpr uint8_t pIE=  3;
+static inline constexpr uint8_t pRR= 4;
+static inline constexpr uint8_t pIH= 5;   //inhale time
+static inline constexpr uint8_t pTH= 6;   //threshold
+static inline constexpr uint8_t pVmax= 7;
+static inline constexpr uint8_t pPmin= 8;
+static inline constexpr uint8_t pPmax= 9;
+static inline constexpr uint8_t pMode= 10;
+static inline constexpr uint8_t nParam = 11;
 
 
 using GUI_elem  = struct  _GUI_elem {
