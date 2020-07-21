@@ -29,15 +29,15 @@ class PowerSwitch(QPushButton):
     def __init__(self, parent = None):
         super().__init__(parent)
         self.setCheckable(True)
-        self.setMinimumWidth(66)
-        self.setMinimumHeight(22)
+        self.setMinimumWidth(100)
+        self.setMinimumHeight(40)
 
     def paintEvent(self, event):
         label = "ON" if self.isChecked() else "OFF"
         bg_color = Qt.green if self.isChecked() else Qt.red
 
-        radius = 10
-        width = 32
+        radius = 14
+        width = 50
         center = self.rect().center()
 
         painter = QPainter(self)
@@ -132,10 +132,8 @@ class ControlGui(QWidget):
         self.setWindowTitle("SLAC Accute Shortage Ventilator")
 
         self.ambu = ambu
-        self.ambu.setDataCallBack(self.updateDisplay)
         self.ambu.setConfigCallBack(self.configUpdated)
-        self.ambu.setPlotCallBack(self.updatePlot)
-        self._queue=queue.LifoQueue(1)
+        self._queue=queue.Queue(1)
         self.ambu.setQueue(self._queue)
         self.respRate     = None
         self.inhTime      = None
@@ -271,6 +269,7 @@ class ControlGui(QWidget):
         left.addWidget(gb)
 
         fl = QFormLayout()
+        fl.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         fl.setRowWrapPolicy(QFormLayout.DontWrapRows)
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
@@ -320,6 +319,7 @@ class ControlGui(QWidget):
 
         # Status
         gb = QGroupBox('Status')
+        gb.setFixedWidth(300)
         left.addWidget(gb)
 
         fl = QFormLayout()
@@ -328,12 +328,8 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
 
-        self.alarmStatus = QLineEdit()
-        self.alarmStatus.setStyleSheet("""QLineEdit { background-color: lime; color: black }""")
-        self.alarmStatus.setText("Clear")
-        self.alarmStatus.setReadOnly(True)
         #this will be a switch that will display true and turn red if any of the alarm conditions are met.  Hovering or looking at expert page will say which.  maybe even alarms settings page? or just alarm settings group box on expert page?
-        fl.addRow('Alarm Status:',self.alarmStatus)
+        #fl.addRow('Alarm Status:',self.alarmStatus)
 
         cycVolMax = QLineEdit()
         cycVolMax.setText("0")
@@ -549,7 +545,7 @@ class ControlGui(QWidget):
 
         # Log File
         gb = QGroupBox('Log File')
-        right.addWidget(gb)
+        left.addWidget(gb)
 
         vl = QVBoxLayout()
         gb.setLayout(vl)
