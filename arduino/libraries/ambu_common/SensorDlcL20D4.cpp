@@ -18,7 +18,7 @@ void SensorDlcL20D4::setup() {
 void SensorDlcL20D4::update(uint32_t ctime) {
    uint8_t data[4];
    uint16_t x;
-   uint32_t raw;
+   double raw;
 
    // Read last cycles values for dlc
    Wire.requestFrom(addr_, byte(4));
@@ -26,10 +26,10 @@ void SensorDlcL20D4::update(uint32_t ctime) {
 
    if ( data[0] == 0x40 ) {
 
-     raw = (data[1] << 16) | (data[2] << 8) | (data[3]);
-       
+       raw = ((double)data[1] * 65536.0) + ((double)data[2] * 256.0) + (double)data[3];
+
        // Scaled value
-     scaled_ = 1.25 * ((double(raw) - 8388608.0) / 8388608.0) * 20.0 * 2.54;
+       scaled_ = 1.25 * ((raw - 8388608.0) / 8388608.0) * 20.0 * 2.54;
    }
 
    // Start new cycle for dlc, if not busy
