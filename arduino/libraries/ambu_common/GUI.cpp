@@ -90,7 +90,7 @@ void GUI::setup(){
   tft=Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
   SPI.begin();
   tft.begin();
-  tft.setRotation(1);
+  tft.setRotation(2);
   tft.fillScreen(_color(ILI9341_BLACK));
   Serial.println("Start....");
   for(unsigned i=0;i<nItems;i++) {

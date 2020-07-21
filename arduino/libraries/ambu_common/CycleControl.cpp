@@ -26,22 +26,12 @@ CycleControl::CycleControl (AmbuConfig &conf,
              stateTime_(0),
              cycleCountTotal_(0),
              cycleCountReal_(0),
-             onTime_(0),
-             onStartTime_(0),
-             ieRatio_(0),
-             inhTime_(0),
-             muteTime_(0),
-             wasOff_(true)
+             muteTime_(0)
 {  }
 
 
 void CycleControl::setup() {
    stateTime_ = millis();
-   onTime_ = 0;
-   onStartTime_ = millis();
-   ieRatio_ = 0.0;
-   inhTime_ = 0;
-
    cycleCountTotal_ = 0;
    cycleCountReal_ = 0;
 
@@ -172,30 +162,20 @@ void CycleControl::update(uint32_t ctime) {
 
       // Start of a new cycle
       if ( newState == StateOn ) {
+         stateTime_ = ctime;
          vol_.reset(ctime);
 
          if (conf_.getRunState() == conf_.StateRunOn) {
 
-            if ( conf_.getRunMode() == AmbuConfig::ModeVolume ) {
-               if ( (currVmax_ > (conf_.getVolMax() * 1.2)) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusWarnVolMax;
-               if ( (currVmax_ < (conf_.getVolMax() * 0.8)) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusWarnVolLow;
-            }
-            else {
-               if ( (currVmax_ < 250.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmVolLow;
-            }
+            // Volume on previous cycle never exceeded 100mL
+            if ( (currVmax_ < 100.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmVolLow;
 
             // Pressure on previous cycle never exceeded 5cmH20
             if ( (currPmax_ < 5.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmPressLow;
 
             // Update adjust volume max
-            if ( (cycleStatus_ & StatusAlarmWarnMask) == 0 ) {
-                if ( wasOff_ ) conf_.initAdjVolMax();
-                else conf_.updateAdjVolMax(currVmax_);
-            }
-            wasOff_ = false;
+            conf_.updateAdjVolMax(currVmax_);
          }
-
-         else wasOff_ = true;
 
          // Clear counters
          prevVmax_ = currVmax_;
@@ -213,15 +193,10 @@ void CycleControl::update(uint32_t ctime) {
          cycleCountTotal_++;
          if (conf_.getRunState() == conf_.StateRunOn) cycleCountReal_++;
          else cycleCountReal_ = 0;
-
-         // compute i/e ratio
-         ieRatio_ = float(inhTime_) / float(ctime - stateTime_);
-         stateTime_ = ctime;
       }
 
       // Going to off
       else if ( newState == StateOff ) {
-         inhTime_ = (ctime - stateTime_);
          stateTime_ = ctime;
       }
 
@@ -250,19 +225,19 @@ void CycleControl::update(uint32_t ctime) {
       digitalWrite(relayBPin_, RELAY_ON);
    }
 
-   // On state, paddle down, opening valve1, closing valve 2
+   // On state, paddle down
    else if ( state_ == StateOn ) {
       digitalWrite(relayAPin_, RELAY_ON);
       digitalWrite(relayBPin_, RELAY_OFF);
    }
 
-   // Off state, paddle up, closing valve 1, opening valve 2
+   // Off state, paddle up
    else if ( state_ == StateOff ) {
       digitalWrite(relayAPin_, RELAY_OFF);
       digitalWrite(relayBPin_, RELAY_ON);
    }
 
-   // Hold state, closing both valve 1 and valve 2
+   // Hold state
    else {
       digitalWrite(relayAPin_, RELAY_OFF);
       digitalWrite(relayBPin_, RELAY_OFF);
@@ -280,8 +255,6 @@ void CycleControl::update(uint32_t ctime) {
 
    // Warning LED
    if ( (currStatus_ & StatusWarn9V        ) ||
-        (currStatus_ & StatusWarnVolMax    ) ||
-        (currStatus_ & StatusWarnVolLow    ) ||
         (currStatus_ & StatusWarnPeepMin   ) ) {
 
       digitalWrite(yelLedPin_, LED_ON);
@@ -291,20 +264,11 @@ void CycleControl::update(uint32_t ctime) {
    // Alarm Audio
    if ( ( (currStatus_ & StatusAlarmPipMax   ) ||
           (currStatus_ & StatusAlarmVolLow   ) ||
-          (currStatus_ & StatusAlarm12V      ) ||
           (currStatus_ & StatusAlarmPressLow ) ) && ((ctime - muteTime_) > 120000) ) {
 
       digitalWrite(piezoPin_, PIEZO_ON);
    }
    else digitalWrite(piezoPin_, PIEZO_OFF);
-
-   // Calculate time since going to on state
-   if (conf_.getRunState() == conf_.StateRunOn) {
-       onTime_ = (ctime - onStartTime_) / 1000;
-   }
-   else {
-       onStartTime_ = ctime;
-   }
 }
 
 void CycleControl::muteAlarm() {
