@@ -27,17 +27,16 @@ void SensorSp110Sm02::setup() {
 void SensorSp110Sm02::update(uint32_t ctime) {
    uint8_t data[2];
    uint16_t x;
-   double raw;
-
+   uint16_t temp;
+   int16_t raw;
    // Read value
    Wire.requestFrom(addr_, byte(2));
    for (x=0; x < 2; x++) data[x] = Wire.read();
 
-   raw = (double)((data[0] << 8) | data[1]);
+   temp = (data[0] << 8) | (data[1]);
+   raw=(int16_t) temp;
+   
 
-   // Negative
-   if ( raw > 32768 ) raw -= 65536.0;
-
-   scaled_ = raw * (2.0 / (0.9 * 32768.0));
+   scaled_ = double(raw) * (2.0 / (0.9 * 32768.0));
 }
 
