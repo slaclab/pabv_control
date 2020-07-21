@@ -120,6 +120,9 @@ class ControlGui(QWidget):
     updateWarn9V       = pyqtSignal(str)
     updateAlarmPresLow = pyqtSignal(str)
     updateWarnPeepMin  = pyqtSignal(str)
+    updateWarnVolLow   = pyqtSignal(str)
+    updateWarnVolMax   = pyqtSignal(str)
+
     updateSerial       = pyqtSignal(str)
     updateCom          = pyqtSignal(str)
 
@@ -495,11 +498,23 @@ class ControlGui(QWidget):
         self.updateWarnPeepMin.connect(warnPeepMin.setText)
         fl.addRow('PEEP Min Warning:',warnPeepMin)
 
+        warnVolLow  = QLineEdit()
+        warnVolLow.setText("0")
+        warnVolLow.setReadOnly(True)
+        self.updateWarnVolLow.connect(warnVolLow.setText)
+        fl.addRow('Vol Low Warning:',warnVolLow)
+
+        warnVolMax  = QLineEdit()
+        warnVolMax.setText("0")
+        warnVolMax.setReadOnly(True)
+        self.updateWarnVolMax.connect(warnVolMax.setText)
+        fl.addRow('Vol Max Warning:',warnVolMax)
+
         warn9V = QLineEdit()
         warn9V.setText("0")
         warn9V.setReadOnly(True)
         self.updateWarn9V.connect(warn9V.setText)
-        fl.addRow('9V Alarm:',warn9V)
+        fl.addRow('9V Warn:',warn9V)
 
         gb = QGroupBox('Status')
         right.addWidget(gb)
@@ -616,7 +631,9 @@ class ControlGui(QWidget):
             "alarm12V" : "Alarm: Electrical power lost!",
             "alarmPresLow" : "Alarm: Patient Inspiratory Pressure low, Check patient circuit!",
             "warn9V" : "Warning: Battery low. Replace soon!",
-            "warnPeepMin" : "Warning: Pressure below PEEP. Check patient circuit!"
+            "warnPeepMin" : "Warning: Pressure below PEEP. Check patient circuit!",
+            "warnVolLow"  : "Warning: Low tidal Volume.!",
+            "warnVolMax"  : "Warning: High tidal Volume.!"
         }
         self.alarmsActive= list()
         self.alarmCount=0
@@ -991,7 +1008,7 @@ class ControlGui(QWidget):
         else:
             if(tag in self.alarmsActive):
                 self.alarmsActive.remove(tag)
-                
+
     def calculateIERatio(self, ie_float):
         if ie_float < 1.0:
             # Then we want to display 1:1.1 or wiatever
@@ -1020,6 +1037,9 @@ class ControlGui(QWidget):
         self.updateWarn9V.emit("{}".format(self.ambu.warn9V))
         self.updateAlarmPresLow.emit("{}".format(self.ambu.alarmPresLow))
         self.updateWarnPeepMin.emit("{}".format(self.ambu.warnPeepMin))
+        self.updateWarnVolLow.emit("{}".format(self.ambu.warnVolLow))
+        self.updateWarnVolMax.emit("{}".format(self.ambu.warnVolMax))
+
         ts=time.time()
         dt=ts-self.blink_time
         if(dt > 1):
@@ -1030,6 +1050,8 @@ class ControlGui(QWidget):
             self.setAlarm("alarmPresLow",self.ambu.alarmPresLow)
             self.setAlarm("warn9V",self.ambu.warn9V)
             self.setAlarm("warnPeepMin",self.ambu.warnPeepMin)
+            self.setAlarm("warnVolLow",self.ambu.warnVolLow)
+            self.setAlarm("warnVolMax",self.ambu.warnVolMax)
             nAlarms=len(self.alarmsActive)
             if(nAlarms==0):
                 self.alarmStatus.setStyleSheet("""QLabel { background-color: lime; color: black }""")

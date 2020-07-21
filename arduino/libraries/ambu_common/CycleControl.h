@@ -25,13 +25,18 @@ class CycleControl {
       static const uint8_t StateHold = 2;
 
       // Statis Bits
-      static const uint8_t StatusAlarmPipMax    = 0x01;
-      static const uint8_t StatusAlarmVolLow    = 0x02;
-      static const uint8_t StatusAlarm12V       = 0x04;
-      static const uint8_t StatusWarn9V         = 0x08;
-      static const uint8_t StatusVolInh         = 0x10;
-      static const uint8_t StatusAlarmPressLow  = 0x20;
-      static const uint8_t StatusWarnPeepMin    = 0x40;
+      static const uint16_t StatusAlarmPipMax    = 0x0001;
+      static const uint16_t StatusAlarmVolLow    = 0x0002;
+      static const uint16_t StatusAlarm12V       = 0x0004;
+      static const uint16_t StatusWarn9V         = 0x0008;
+      static const uint16_t StatusVolInh         = 0x0010;
+      static const uint16_t StatusAlarmPressLow  = 0x0020;
+      static const uint16_t StatusWarnPeepMin    = 0x0040;
+      static const uint16_t StatusWarnVolLow     = 0x0080;
+      static const uint16_t StatusWarnVolMax     = 0x0100;
+
+      // Used to block adjustd vol max updates
+      static const uint16_t StatusAlarmWarnMask  = 0x1EF;
 
       // Min off period
       static const uint32_t MinOffMillis = 1000;

@@ -62,13 +62,13 @@ class cli:
         _base='arduino/'+sketch
         _config=_base+'/'+sketch+'.json'
         _hex=_base+'/'+sketch+'.hex'
-        cmd='compile -b %s --build-properties "compiler.cpp.extra_flags=-DGIT_VERSION=%s" --libraries arduino/libraries -o %s %s' \
-            % (board,git_version.tag,_hex,_base)        
+        cmd='compile -b %s --build-properties "compiler.cpp.extra_flags=-DGIT_VERSION=%s" --libraries arduino/libraries %s' \
+            % (board,git_version.tag,_base)        
         self.call(cmd)
     def upload(self,com,sketch,board):
         _hex="arduino/%s/%s.hex" % (sketch,sketch)
         _dir="arduino/%s" % sketch
-        cmd="upload -b %s -p %s -i %s %s" %(board,com,_hex,_dir)
+        cmd="upload -b %s -p %s %s" %(board,com,_dir)
         self.call(cmd)
     def list(self):
         self.call("board list")
