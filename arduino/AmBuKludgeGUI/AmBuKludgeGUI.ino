@@ -376,7 +376,7 @@ void select_changeable_parameter(uint8_t nparm){
   if (nparm == 5) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tTH_x, r3_label_y);
-  tft.print("InspP");
+  tft.print("Insp");
   if (nparm == 5) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tTH_x, r3_value_y);
@@ -560,55 +560,21 @@ void loop(){
         Serial.println(encDT);
         change_parameter_value( guiParamSelected, encDT );
         // Send the changed value to AmBuConfig
-        /*
-        config[0]=conf_.respRate;
-        config[1]=conf_.inhTime;
-        config[2]=conf_.pipMax;
-        config[3]=conf_.pipOffset;
-        config[4]=conf_.volMax;
-        config[5]=conf_.volFactor;
-        config[6]=conf_.volInThold;
-        config[7]=conf_.peepMin;
-        intConf[0]=conf_.runState;
-        intConf[1]=cfgSerialNum_;
-        intConf[2]=conf_.runMode;
-        */
         Message msg;
         Serial.print("Sending MSG: ");
         switch (guiParamSelected){
-          case 1: // RR = 0
-            msg.writeData(Message::PARAM_FLOAT,0,1,vRR,1,0);
-            break;
-          case 2: // IT = 1
-            msg.writeData(Message::PARAM_FLOAT,0,1,vIT,1,1);
-            break;
-          case 3: // VMax
-            msg.writeData(Message::PARAM_FLOAT,0,1,vVMax,1,4);
-            break;
-          case 4: // Mode
-            uint32_t intArray[2];
-            intArray[0] = 2;
-            if (vMode == true) intArray[1]=0; //ModeVolume
-            else intArray[1] = 1;
-            msg.writeData(Message::PARAM_INTEGER,0,0,NULL,2,intArray);
-            break;
-          case 5: // TH
-            msg.writeData(Message::PARAM_FLOAT,0,1,vTH,1,6);
-            break;
-          case 6: // PMin
-            msg.writeData(Message::PARAM_FLOAT,0,1,vPMin,1,7);
-            break;
-          case 7: // PMax
-            msg.writeData(Message::PARAM_FLOAT,0,1,vPMax,1,2);
-            break;
-          case 8: // Run
-            uint32_t intArray[2];
-            intArray[0] = 0;
-            if (vRun == true) intArray[1]=3; //2=runOff, 3=runOn
-            else intArray[1] = 2;
-            msg.writeData(Message::PARAM_INTEGER,0,0,NULL,2,intArray);
-            break;
+          case 1: //RR = 0
+            msg.writeData(Message::PARAM_FLOAT,0,1,float(vRR),1,0); 
         }
+
+        
+        
+        float floatData=parms[guiParamSelected];
+        Message msg;
+        Serial.print("Sending MSG: ");
+        Serial.print(intData[0]);
+        Serial.println(floatData);
+        msg.writeData(Message::PARAM_FLOAT,0,1,&floatData,1,intData);
         masterComm.send(msg);
       }
     }
