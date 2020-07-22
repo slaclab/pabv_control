@@ -482,19 +482,19 @@ float get_rand(double rmin, double rmax){
   return float(rmin + (rmax - rmin)* ((double)rand_long / 4.2949e9));
 }
 bool parseMode(uint32_t p){
-  //Run State (0=forceOff, 1=forceOn, 2=runOff, 3=runOn)
-  if (p == 3) return true;
-  return true;
+  //Run Mode (0=Vol, 1=Press)
+  if (p == 0) return true;
+  return false;
 }
 bool parseRun(uint32_t p){
-  // Run Mode (0=Vol, 1=Press)
-  if (p == 0) return false;
-  return true;
+  // Run State (0=forceOff, 1=forceOn, 2=runOff, 3=runOn)
+  if (p == 3) return true;
+  return false;
 }
 
 
 // Mesage Parameters from Control-Arduino
-float ambu_float[9];
+float ambu_float[10];
 uint32_t ambu_int[2];
 bool gotMsg;
 bool updateParms;
@@ -563,17 +563,6 @@ void loop(){
         change_parameter_value( guiParamSelected, encDT );
         // Send the changed value to AmBuConfig
         /*
-        config[0]=conf_.respRate;
-        config[1]=conf_.inhTime;
-        config[2]=conf_.pipMax;
-        config[3]=conf_.pipOffset;
-        config[4]=conf_.volMax;
-        config[5]=conf_.volFactor;
-        config[6]=conf_.volInThold;
-        config[7]=conf_.peepMin;
-        intConf[0]=conf_.runState;
-        intConf[1]=cfgSerialNum_;
-        intConf[2]=conf_.runMode;
         */
         Message msg;
         Serial.print("Sending MSG: ");
@@ -625,9 +614,10 @@ void loop(){
             if (vRun == true) iA[1]=3; //2=runOff, 3=runOn
             else iA[1] = 2;
             msg.writeData(Message::PARAM_INTEGER,0,0,NULL,2,iA);
+            Serial.print("(Run)");
+            Serial.print(vRun);
             break;
         }
-
         masterComm.send(msg);
       }
     }
@@ -659,9 +649,10 @@ void loop(){
       void getFloat(float *f) {for (unsigned i=0;i<_nFloat;i++) f[i]=_tempFloat[i]; }
       void getInt(uint32_t *d)  {for (unsigned i=0;i<_nInt;i++) d[i]=_tempInt[i];   }
     */
-    if (msg.nFloat()==9 && msg.nInt()==2){
+    if (msg.nFloat()==10 && msg.nInt()==2){
       gotMsg = true;
       msg.getFloat(ambu_float);
+      msg.getInt(ambu_int);
       vPEEP = ambu_float[0]; 
       vPIP  = ambu_float[1];
       vVOL  = ambu_float[2];
@@ -690,14 +681,14 @@ void loop(){
         vPMax = ambu_float[9];
         updateParms = true;
       }
-      if (vMode != parseMode(ambu_int[0]) && !(guiParamSelected==4 && guiParamEditing==true)){
-        //Run State (0=forceOff, 1=forceOn, 2=runOff, 3=runOn)
-        vMode = parseMode(ambu_int[0]);
+      if (vMode != parseMode(ambu_int[1]) && !(guiParamSelected==4 && guiParamEditing==true)){
+        //Run Mode (0=Vol, 1=Press)
+        vMode = parseMode(ambu_int[1]);
         updateParms = true;
       }
-      if (vRun != parseRun(ambu_int[1]) && !(guiParamSelected==8 && guiParamEditing==true)){
-        // Run Mode (0=Vol, 1=Press)
-        vRun = parseRun(ambu_int[1]);
+      if (vRun != parseRun(ambu_int[0]) && !(guiParamSelected==8 && guiParamEditing==true)){
+        // Run State (0=forceOff, 1=forceOn, 2=runOff, 3=runOn)
+        vRun = parseRun(ambu_int[0]);
         updateParms = true;
       }
     }
