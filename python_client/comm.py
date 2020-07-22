@@ -3,6 +3,7 @@ import serial.tools.list_ports
 import io
 import message
 import traceback
+import time
 
 class Comm:
     def __init__(self):
@@ -25,15 +26,16 @@ class Comm:
                     'USB Serial' in description
                 ):
                 try:
-                    ser=serial.Serial(port=port_no, baudrate=57600, timeout=1)
+                    ser=serial.Serial(port=port_no, baudrate=57600, timeout=0.2)
                 except:
-                    return
+                    continue
                 for i in range(1000):
                     m=message.Message()
                     self._ser=ser
-                    line=self.readPacket()
+                    line=None
+                    line=self.readPacket(False)
                     self._ser=None
-                    if line is None: continue
+                    if line is None: break
                     try:
                         m.decode(line)
                     except: continue
@@ -46,14 +48,17 @@ class Comm:
             if self._ser:                
                 return
 
-    def readPacket(self):
-        if(self._ser is None): self.connect()
+    def readPacket(self,reconnect=True):
+        if(self._ser is None and reconnect): self.connect()
         if(self._ser is None): return
         l=''
         while(True):
             try:
                 c = self._ser.read().decode('UTF-8')
             except:
+                self._ser=None
+                return None
+            if(len(c)==0):
                 self._ser=None
                 return None
             if(c!='-'):
