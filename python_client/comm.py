@@ -11,6 +11,8 @@ class Comm:
         self.port=None
         self.id=None
         self.connects=0
+        self.failures=0
+        self.decode=0
     def connect(self):
         self.connects=self.connects+1
         ports = list(serial.tools.list_ports.comports())
@@ -25,41 +27,43 @@ class Comm:
                     'USB-to-Serial' in description or
                     'USB Serial' in description
                 ):
+                ser=None
                 try:
-                    ser=serial.Serial(port=port_no, baudrate=57600, timeout=0.2)
-                except:
+                    ser=serial.Serial(port=port_no, baudrate=57600, timeout=0.05)
+                except Exception as e:
+                    self.failures=self.failures+1
                     continue
                 for i in range(1000):
                     m=message.Message()
-                    self._ser=ser
                     line=None
-                    line=self.readPacket(False)
-                    self._ser=None
-                    if line is None: break
+                    line=self._readPacket(ser,False)
+                    if line is None: continue
                     try:
                         m.decode(line)
-                    except: continue
-                    if(m.status!=m.ERR_OK): continue
-                    if(m.id==m.CPU_ID and m.nInt==4):
+                    except:
+                        self.decode=self.decode+1
+                        continue
+                    if(m.status==m.ERR_OK):
                         self._ser=ser
                         self.port=port_no
                         self.id=m.intData
-                        break
-            if self._ser:                
-                return
+                        return
+                    else: break
+                ser.close()
 
-    def readPacket(self,reconnect=True):
-        if(self._ser is None and reconnect): self.connect()
-        if(self._ser is None): return
+    def readPacket(self):
+        if(self._ser is None): self.connect()
+        if(self._ser is None): return None
+        line=self._readPacket(self._ser,True)
+        if(line is None): self._ser=None
+        return line
+
+    def _readPacket(self,ser,reconnect=True):
         l=''
         while(True):
             try:
-                c = self._ser.read().decode('UTF-8')
-            except:
-                self._ser=None
-                return None
-            if(len(c)==0):
-                self._ser=None
+                c = ser.read().decode('UTF-8')
+            except Exception as e:
                 return None
             if(c!='-'):
                 l=l+c
@@ -73,5 +77,3 @@ class Comm:
                 self._ser.write(data)
             except:
                 self._ser=None
-
-    

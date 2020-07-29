@@ -251,6 +251,8 @@ class AmbuControl(object):
 
     def stop(self):
         self._runEn = False
+        if(self._ser._ser):
+            self._ser._ser.close()
         self._thread.join()
 
 
