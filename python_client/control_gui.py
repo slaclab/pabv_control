@@ -595,7 +595,7 @@ class ControlGui(QWidget):
         # Controls and plot on right
 
         #controls group box{
-        gb = QGroupBox('Relay Control (Disabled for now to avoid conflict)')
+        gb = QGroupBox('Relay Control')
         left.addWidget(gb)
 
         right.addSpacing(20)
@@ -637,39 +637,44 @@ class ControlGui(QWidget):
         }
         self.alarmsActive= list()
         self.alarmCount=0
+        
         self.instructions = []
-
+        #0
         self.instructions.append("Click 'Next' to begin calibration procedure")
-
+        
+        #1:paddle up
         self.instructions.append("The ASV should be off and the paddle up. Please check that the patient circuit is connected and a test lung in place. Make sure the compressed air supply is connected and on.")
-
+        
+        #2: paddle up
         self.instructions.append("Press the paddle down by hand. The pressure, flow, and volume plots should indicate the bag compression.")
-
+        
+        #3: paddle cycling
         self.instructions.append("The ASV is now cycling. Check that the paddle pushes the AMBU bag down smoothly before the paddle comes up. Adjust the air supply valve as needed. Adjust the exhaust valve so paddle rises smoothly.")
-
-
+        
+        #4: paddle up for 5s
         self.instructions.append(" Leak Check. After the paddle goes down, observe the pressure plot. The pressure should decline slowly, taking at least 10 seconds to reach 0. Faster indicates a leak in the patient circuit.")
-
+        
+        #5: paddle up
         self.instructions.append( " PIP Check: Check that the  PIP valve has marked cap indicating it has been modified for higher pressure. Set PIP for 40 cm H2O using calibration plot.")
+        
+        #6: run 10 cycles, display observed result
+        self.instructions.append("Check on pressure vs time display that peak pressure is approximately 40 cm H2O. If higher, PIP Valve is not working properly. Replace.")
 
-        self.instructions.append(" Checking PIP.")
+        #7: paddle up
+        self.instructions.append("Please set PIP valve to 30 cm H2O. Please set PIP parameter to 20 cm H2O")
 
-        self.instructions.append(" Please set PIP to 30 cm H2O.")
-
-        self.instructions.append("Checking PIP")
-
-        self.instructions.append(" Please set PIP to 20 cm H2O.")
-
-        self.instructions.append(" Checking PIP.")
-
-        self.instructions.append(" Below are the data. The values should be consistent with the calibration plot.")
-
-        self.instructions.append("Please set PIP valve back to 30 cm H2O. Please set PIPmax parameter to 25 cm H2O.")
-
-        self.instructions.append(" The ASV is running. Check the pressure plot to see that the paddle cycle stops when PIPmax is reached.")
-
-        self.instructions.append("Calibration cycle compelete.")
-
+        #8: Pressure mode, cycling
+        self.instructions.append("The ASV is running. Check the pressure plot to see that the paddle cycle stops when PIP is reached, and that an alarm is generated.")
+        
+        #9: Paddle up, Volume mode
+        self.instructions.append("Reset the PIP parameter to 30, matching the valve. Set VMax to 300")
+         
+        #10: cycling: volume mode
+        self.instructions.append("The ASV is cycling. The volume should home in on VMax.")
+        
+        #11: Run off
+        self.instructions.append("The ASV should be ready for use")
+        
         self.instlength = len(self.instructions)
 
         self.index=0
@@ -780,14 +785,14 @@ class ControlGui(QWidget):
 
     def performAction(self):
         try:
-            if self.index == 1 or self.index == 2 or self.index == 5 or self.index == 7  or self.index == 9 or self.index == 11 or self.index == 12:
+            if self.index == 1 or self.index == 2 or self.index == 5 or self.index == 7  or self.index == 9 or self.index == 11:
                 self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle up")
                 self.stateControl.setCurrentIndex(0)
 
-            if self.index == 3 or self.index == 13 or self.index == 14:
+            if self.index == 3:
                 self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle cycling")
                 self.stateControl.setCurrentIndex(3)
-
+                      
             if self.index == 4:
                 self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle up for 5 seconds, then Paddle down")
                 self.stateControl.setCurrentIndex(0)
@@ -802,8 +807,8 @@ class ControlGui(QWidget):
                     sleeptimer=sleeptimer+0.1
                 if self.timeoutabort==0:
                     self.stateControl.setCurrentIndex(1)
-
-            if self.index == 6 or self.index == 8 or self.index == 10:
+                                       
+            if self.index == 6:
                 self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Running 10 cycles; calculating observed PIP from pressure plot.  Results will appear below.")
                 self.stateControl.setCurrentIndex(3)
                 sleeptime=30
@@ -817,7 +822,16 @@ class ControlGui(QWidget):
                     sleeptimer=sleeptimer+0.1
                 if self.timeoutabort==0:
                     self.stateControl.setCurrentIndex(0)
-
+                    
+            if self.index == 8:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle cycling in Pressure Mode.")
+                self.ambu.runMode = 1
+                self.stateControl.setCurrentIndex(3)
+                    
+            if self.index == 10:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle cycling in Volume Mode.")
+                self.ambu.runMode = 0
+                self.stateControl.setCurrentIndex(3)
 
         except Exception as e:
             print(f"Got GUI value error {e}")
