@@ -643,36 +643,39 @@ class ControlGui(QWidget):
         self.instructions.append("Click 'Next' to begin calibration procedure")
         
         #1:paddle up
-        self.instructions.append("The ASV should be off and the paddle up. Please check that the patient circuit is connected and a test lung in place. Make sure the compressed air supply is connected and on.")
+        self.instructions.append("The ASV should be off and the plunger up. Please check that the patient circuit is connected and a test lung in place. Make sure the compressed air supply is connected and on.")
         
         #2: paddle up
-        self.instructions.append("Press the paddle down by hand. The pressure, flow, and volume plots should indicate the bag compression.")
+        self.instructions.append("Press the plunger down by hand. The pressure, flow, and volume plots should indicate the bag compression.")
         
-        #3: paddle cycling
-        self.instructions.append("The ASV is now cycling. Check that the paddle pushes the AMBU bag down smoothly before the paddle comes up. Adjust the air supply valve as needed. Adjust the exhaust valve so paddle rises smoothly.")
+        #3 Settings
+        self.instructions.append("3) Set the mode to Pressure, set PMax to 40, and set VMin to 10.")
         
-        #4: paddle up for 5s
-        self.instructions.append(" Leak Check. After the paddle goes down, observe the pressure plot. The pressure should decline slowly, taking at least 10 seconds to reach 0. Faster indicates a leak in the patient circuit.")
+        #4: paddle cycling
+        self.instructions.append("The ASV is now cycling. Check that the plunger pushes the AMBU bag down smoothly, about ½ second,  before the plunger comes up. Adjust the air supply valve as needed. Adjust the exhaust valve so paddle rises smoothly")
         
-        #5: paddle up
-        self.instructions.append( " PIP Check: Check that the  PIP valve has marked cap indicating it has been modified for higher pressure. Set PIP for 40 cm H2O using calibration plot.")
+        #5: paddle up for 5s
+        self.instructions.append("Leak Check. After the plunger goes down, observe the pressure plot. The pressure should decline slowly, taking at least 10 seconds to reach 0. Faster indicates a leak in the patient circuit.")
         
-        #6: run 10 cycles, display observed result
-        self.instructions.append("Check on pressure vs time display that peak pressure is approximately 40 cm H2O. If higher, PIP Valve is not working properly. Replace.")
+        #6: paddle up
+        self.instructions.append( "PIP Check: Check that the  PIP valve has a marked cap indicating it has been modified for higher pressure. Set PIP to maximum (clockwise) position")
+        
+        #7: run 10 cycles
+        self.instructions.append("Check on pressure vs time display that peak pressure is not more than about 40 cm H2O. If higher, PIP Valve is not working properly. Replace.")
 
-        #7: paddle up
-        self.instructions.append("Please set PIP valve to 30 cm H2O. Please set PIP parameter to 20 cm H2O")
+        #8: paddle up
+        self.instructions.append("Set PIP valve back to 30 cm H2O. Use the provided calibration curve.  Set PMax parameter to 20 cm H2O")
 
-        #8: Pressure mode, cycling
+        #9: Cycling
         self.instructions.append("The ASV is running. Check the pressure plot to see that the paddle cycle stops when PIP is reached, and that an alarm is generated.")
         
-        #9: Paddle up, Volume mode
-        self.instructions.append("Reset the PIP parameter to 30, matching the valve. Set VMax to 300")
+        #10: Paddle up
+        self.instructions.append("Reset the Pmax parameter to 30, matching the valve. Set mode = Volume. Set VMax to 300")
          
-        #10: cycling: volume mode
+        #11: Cycling
         self.instructions.append("The ASV is cycling. The volume should home in on VMax.")
         
-        #11: Run off
+        #12: Run off
         self.instructions.append("The ASV should be ready for use")
         
         self.instlength = len(self.instructions)
@@ -785,16 +788,16 @@ class ControlGui(QWidget):
 
     def performAction(self):
         try:
-            if self.index == 1 or self.index == 2 or self.index == 5 or self.index == 7  or self.index == 9 or self.index == 11:
-                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle up")
+            if self.index == 1 or self.index == 2 or self.index == 6 or self.index == 8  or self.index == 10 or self.index == 12:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Plunger up")
                 self.stateControl.setCurrentIndex(0)
 
-            if self.index == 3:
-                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle cycling")
+            if self.index == 4:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Plunger cycling")
                 self.stateControl.setCurrentIndex(3)
                       
-            if self.index == 4:
-                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle up for 5 seconds, then Paddle down")
+            if self.index == 5:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Plunger up for 5 seconds, then Plunger down")
                 self.stateControl.setCurrentIndex(0)
                 sleeptime=5
                 sleeptimer=0
@@ -808,8 +811,8 @@ class ControlGui(QWidget):
                 if self.timeoutabort==0:
                     self.stateControl.setCurrentIndex(1)
                                        
-            if self.index == 6:
-                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Running 10 cycles; calculating observed PIP from pressure plot.  Results will appear below.")
+            if self.index == 7:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Running 10 cycles.")
                 self.stateControl.setCurrentIndex(3)
                 sleeptime=30
                 sleeptimer=0
@@ -823,14 +826,9 @@ class ControlGui(QWidget):
                 if self.timeoutabort==0:
                     self.stateControl.setCurrentIndex(0)
                     
-            if self.index == 8:
-                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle cycling in Pressure Mode.")
+            if self.index == 9 or self.index ==11:
+                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Plunger cycling.")
                 self.ambu.runMode = 1
-                self.stateControl.setCurrentIndex(3)
-                    
-            if self.index == 10:
-                self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Paddle cycling in Volume Mode.")
-                self.ambu.runMode = 0
                 self.stateControl.setCurrentIndex(3)
 
         except Exception as e:
