@@ -106,8 +106,8 @@ void CycleControl::update(uint32_t ctime) {
          cycleStatus_ |= StatusWarn9V;
          currStatus_  |= StatusWarn9V;
 
-         Serial.print("9V = ");
-         Serial.println(val);
+         //Serial.print("9V = ");
+         //Serial.println(val);
       }
    }
 
@@ -117,8 +117,8 @@ void CycleControl::update(uint32_t ctime) {
          cycleStatus_ |= StatusAlarm12V;
          currStatus_  |= StatusAlarm12V;
 
-         Serial.print("12V = ");
-         Serial.println(val);
+         //Serial.print("12V = ");
+         //Serial.println(val);
       }
    }
 
