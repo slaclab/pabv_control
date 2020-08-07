@@ -15,12 +15,12 @@ Comm masterComm(SerialPort);
 #define pin_encoderB 4
 
 // Arduino Pins to ILI9341-LCD setup
-static constexpr uint8_t TFT_DC=10;      //D10
+static constexpr uint8_t TFT_DC= 10;     //D10
 static constexpr uint8_t TFT_CS= -1;     //GND
 static constexpr uint8_t TFT_MOSI= 11;   //MOSI
 static constexpr uint8_t TFT_MISO= -1;   //Not used
 static constexpr uint8_t TFT_RST= 9;     //D9
-static constexpr uint8_t TFT_CLK= 13;	 //SCK
+static constexpr uint8_t TFT_CLK= 13; 	 //SCK
 // SETUP THE SCREEN
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
 
@@ -638,12 +638,17 @@ void loop(){
     guiParamSelected = 0;
     guiParamEditing = false;
     select_changeable_parameter(0); //sets both label and value to white
-    Serial.println("GUI timeout");
+    // Serial.println("GUI timeout");
   }
 
   if (curTime - prevUpdateTime > guiRefresh){
     Message msg;
     masterComm.read(msg);
+    Serial.print("Got Message ");
+    Serial.print(msg.nFloat());
+    Serial.print("/");
+    Serial.print(msg.nInt());
+    Serial.println("F/I");
     /* 
     From nano_control_superior.ino (~L122) expect 10 floats and 2 ints
       void getFloat(float *f) {for (unsigned i=0;i<_nFloat;i++) f[i]=_tempFloat[i]; }
@@ -651,6 +656,7 @@ void loop(){
     */
     if (msg.nFloat()==10 && msg.nInt()==2){
       gotMsg = true;
+      Serial.println("Got Valid Update Message");
       msg.getFloat(ambu_float);
       msg.getInt(ambu_int);
       vPEEP = ambu_float[0]; 

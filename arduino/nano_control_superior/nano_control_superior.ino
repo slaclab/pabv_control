@@ -39,7 +39,6 @@ void SERCOM1_Handler()
 #endif
 
 
-
 WDTZero watchdog;
 
 
@@ -92,7 +91,6 @@ void loop() {
    uint32_t currTime=millis();
 
    if ((currTime - sensorTime) > SENSOR_PERIOD_MILLIS ) {
-
       press.update(currTime);
       flow.update(currTime);
       vol.update(currTime);
@@ -131,14 +129,12 @@ void loop() {
       sendFloat[9]=conf.getPipMax();
       sendInt[0]=conf.getRunState();
       sendInt[1]=conf.getRunMode();
-     m.writeData(Message::DATA,currTime,9,sendFloat,2,sendInt);
+     m.writeData(Message::DATA,currTime,10,sendFloat,2,sendInt);
      displayComm.send(m);
      displayTime=currTime;
      // reset watchdog
      watchdog.clear();
    }
-
-
 
    relay.update(currTime);
    conf.update(currTime,relay);
