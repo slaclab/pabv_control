@@ -606,15 +606,31 @@ class ControlGui(QWidget):
         fl.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
+        
 
-        #relay control
-        self.stateControl2 = QComboBox()
-        self.stateControl2.addItem("Relay Force Off")
-        self.stateControl2.addItem("Relay Force On")
-        self.stateControl2.addItem("Relay Run Off")
-        self.stateControl2.addItem("Relay Run On")
+        self.pipMax = QLineEdit()
+        self.pipMax.returnPressed.connect(self.setPipMax)
+        self.updatePipMax.connect(self.pipMax.setText)
+        fl.addRow('PMax (cmH20):',self.pipMax)
 
-        fl.addRow('State:',self.stateControl2)
+        self.volMax = QLineEdit()
+        self.volMax.returnPressed.connect(self.setVolMax)
+        self.updateVolMax.connect(self.volMax.setText)
+        fl.addRow('VMax (mL):',self.volMax)
+
+        self.peepMin = QLineEdit()
+        self.peepMin.returnPressed.connect(self.setPeepMin)
+        self.updatePeepMin.connect(self.peepMin.setText)
+        fl.addRow('PEEP Min (cmH20):',self.peepMin)
+
+        self.modeControl = ModeSwitch()
+        self.modeControl.clicked.connect(self.setMode)
+        fl.addRow('Volume - Pressure:',self.modeControl)
+
+        self.runControl = PowerSwitch()
+        self.runControl.clicked.connect(self.setRunState)
+        fl.addRow('Run Enable:',self.runControl)
+
         gb = QGroupBox('Calibration Instructions')
         left.addWidget(gb)
         gb.setMinimumWidth(450)
