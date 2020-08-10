@@ -282,6 +282,8 @@ class AmbuControl(object):
             elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==3:
                 newSerial = m.intData[1]
 
+                print(f"Got config serial = {newSerial} old serial = {self._cfgSerialNum}")
+
                 if newSerial != self._cfgSerialNum:
                     self._cfgSerialNum = newSerial
                     self._respRate    = m.floatData[0]
@@ -296,9 +298,8 @@ class AmbuControl(object):
                     self._runMode     = m.intData[2]
 
                     if (self._configCallBack is not None):
+                        print(f"Running config callback run state = {self._runState}")
                         self._configCallBack()
-
-                print(f"Got config serial = {newSerial} old serial = {self._cfgSerialNum} runState {self._runState}")
 
             elif self._cfgSerialNum != 0 and m.id == m.DATA and m.nFloat==6 and m.nInt==3:
                 #print(f"Got status: {line.rstrip()}")
