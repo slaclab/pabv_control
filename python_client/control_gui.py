@@ -107,6 +107,7 @@ class ControlGui(QWidget):
     updateVolInhThold = pyqtSignal(str)
     updatePeepMin     = pyqtSignal(str)
     updateState       = pyqtSignal(int)
+    updateStateSwitch = pyqtSignal(bool)
     updateMode        = pyqtSignal(int)
 
     updateVersion     = pyqtSignal(str)
@@ -311,6 +312,7 @@ class ControlGui(QWidget):
 
         self.runControl = PowerSwitch()
         self.runControl.clicked.connect(self.setRunState)
+        self.updateStateSwitch.connect(self.runControl.setChecked)
         fl.addRow('Run Enable:',self.runControl)
 
         muteAlarm = QPushButton("Mute Alarm")
@@ -1024,12 +1026,7 @@ class ControlGui(QWidget):
         self.updateState.emit(self.ambu.runState)
         self.updateMode.emit(self.ambu.runMode)
 
-        if self.ambu.runState == 3:
-            print("Turning run control on")
-            self.runControl.setChecked(True)
-        else:
-            print("Turning run control off")
-            self.runControl.setChecked(False)
+        self.updateStateSwitch.emit(self.ambu.runState == 3)
 
     def setAlarm(self,tag,cond):
         if(cond):
