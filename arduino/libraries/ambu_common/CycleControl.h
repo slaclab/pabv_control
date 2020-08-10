@@ -8,11 +8,8 @@
 #define RELAY_ON  HIGH
 #define RELAY_OFF LOW
 
-#define LED_ON  HIGH
-#define LED_OFF LOW
-
-#define PIEZO_ON  HIGH
-#define PIEZO_OFF LOW
+#define AUDIO_ON  HIGH
+#define AUDIO_OFF LOW
 
 class AmbuConfig;
 class GenericSensor;
@@ -36,7 +33,7 @@ class CycleControl {
       static const uint16_t StatusWarnVolMax     = 0x0100;
 
       // Used to block adjustd vol max updates
-      static const uint16_t StatusAlarmWarnMask  = 0x1EF;
+      static const uint16_t VolAlarmWarnMask  = 0x027;
 
       // Min off period
       static const uint32_t MinOffMillis = 1000;
@@ -52,9 +49,9 @@ class CycleControl {
       uint32_t onTime_;
       uint8_t  relayAPin_;
       uint8_t  relayBPin_;
-      uint8_t  redLedPin_;
-      uint8_t  yelLedPin_;
-      uint8_t  piezoPin_;
+      uint8_t  audHighPin_;
+      uint8_t  audMedPin_;
+      uint8_t  audLowPin_;
       uint8_t  pin12V_;
       uint8_t  pin9V_;
       uint32_t cycleStatus_;
@@ -80,9 +77,9 @@ class CycleControl {
                     GenericSensor &vol,
                     uint8_t relayAPin,
                     uint8_t relayBPin,
-                    uint8_t redLedPin,
-                    uint8_t yelLedPin,
-                    uint8_t piezoPin,
+                    uint8_t audHighPin,
+                    uint8_t audMedPin,
+                    uint8_t audLowPin,
                     uint8_t pin12V,
                     uint8_t pin9V);
 
