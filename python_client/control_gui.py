@@ -136,13 +136,6 @@ class ControlGui(QWidget):
         self.ambu.setConfigCallBack(self.configUpdated)
         self._queue=queue.Queue(1)
         self.ambu.setQueue(self._queue)
-        self.respRate     = None
-        self.inhTime      = None
-        self.volInhThold  = None
-        self.pipMax       = None
-        self.volMax       = None
-        self.stateControl = None
-        self.runControl   = None
         self.blink_time   = time.time()
 
         top = QVBoxLayout()
@@ -291,20 +284,20 @@ class ControlGui(QWidget):
         self.updateVolInhThold.connect(self.volInhThold.setText)
         fl.addRow('Trg. Thresh. (cmH20):',self.volInhThold)
 
-        self.pipMax = QLineEdit()
-        self.pipMax.returnPressed.connect(self.setPipMax)
-        self.updatePipMax.connect(self.pipMax.setText)
-        fl.addRow('PMax (cmH20):',self.pipMax)
+        self.pipMaxA = QLineEdit()
+        self.pipMaxA.returnPressed.connect(self.setPipMaxA)
+        self.updatePipMax.connect(self.pipMaxA.setText)
+        fl.addRow('PMax (cmH20):',self.pipMaxA)
 
-        self.volMax = QLineEdit()
-        self.volMax.returnPressed.connect(self.setVolMax)
-        self.updateVolMax.connect(self.volMax.setText)
-        fl.addRow('VMax (mL):',self.volMax)
+        self.volMaxA = QLineEdit()
+        self.volMaxA.returnPressed.connect(self.setVolMaxA)
+        self.updateVolMax.connect(self.volMaxA.setText)
+        fl.addRow('VMax (mL):',self.volMaxA)
 
-        self.peepMin = QLineEdit()
-        self.peepMin.returnPressed.connect(self.setPeepMin)
-        self.updatePeepMin.connect(self.peepMin.setText)
-        fl.addRow('PEEP Min (cmH20):',self.peepMin)
+        self.peepMinA = QLineEdit()
+        self.peepMinA.returnPressed.connect(self.setPeepMinA)
+        self.updatePeepMin.connect(self.peepMinA.setText)
+        fl.addRow('PEEP Min (cmH20):',self.peepMinA)
 
         self.modeControl = ModeSwitch()
         self.modeControl.clicked.connect(self.setMode)
@@ -609,21 +602,20 @@ class ControlGui(QWidget):
         fl.setLabelAlignment(Qt.AlignRight)
         gb.setLayout(fl)
 
+        self.pipMaxB = QLineEdit()
+        self.pipMaxB.returnPressed.connect(self.setPipMaxB)
+        self.updatePipMax.connect(self.pipMaxB.setText)
+        fl.addRow('PMax (cmH20):',self.pipMaxB)
 
-        self.pipMax = QLineEdit()
-        self.pipMax.returnPressed.connect(self.setPipMax)
-        self.updatePipMax.connect(self.pipMax.setText)
-        fl.addRow('PMax (cmH20):',self.pipMax)
+        self.volMaxB = QLineEdit()
+        self.volMaxB.returnPressed.connect(self.setVolMaxB)
+        self.updateVolMax.connect(self.volMaxB.setText)
+        fl.addRow('VMax (mL):',self.volMaxB)
 
-        self.volMax = QLineEdit()
-        self.volMax.returnPressed.connect(self.setVolMax)
-        self.updateVolMax.connect(self.volMax.setText)
-        fl.addRow('VMax (mL):',self.volMax)
-
-        self.peepMin = QLineEdit()
-        self.peepMin.returnPressed.connect(self.setPeepMin)
-        self.updatePeepMin.connect(self.peepMin.setText)
-        fl.addRow('PEEP Min (cmH20):',self.peepMin)
+        self.peepMinB = QLineEdit()
+        self.peepMinB.returnPressed.connect(self.setPeepMinB)
+        self.updatePeepMin.connect(self.peepMinB.setText)
+        fl.addRow('PEEP Min (cmH20):',self.peepMinB)
 
         self.modeControl = ModeSwitch()
         self.modeControl.clicked.connect(self.setMode)
@@ -637,7 +629,6 @@ class ControlGui(QWidget):
         left.addWidget(gb)
         gb.setMinimumWidth(450)
         gb.setMaximumHeight(500)
-
 
         vbox = QVBoxLayout()
 
@@ -908,9 +899,17 @@ class ControlGui(QWidget):
             pass
 
     @pyqtSlot()
-    def setPipMax(self):
+    def setPipMaxA(self):
         try:
-            self.ambu.pipMax = float(self.pipMax.text())
+            self.ambu.pipMax = float(self.pipMaxA.text())
+        except Exception as e:
+            #print(f"Got GUI value error {e}")
+            pass
+
+    @pyqtSlot()
+    def setPipMaxB(self):
+        try:
+            self.ambu.pipMax = float(self.pipMaxB.text())
         except Exception as e:
             #print(f"Got GUI value error {e}")
             pass
@@ -924,17 +923,33 @@ class ControlGui(QWidget):
             pass
 
     @pyqtSlot()
-    def setPeepMin(self):
+    def setPeepMinA(self):
         try:
-            self.ambu.peepMin = float(self.peepMin.text())
+            self.ambu.peepMin = float(self.peepMinA.text())
         except Exception as e:
             #print(f"Got GUI value error {e}")
             pass
 
     @pyqtSlot()
-    def setVolMax(self):
+    def setPeepMinB(self):
         try:
-            self.ambu.volMax = float(self.volMax.text())
+            self.ambu.peepMin = float(self.peepMinB.text())
+        except Exception as e:
+            #print(f"Got GUI value error {e}")
+            pass
+
+    @pyqtSlot()
+    def setVolMaxA(self):
+        try:
+            self.ambu.volMax = float(self.volMaxA.text())
+        except Exception as e:
+            #print(f"Got GUI value error {e}")
+            pass
+
+    @pyqtSlot()
+    def setVolMaxB(self):
+        try:
+            self.ambu.volMax = float(self.volMaxB.text())
         except Exception as e:
             #print(f"Got GUI value error {e}")
             pass
