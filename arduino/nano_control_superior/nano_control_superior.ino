@@ -12,9 +12,9 @@
 #include <Arduino.h>
 #define RELAYA_PIN 8
 #define RELAYB_PIN 7
-#define REDLED_PIN 3
-#define YELLED_PIN 4
-#define PIEZO_PIN  2
+#define AUDIO_HIGH_PIN 4
+#define AUDIO_MED_PIN  3
+#define AUDIO_LOW_PIN  2
 #define PIN_12V A6
 #define PIN_9V  A7
 #define SENSOR_PERIOD_MILLIS 9
@@ -50,7 +50,7 @@ AmbuConfig conf(serComm,displayComm);
 SensorDlcL20D4 press;
 SensorSp110Sm02Flow flow;
 SensorVolume vol(flow);
-CycleControl relay(conf,press,vol,RELAYA_PIN,RELAYB_PIN,REDLED_PIN,YELLED_PIN,PIEZO_PIN,PIN_12V,PIN_9V);
+CycleControl relay(conf,press,vol,RELAYA_PIN,RELAYB_PIN,AUDIO_HIGH_PIN,AUDIO_MED_PIN,AUDIO_LOW_PIN,PIN_12V,PIN_9V);
 
 
 uint32_t sensorTime;

@@ -8,9 +8,9 @@ CycleControl::CycleControl (AmbuConfig &conf,
                             GenericSensor &vol,
                             uint8_t relayAPin,
                             uint8_t relayBPin,
-                            uint8_t redLedPin,
-                            uint8_t yelLedPin,
-                            uint8_t piezoPin,
+                            uint8_t audHighPin,
+                            uint8_t audMedPin,
+                            uint8_t audLowPin,
                             uint8_t pin12V,
                             uint8_t pin9V):
              conf_(conf),
@@ -18,9 +18,9 @@ CycleControl::CycleControl (AmbuConfig &conf,
              vol_(vol),
              relayAPin_(relayAPin),
              relayBPin_(relayBPin),
-             redLedPin_(redLedPin),
-             yelLedPin_(yelLedPin),
-             piezoPin_(piezoPin),
+             audHighPin_(audHighPin),
+             audMedPin_(audMedPin),
+             audLowPin_(audLowPin),
              pin9V_(pin9V),
              pin12V_(pin12V),
              stateTime_(0),
@@ -51,15 +51,16 @@ void CycleControl::setup() {
 
    pinMode(relayAPin_, OUTPUT);
    pinMode(relayBPin_, OUTPUT);
-   pinMode(redLedPin_, OUTPUT);
-   pinMode(yelLedPin_, OUTPUT);
-   pinMode(piezoPin_,  OUTPUT);
+   pinMode(audHighPin_, OUTPUT);
+   pinMode(audMedPin_, OUTPUT);
+   pinMode(audLowPin_, OUTPUT);
 
    digitalWrite(relayAPin_, RELAY_OFF);
    digitalWrite(relayBPin_, RELAY_OFF);
-   digitalWrite(redLedPin_, LED_OFF);
-   digitalWrite(yelLedPin_, LED_OFF);
-   digitalWrite(piezoPin_,  PIEZO_OFF);
+
+   digitalWrite(audHighPin_, AUDIO_OFF);
+   digitalWrite(audMedPin_,  AUDIO_OFF);
+   digitalWrite(audLowPin_,  AUDIO_OFF);
 
    currVmax_ = 0;
    prevVmax_ = 0;
@@ -101,7 +102,7 @@ void CycleControl::update(uint32_t ctime) {
    }
 
    // Check 9V level, double check if below threshold
-   if ( (( val = analogRead(pin9V_)) < 230 ) && (cycleCountReal_ > 5) ) {
+   if ( (( val = analogRead(pin9V_)) < 230 ) ) {
       if ( ( val = analogRead(pin9V_)) < 230 ) {
          cycleStatus_ |= StatusWarn9V;
          currStatus_  |= StatusWarn9V;
@@ -188,7 +189,7 @@ void CycleControl::update(uint32_t ctime) {
             if ( (currPmax_ < 5.0) && (cycleCountReal_ > 5)) cycleStatus_ |= StatusAlarmPressLow;
 
             // Update adjust volume max
-            if ( (cycleStatus_ & StatusAlarmWarnMask) == 0 ) {
+            if ( (cycleStatus_ & VolAlarmWarnMask) == 0 ) {
                 if ( wasOff_ ) conf_.initAdjVolMax();
                 else conf_.updateAdjVolMax(currVmax_);
             }
@@ -268,35 +269,25 @@ void CycleControl::update(uint32_t ctime) {
       digitalWrite(relayBPin_, RELAY_OFF);
    }
 
-   // Alarms LED
-   if ( (currStatus_ & StatusAlarmPipMax   ) ||
-        (currStatus_ & StatusAlarmVolLow   ) ||
-        (currStatus_ & StatusAlarm12V      ) ||
-        (currStatus_ & StatusAlarmPressLow ) ) {
-
-      digitalWrite(redLedPin_, LED_ON);
-   }
-   else digitalWrite(redLedPin_, LED_OFF);
-
-   // Warning LED
-   if ( (currStatus_ & StatusWarn9V        ) ||
-        (currStatus_ & StatusWarnVolMax    ) ||
-        (currStatus_ & StatusWarnVolLow    ) ||
-        (currStatus_ & StatusWarnPeepMin   ) ) {
-
-      digitalWrite(yelLedPin_, LED_ON);
-   }
-   else digitalWrite(yelLedPin_, LED_OFF);
-
-   // Alarm Audio
+   // High priority ALARM
    if ( ( (currStatus_ & StatusAlarmPipMax   ) ||
           (currStatus_ & StatusAlarmVolLow   ) ||
           (currStatus_ & StatusAlarm12V      ) ||
           (currStatus_ & StatusAlarmPressLow ) ) && ((ctime - muteTime_) > 120000) ) {
 
-      digitalWrite(piezoPin_, PIEZO_ON);
+      digitalWrite(audHighPin_, AUDIO_ON);
    }
-   else digitalWrite(piezoPin_, PIEZO_OFF);
+   else digitalWrite(audHighPin_, AUDIO_OFF);
+
+   // MEd priority ALARM
+   if ( ( (currStatus_ & StatusWarn9V        ) ||
+          (currStatus_ & StatusWarnVolMax    ) ||
+          (currStatus_ & StatusWarnVolLow    ) ||
+          (currStatus_ & StatusWarnPeepMin   ) ) && ((ctime - muteTime_) > 120000) ) {
+
+      digitalWrite(audMedPin_, AUDIO_ON);
+   }
+   else digitalWrite(audMedPin_, AUDIO_OFF);
 
    // Calculate time since going to on state
    if (conf_.getRunState() == conf_.StateRunOn) {

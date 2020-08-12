@@ -282,6 +282,8 @@ class AmbuControl(object):
             elif m.id == m.CONFIG  and m.nFloat==8 and m.nInt==3:
                 newSerial = m.intData[1]
 
+                #print(f"Got config serial = {newSerial} old serial = {self._cfgSerialNum}")
+
                 if newSerial != self._cfgSerialNum:
                     self._cfgSerialNum = newSerial
                     self._respRate    = m.floatData[0]
