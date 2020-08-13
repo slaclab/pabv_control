@@ -839,7 +839,6 @@ class ControlGui(QWidget):
 
             if self.index == 9 or self.index ==11:
                 self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Plunger cycling.")
-                self.ambu.runMode = 1
                 self.stateControl.setCurrentIndex(3)
 
         except Exception as e:
@@ -1046,8 +1045,6 @@ class ControlGui(QWidget):
         self.updateMode.emit(self.ambu.runMode==1)
 
         self.updateStateSwitch.emit(self.ambu.runState == 3)
-
-        print("Config updated called")
 
     def setAlarm(self,tag,cond):
         if(cond):
