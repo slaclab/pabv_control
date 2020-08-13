@@ -301,6 +301,7 @@ class ControlGui(QWidget):
 
         self.modeControlA = ModeSwitch()
         self.modeControlA.clicked.connect(self.setMode)
+        self.updateMode.connect(self.modeControlA.setChecked)
         fl.addRow('Volume - Pressure:',self.modeControlA)
 
         self.runControlA = PowerSwitch()
@@ -619,6 +620,7 @@ class ControlGui(QWidget):
 
         self.modeControlB = ModeSwitch()
         self.modeControlB.clicked.connect(self.setMode)
+        self.updateMode.connect(self.modeControlB.setChecked)
         fl.addRow('Volume - Pressure:',self.modeControlB)
 
         self.runControlB = PowerSwitch()
