@@ -299,14 +299,14 @@ class ControlGui(QWidget):
         self.updatePeepMin.connect(self.peepMinA.setText)
         fl.addRow('PEEP Min (cmH20):',self.peepMinA)
 
-        self.modeControl = ModeSwitch()
-        self.modeControl.clicked.connect(self.setMode)
-        fl.addRow('Volume - Pressure:',self.modeControl)
+        self.modeControlA = ModeSwitch()
+        self.modeControlA.clicked.connect(self.setMode)
+        fl.addRow('Volume - Pressure:',self.modeControlA)
 
-        self.runControl = PowerSwitch()
-        self.runControl.clicked.connect(self.setRunState)
-        self.updateStateSwitch.connect(self.runControl.setChecked)
-        fl.addRow('Run Enable:',self.runControl)
+        self.runControlA = PowerSwitch()
+        self.runControlA.clicked.connect(self.setRunState)
+        self.updateStateSwitch.connect(self.runControlA.setChecked)
+        fl.addRow('Run Enable:',self.runControlA)
 
         muteAlarm = QPushButton("Mute Alarm")
         muteAlarm.pressed.connect(self.muteAlarm)
@@ -617,13 +617,13 @@ class ControlGui(QWidget):
         self.updatePeepMin.connect(self.peepMinB.setText)
         fl.addRow('PEEP Min (cmH20):',self.peepMinB)
 
-        self.modeControl = ModeSwitch()
-        self.modeControl.clicked.connect(self.setMode)
-        fl.addRow('Volume - Pressure:',self.modeControl)
+        self.modeControlB = ModeSwitch()
+        self.modeControlB.clicked.connect(self.setMode)
+        fl.addRow('Volume - Pressure:',self.modeControlB)
 
-        self.runControl = PowerSwitch()
-        self.runControl.clicked.connect(self.setRunState)
-        fl.addRow('Run Enable:',self.runControl)
+        self.runControlB = PowerSwitch()
+        self.runControlB.clicked.connect(self.setRunState)
+        fl.addRow('Run Enable:',self.runControlB)
 
         gb = QGroupBox('Calibration Instructions')
         left.addWidget(gb)
@@ -968,9 +968,11 @@ class ControlGui(QWidget):
             self.ambu.runState = value
 
             if value == 3:
-                self.runControl.setChecked(True)
+                self.runControlA.setChecked(True)
+                self.runControlB.setChecked(True)
             else:
-                self.runControl.setChecked(False)
+                self.runControlA.setChecked(False)
+                self.runControlB.setChecked(False)
 
         except Exception as e:
             #print(f"Got GUI value error {e}")
