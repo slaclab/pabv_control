@@ -660,7 +660,7 @@ class ControlGui(QWidget):
         self.instructions.append("Press the plunger down by hand. The pressure, flow, and volume plots should indicate the bag compression.")
 
         #3 Settings
-        self.instructions.append("3) Set the mode to Pressure, set PMax to 40, and set PEPPMin to 10.")
+        self.instructions.append("3) Set the mode to Pressure, set PMax to 40, and set PEEP Min to 10.")
 
         #4: paddle cycling
         self.instructions.append("The ASV is now cycling. Check that the plunger pushes the AMBU bag down smoothly, about ½ second,  before the plunger comes up. Adjust the air supply valve as needed. Adjust the exhaust valve so paddle rises smoothly")
