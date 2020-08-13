@@ -108,7 +108,7 @@ class ControlGui(QWidget):
     updatePeepMin     = pyqtSignal(str)
     updateState       = pyqtSignal(int)
     updateStateSwitch = pyqtSignal(bool)
-    updateMode        = pyqtSignal(int)
+    updateMode        = pyqtSignal(bool)
 
     updateVersion     = pyqtSignal(str)
     updateArTime      = pyqtSignal(str)
@@ -1041,7 +1041,7 @@ class ControlGui(QWidget):
         self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
 
         self.updateState.emit(self.ambu.runState)
-        self.updateMode.emit(self.ambu.runMode)
+        self.updateMode.emit(self.ambu.runMode==1)
 
         self.updateStateSwitch.emit(self.ambu.runState == 3)
 
