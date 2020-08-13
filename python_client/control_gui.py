@@ -1047,6 +1047,8 @@ class ControlGui(QWidget):
 
         self.updateStateSwitch.emit(self.ambu.runState == 3)
 
+        print("Config updated called")
+
     def setAlarm(self,tag,cond):
         if(cond):
             if(tag not in self.alarmsActive):
