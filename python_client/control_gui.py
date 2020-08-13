@@ -654,13 +654,13 @@ class ControlGui(QWidget):
         self.instructions.append("Click 'Next' to begin calibration procedure")
 
         #1:paddle up
-        self.instructions.append("The ASV should be off and the plunger up. Please check that the patient circuit is connected and a test lung in place. Make sure the compressed air supply is connected and on.")
+        self.instructions.append("The ASV should be off and the plunger up. Please check that the patient circuit is connected and a test lung in place. Make sure the compressed air supply is connected and on. On the control tab set RR to 20 and Inhalation time to 1.0.")
 
         #2: paddle up
         self.instructions.append("Press the plunger down by hand. The pressure, flow, and volume plots should indicate the bag compression.")
 
         #3 Settings
-        self.instructions.append("3) Set the mode to Pressure, set PMax to 40, and set VMin to 10.")
+        self.instructions.append("3) Set the mode to Pressure, set PMax to 40, and set PEPPMin to 10.")
 
         #4: paddle cycling
         self.instructions.append("The ASV is now cycling. Check that the plunger pushes the AMBU bag down smoothly, about ½ second,  before the plunger comes up. Adjust the air supply valve as needed. Adjust the exhaust valve so paddle rises smoothly")
