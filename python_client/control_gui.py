@@ -870,7 +870,7 @@ class ControlGui(QWidget):
     def resetPressed(self):
         try:
             self.timeoutabort=1
-            self.index=0
+            self.index=1
             self.textfield.setText(self.instructions[self.index])
             self.performAction()
         except Exception as e:
