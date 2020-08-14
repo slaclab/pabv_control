@@ -715,7 +715,7 @@ class ControlGui(QWidget):
         resetbutton.clicked.connect(self.resetPressed)
 
         buttongroup.addWidget(prevbutton)
-        buttongroup.addWidget(repbutton)
+        buttongroup.addWidget(resetbutton)
         buttongroup.addWidget(nextbutton)
 
         vbox.addLayout(buttongroup)
