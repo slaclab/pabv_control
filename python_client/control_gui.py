@@ -108,7 +108,7 @@ class ControlGui(QWidget):
     updatePeepMin     = pyqtSignal(str)
     updateState       = pyqtSignal(int)
     updateStateSwitch = pyqtSignal(bool)
-    updateMode        = pyqtSignal(int)
+    updateMode        = pyqtSignal(bool)
 
     updateVersion     = pyqtSignal(str)
     updateArTime      = pyqtSignal(str)
@@ -299,14 +299,15 @@ class ControlGui(QWidget):
         self.updatePeepMin.connect(self.peepMinA.setText)
         fl.addRow('PEEP Min (cmH20):',self.peepMinA)
 
-        self.modeControl = ModeSwitch()
-        self.modeControl.clicked.connect(self.setMode)
-        fl.addRow('Volume - Pressure:',self.modeControl)
+        self.modeControlA = ModeSwitch()
+        self.modeControlA.clicked.connect(self.setMode)
+        self.updateMode.connect(self.modeControlA.setChecked)
+        fl.addRow('Volume - Pressure:',self.modeControlA)
 
-        self.runControl = PowerSwitch()
-        self.runControl.clicked.connect(self.setRunState)
-        self.updateStateSwitch.connect(self.runControl.setChecked)
-        fl.addRow('Run Enable:',self.runControl)
+        self.runControlA = PowerSwitch()
+        self.runControlA.clicked.connect(self.setRunState)
+        self.updateStateSwitch.connect(self.runControlA.setChecked)
+        fl.addRow('Run Enable:',self.runControlA)
 
         muteAlarm = QPushButton("Mute Alarm")
         muteAlarm.pressed.connect(self.muteAlarm)
@@ -617,13 +618,14 @@ class ControlGui(QWidget):
         self.updatePeepMin.connect(self.peepMinB.setText)
         fl.addRow('PEEP Min (cmH20):',self.peepMinB)
 
-        self.modeControl = ModeSwitch()
-        self.modeControl.clicked.connect(self.setMode)
-        fl.addRow('Volume - Pressure:',self.modeControl)
+        self.modeControlB = ModeSwitch()
+        self.modeControlB.clicked.connect(self.setMode)
+        self.updateMode.connect(self.modeControlB.setChecked)
+        fl.addRow('Volume - Pressure:',self.modeControlB)
 
-        self.runControl = PowerSwitch()
-        self.runControl.clicked.connect(self.setRunState)
-        fl.addRow('Run Enable:',self.runControl)
+        self.runControlB = PowerSwitch()
+        self.runControlB.clicked.connect(self.setRunState)
+        fl.addRow('Run Enable:',self.runControlB)
 
         gb = QGroupBox('Calibration Instructions')
         left.addWidget(gb)
@@ -652,13 +654,13 @@ class ControlGui(QWidget):
         self.instructions.append("Click 'Next' to begin calibration procedure")
 
         #1:paddle up
-        self.instructions.append("The ASV should be off and the plunger up. Please check that the patient circuit is connected and a test lung in place. Make sure the compressed air supply is connected and on.")
+        self.instructions.append("The ASV should be off and the plunger up. Please check that the patient circuit is connected and a test lung in place. Make sure the compressed air supply is connected and on. On the control tab set RR to 20 and Inhalation time to 1.0.")
 
         #2: paddle up
         self.instructions.append("Press the plunger down by hand. The pressure, flow, and volume plots should indicate the bag compression.")
 
         #3 Settings
-        self.instructions.append("3) Set the mode to Pressure, set PMax to 40, and set VMin to 10.")
+        self.instructions.append("3) Set the mode to Pressure, set PMax to 40, and set PEEP Min to 10.")
 
         #4: paddle cycling
         self.instructions.append("The ASV is now cycling. Check that the plunger pushes the AMBU bag down smoothly, about ½ second,  before the plunger comes up. Adjust the air supply valve as needed. Adjust the exhaust valve so paddle rises smoothly")
@@ -709,11 +711,11 @@ class ControlGui(QWidget):
         nextbutton = QPushButton('Next')
         nextbutton.clicked.connect(self.nextPressed)
 
-        repbutton = QPushButton('Repeat')
-        repbutton.clicked.connect(self.repPressed)
+        resetbutton = QPushButton('Restart')
+        resetbutton.clicked.connect(self.resetPressed)
 
         buttongroup.addWidget(prevbutton)
-        buttongroup.addWidget(repbutton)
+        buttongroup.addWidget(resetbutton)
         buttongroup.addWidget(nextbutton)
 
         vbox.addLayout(buttongroup)
@@ -837,7 +839,6 @@ class ControlGui(QWidget):
 
             if self.index == 9 or self.index ==11:
                 self.textfield.setText(str(self.index)+") "+self.textfield.toPlainText()+"\n\nState: Plunger cycling.")
-                self.ambu.runMode = 1
                 self.stateControl.setCurrentIndex(3)
 
         except Exception as e:
@@ -866,9 +867,10 @@ class ControlGui(QWidget):
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
-    def repPressed(self):
+    def resetPressed(self):
         try:
             self.timeoutabort=1
+            self.index=1
             self.textfield.setText(self.instructions[self.index])
             self.performAction()
         except Exception as e:
@@ -968,9 +970,11 @@ class ControlGui(QWidget):
             self.ambu.runState = value
 
             if value == 3:
-                self.runControl.setChecked(True)
+                self.runControlA.setChecked(True)
+                self.runControlB.setChecked(True)
             else:
-                self.runControl.setChecked(False)
+                self.runControlA.setChecked(False)
+                self.runControlB.setChecked(False)
 
         except Exception as e:
             #print(f"Got GUI value error {e}")
@@ -1039,7 +1043,7 @@ class ControlGui(QWidget):
         self.updatePeepMin.emit("{:0.1f}".format(self.ambu.peepMin))
 
         self.updateState.emit(self.ambu.runState)
-        self.updateMode.emit(self.ambu.runMode)
+        self.updateMode.emit(self.ambu.runMode==1)
 
         self.updateStateSwitch.emit(self.ambu.runState == 3)
 
