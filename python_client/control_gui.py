@@ -711,8 +711,8 @@ class ControlGui(QWidget):
         nextbutton = QPushButton('Next')
         nextbutton.clicked.connect(self.nextPressed)
 
-        repbutton = QPushButton('Repeat')
-        repbutton.clicked.connect(self.repPressed)
+        resetbutton = QPushButton('Reset')
+        resetbutton.clicked.connect(self.resetPressed)
 
         buttongroup.addWidget(prevbutton)
         buttongroup.addWidget(repbutton)
@@ -867,9 +867,10 @@ class ControlGui(QWidget):
             print(f"Got GUI value error {e}")
 
     @pyqtSlot()
-    def repPressed(self):
+    def resetPressed(self):
         try:
             self.timeoutabort=1
+            self.index=0
             self.textfield.setText(self.instructions[self.index])
             self.performAction()
         except Exception as e:
