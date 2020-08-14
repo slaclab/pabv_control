@@ -711,7 +711,7 @@ class ControlGui(QWidget):
         nextbutton = QPushButton('Next')
         nextbutton.clicked.connect(self.nextPressed)
 
-        resetbutton = QPushButton('Reset')
+        resetbutton = QPushButton('Restart')
         resetbutton.clicked.connect(self.resetPressed)
 
         buttongroup.addWidget(prevbutton)
