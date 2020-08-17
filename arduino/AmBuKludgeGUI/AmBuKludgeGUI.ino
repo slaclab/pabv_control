@@ -525,51 +525,51 @@ void updateStatusMessages() {
   Serial.println(statusBits & StatusAlarm12V, BIN);
   tft.writeFillRect(0,150, TFT_HEIGHT, TFT_WIDTH-150, ILI9341_BLACK);
   tft.setTextColor(ILI9341_BLACK);
-  tft.setTextSize(3);
-  if (statusBits & StatusAlarmPipMax == 0x0000){
+  tft.setTextSize(2);
+  if ((statusBits & StatusAlarmPipMax) != 0){
     Serial.println("ALARM PipMax");
     tft.writeFillRect(0,150, 106, 30, ILI9341_RED);
-    tft.setCursor(10, 153);
+    tft.setCursor(2, 157);
     tft.print("PIP Max");
   }
-  if (statusBits & StatusAlarmVolLow != 0){
+  if ((statusBits & StatusAlarmVolLow) != 0){
     Serial.println("ALARM VolLow");
     tft.writeFillRect(107,150, 106, 30, ILI9341_RED);
-    tft.setCursor(115, 153);
+    tft.setCursor(109, 157);
     tft.print("Vol Low");
   }
-  if (statusBits & StatusAlarmPressLow != 0){
+  if ((statusBits & StatusAlarmPressLow) != 0){
     tft.writeFillRect(213,150, 106, 30, ILI9341_RED);
-    tft.setCursor(225, 153);
-    tft.print("PressLow");
+    tft.setCursor(215, 157);
+    tft.print("PEEP Low");
   }
   //Row2
-  if (statusBits & StatusAlarm12V == StatusAlarm12V){
+  if ((statusBits & StatusAlarm12V) != 0){
     Serial.println("ALARM 12V");
     tft.writeFillRect(0,180, 106, 30, ILI9341_RED);
-    tft.setCursor(10, 183);
+    tft.setCursor(2, 187);
     tft.print("No Power");
   }
-  if (statusBits & StatusWarnVolLow != 0){
+  if ((statusBits & StatusWarnVolLow) != 0){
     tft.writeFillRect(107,180, 106, 30, ILI9341_YELLOW);
-    tft.setCursor(115, 183);
+    tft.setCursor(109, 187);
     tft.print("Vol Low");
   }
-  if (statusBits & StatusWarnVolMax != 0){
+  if ((statusBits & StatusWarnVolMax) != 0){
     tft.writeFillRect(213,180, 106, 30, ILI9341_YELLOW);
-    tft.setCursor(225, 183);
+    tft.setCursor(215, 187);
     tft.print("Vol High");
   }
   // Row 3
-  if (statusBits & StatusWarn9V != 0){
+  if ((statusBits & StatusWarn9V) != 0){
     tft.writeFillRect(0,210, 106, 30, ILI9341_YELLOW);
-    tft.setCursor(10, 183);
+    tft.setCursor(2, 217);
     tft.print("Batt Low");
   }
-  if (statusBits & StatusWarnPeepMin != 0){
+  if ((statusBits & StatusWarnPeepMin) != 0){
     tft.writeFillRect(107,210, 106, 30, ILI9341_YELLOW);
-    tft.setCursor(115, 183);
-    tft.print("PEEP Low");
+    tft.setCursor(109, 217);
+    tft.print("PEEP Min");
   }
 }
 
