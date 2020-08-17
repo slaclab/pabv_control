@@ -42,7 +42,7 @@ void setup(){
 }
 
 
-// Display Properties
+// LCD isplay Properties
 static constexpr uint16_t TFT_WIDTH= 240;
 static constexpr uint16_t TFT_HEIGHT= 320; 
 static constexpr uint8_t TFT_FONTH_1 = 8*1;
@@ -50,7 +50,7 @@ static constexpr uint8_t TFT_FONTH_2=  8*2;
 static constexpr uint8_t TFT_FONTH_3 = 8*3;
 static constexpr uint8_t TFT_FONTW = 6;
 
-
+// DEFINE THE LOCATIONS AND SIZE OF PARAMETERS SHOWN ON LCD
 // ROW 1 (PEEP PIP VOLUME I:E)
 static inline constexpr uint8_t r1_label_y = 5;
 static inline constexpr uint8_t r1_value_y = 34;
@@ -76,12 +76,13 @@ static inline constexpr uint8_t tPMin_x = 85; //(5+4*3*6+3*6) = 95
 static inline constexpr uint8_t tPMax_x = 165; //(95+3*3*6+3*6) = 167
 static inline constexpr uint8_t tRun_x = 245; //(95+3*3*6+3*6) = 167
 
-// Display Parameters
+// Display Parameters (live values)
 float vPEEP = 0.0; //
 float vPIP = 0.0;  //
 float vVOL = 0.0;  //
 float vIE = 0.0;   //
-// Settings:
+
+// Settings settable on LCD
 float vRR = 0.0;
 float vIT = 0.0;
 float vTH = 0.0;
@@ -97,7 +98,19 @@ float pTH[]   = {0.1, -10.0, 0} ;   // threshold
 float pVMax[] = {10., 250., 850.};  // mL
 float pPMax[] = {2., 20., 100.};    // cmH2O
 float pPMin[] = {2., 0., 30.};     // cmH2O
-// setting limits - structure is {delta, min, max}
+
+// The status bits used by CycleControl, defined in CycleControl.h
+uint16_t statusBits = 0x0000;
+static const uint16_t StatusAlarmPipMax    = 0x0001;
+static const uint16_t StatusAlarmVolLow    = 0x0002;
+uint16_t StatusAlarm12V       = 0x0004;
+static const uint16_t StatusWarn9V         = 0x0008;
+static const uint16_t StatusVolInh         = 0x0010;
+static const uint16_t StatusAlarmPressLow  = 0x0020;
+static const uint16_t StatusWarnPeepMin    = 0x0040;
+static const uint16_t StatusWarnVolLow     = 0x0080;
+static const uint16_t StatusWarnVolMax     = 0x0100;
+
 void change_RR(int8_t dv){
   vRR = round(vRR) + dv*pRR[0];
   if (vRR < pRR[1]) vRR = pRR[1];
@@ -188,6 +201,7 @@ void setup_display() {
 // Parameters used in the display to control the interface
 uint32_t measTime = 0;
 uint32_t curTime;
+uint16_t curStatusBits = 0x0000;
 uint32_t prevUpdateTime;
 int8_t encDT;   // -1 for CCW, +1 for CW turn
 bool encPushed;
@@ -492,10 +506,77 @@ bool parseRun(uint32_t p){
   return false;
 }
 
+void updateStatusMessages() {
+  /*
+  uint16_t statusBits = 0x0000;
+  static const uint16_t StatusAlarmPipMax    = 0x0001; 1
+  static const uint16_t StatusAlarmVolLow    = 0x0002; 2
+  static const uint16_t StatusAlarm12V       = 0x0004; 4
+  static const uint16_t StatusWarn9V         = 0x0008; 7
+  static const uint16_t StatusVolInh         = 0x0010; X
+  static const uint16_t StatusAlarmPressLow  = 0x0020; 3
+  static const uint16_t StatusWarnPeepMin    = 0x0040; 8
+  static const uint16_t StatusWarnVolLow     = 0x0080; 5
+  static const uint16_t StatusWarnVolMax     = 0x0100; 6
+  */
+  Serial.println("Running updateStatusMessages... status = ");
+  Serial.println(statusBits, BIN);
+  Serial.println(StatusAlarm12V, BIN);
+  Serial.println(statusBits & StatusAlarm12V, BIN);
+  tft.writeFillRect(0,150, TFT_HEIGHT, TFT_WIDTH-150, ILI9341_BLACK);
+  tft.setTextColor(ILI9341_BLACK);
+  tft.setTextSize(3);
+  if (statusBits & StatusAlarmPipMax == 0x0000){
+    Serial.println("ALARM PipMax");
+    tft.writeFillRect(0,150, 106, 30, ILI9341_RED);
+    tft.setCursor(10, 153);
+    tft.print("PIP Max");
+  }
+  if (statusBits & StatusAlarmVolLow != 0){
+    Serial.println("ALARM VolLow");
+    tft.writeFillRect(107,150, 106, 30, ILI9341_RED);
+    tft.setCursor(115, 153);
+    tft.print("Vol Low");
+  }
+  if (statusBits & StatusAlarmPressLow != 0){
+    tft.writeFillRect(213,150, 106, 30, ILI9341_RED);
+    tft.setCursor(225, 153);
+    tft.print("PressLow");
+  }
+  //Row2
+  if (statusBits & StatusAlarm12V == StatusAlarm12V){
+    Serial.println("ALARM 12V");
+    tft.writeFillRect(0,180, 106, 30, ILI9341_RED);
+    tft.setCursor(10, 183);
+    tft.print("No Power");
+  }
+  if (statusBits & StatusWarnVolLow != 0){
+    tft.writeFillRect(107,180, 106, 30, ILI9341_YELLOW);
+    tft.setCursor(115, 183);
+    tft.print("Vol Low");
+  }
+  if (statusBits & StatusWarnVolMax != 0){
+    tft.writeFillRect(213,180, 106, 30, ILI9341_YELLOW);
+    tft.setCursor(225, 183);
+    tft.print("Vol High");
+  }
+  // Row 3
+  if (statusBits & StatusWarn9V != 0){
+    tft.writeFillRect(0,210, 106, 30, ILI9341_YELLOW);
+    tft.setCursor(10, 183);
+    tft.print("Batt Low");
+  }
+  if (statusBits & StatusWarnPeepMin != 0){
+    tft.writeFillRect(107,210, 106, 30, ILI9341_YELLOW);
+    tft.setCursor(115, 183);
+    tft.print("PEEP Low");
+  }
+}
+
 
 // Mesage Parameters from Control-Arduino
 float ambu_float[10];
-uint32_t ambu_int[2];
+uint32_t ambu_int[3];
 bool gotMsg;
 bool updateParms;
 bool guiParamEditing = false;  // encoder turns change value 
@@ -650,11 +731,10 @@ void loop(){
     Serial.print(msg.nInt());
     Serial.println("F/I");
     /* 
-    From nano_control_superior.ino (~L122) expect 10 floats and 2 ints
-      void getFloat(float *f) {for (unsigned i=0;i<_nFloat;i++) f[i]=_tempFloat[i]; }
-      void getInt(uint32_t *d)  {for (unsigned i=0;i<_nInt;i++) d[i]=_tempInt[i];   }
+    From nano_control_superior.ino (~L114) expect 10 floats and 3 ints
+      
     */
-    if (msg.nFloat()==10 && msg.nInt()==2){
+    if (msg.nFloat()==10 && msg.nInt()==3){
       gotMsg = true;
       Serial.println("Got Valid Update Message");
       msg.getFloat(ambu_float);
@@ -663,6 +743,7 @@ void loop(){
       vPIP  = ambu_float[1];
       vVOL  = ambu_float[2];
       vIE   = ambu_float[3];
+      curStatusBits = ambu_int[2];
       if (vRR != ambu_float[4] && !(guiParamSelected==1 && guiParamEditing==true)){
         vRR   = ambu_float[4];
         updateParms = true;
@@ -701,5 +782,10 @@ void loop(){
     update_cycle_values();
     if (updateParms) update_parms();
     prevUpdateTime = curTime;
+    if (statusBits != curStatusBits) {
+      statusBits = curStatusBits;
+      updateStatusMessages();
+      Serial.println("got update statusBit");
+    }
   }
 }

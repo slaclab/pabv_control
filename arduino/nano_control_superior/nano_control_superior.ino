@@ -115,7 +115,7 @@ void loop() {
    if ((currTime - displayTime) > DISPLAY_PERIOD_MILLIS )  {
      Message m;
       float sendFloat[10];
-      uint32_t sendInt[2];
+      uint32_t sendInt[3];
       float parms[6];
       sendFloat[0]=relay.prevPmin();
       sendFloat[1]=relay.prevPmax();
@@ -129,7 +129,8 @@ void loop() {
       sendFloat[9]=conf.getPipMax();
       sendInt[0]=conf.getRunState();
       sendInt[1]=conf.getRunMode();
-     m.writeData(Message::DATA,currTime,10,sendFloat,2,sendInt);
+      sendInt[2]=relay.status();
+     m.writeData(Message::DATA,currTime,10,sendFloat,3,sendInt);
      displayComm.send(m);
      displayTime=currTime;
      // reset watchdog
