@@ -34,18 +34,21 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name="client_%s_%s" %(target,git_tag),
+          name="client", #name="client_%s_%s" %(target,git_tag)
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=False,
-          console=False )
+          console=False,
+          icon="asv_logo_small.ico" )
 coll = COLLECT(exe,
   a.binaries,
   a.zipfiles,
   a.datas,
-  Tree('fonts/',prefix='fonts/'),
+  Tree('fonts/',prefix='fonts'),
+  Tree('res/',prefix="."),
   strip=False,
   upx=False,
   upx_exclude=[],
-  name="client_%s_%s" %(target,git_tag))
+  name="client" #name="client_%s_%s" %(target,git_tag)
+  )
