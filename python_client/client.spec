@@ -32,16 +32,23 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
-          Tree('fonts/',prefix='fonts/'),
-           [],
-          name="client_%s_%s" %(target,git_tag),
+          [],
+          exclude_binaries=True,
+          name="client", #name="client_%s_%s" %(target,git_tag)
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
-          upx=True,
-          upx_exclude=[],
-          runtime_tmpdir=None,
-          console=False )
+          upx=False,
+          console=False,
+          icon="../res/asv_logo_small.ico" )
+coll = COLLECT(exe,
+  a.binaries,
+  a.zipfiles,
+  a.datas,
+  Tree('fonts/',prefix='fonts'),
+  Tree('res/',prefix="."),
+  strip=False,
+  upx=False,
+  upx_exclude=[],
+  name="client" #name="client_%s_%s" %(target,git_tag)
+  )

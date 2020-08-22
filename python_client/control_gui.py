@@ -16,13 +16,8 @@ import traceback
 
 import time
 
-git_version="unknown"
-
-try:
-    import version
-    git_version=version.version
-except:
-    pass
+import version
+git_version=version.version
 
 
 class PowerSwitch(QPushButton):

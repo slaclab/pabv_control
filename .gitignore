@@ -12,3 +12,6 @@ __pycache__/
 arduino/libraries/ambu_common/version.h
 python_client/version.py
 *.pyc
+*.exe
+env/
+python_client/config.nsh
