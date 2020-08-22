@@ -3,7 +3,8 @@
 # -*- coding: utf-8 -*-
 import re
 import sys
-
+sys.path.insert(0,"python_client")
+import git_version
 
 from PyInstaller.__main__ import run
 

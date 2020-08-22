@@ -40,7 +40,7 @@ exe = EXE(pyz,
           strip=False,
           upx=False,
           console=False,
-          icon="asv_logo_small.ico" )
+          icon="../res/asv_logo_small.ico" )
 coll = COLLECT(exe,
   a.binaries,
   a.zipfiles,

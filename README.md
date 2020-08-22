@@ -8,10 +8,11 @@ and open a Anaconda Prompt
 4. `cd pabv_control`  
 5. We now use submodules for various libraries, run this to pull them  
    `git submodule update --init --recursive`
+6. For packaging NSIS is required, install from: https://nsis.sourceforge.io/Download
 ##### Downloading arduin-cli
-5. `bootstrap.py`
+7. `bootstrap.py`
 ##### Compiling all sketches
-6. `board_compile.py`
+8. `board_compile.py`
 
 ### Tested platforms
 1.    Windows 10 64-bit
@@ -21,9 +22,9 @@ and open a Anaconda Prompt
 
 - Excutables built on Windows 10 32-bit may run on Windows 10 64-bit. Windows 7 or 8 support would require a native build.
 
-### Packing the python client for distribution
-- simply run the packaging scripts
-- `pkg_gui.py`
+### Packing the python client for distribution (Windows only)
+- simply run the packaging script
+- `pkg_gui.bat`
 
 ### Wrapper scripts for arduino CLI
 
@@ -50,8 +51,3 @@ Example output:
 - In Anaconda Prompt  
   - `cd pabv_control/python_client`  
   - `python client.py`  
-
-# Arduino Wireing
-test
-
-# Useage

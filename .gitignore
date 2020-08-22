@@ -14,3 +14,4 @@ python_client/version.py
 *.pyc
 *.exe
 env/
+python_client/config.nsh

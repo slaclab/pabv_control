@@ -1,18 +1,19 @@
+Unicode True
 
 !define APPNAME "ASV Client"
 !define COMPANYNAME "SLAC"
 !define DESCRIPTION "SLAC Acute shortage ventilator"
-!define SRCPATH "dist\client\"
-
-!define VERSIONMAJOR 1
-!define VERSIONMINOR 1
-!define VERSIONBUILD 1
-
 !define HELPURL "http://..." # "Support Information" link
 !define UPDATEURL "http://..." # "Product Updates" link
 !define ABOUTURL "http://..." # "Publisher" link
+
+#version from git
+!include python_client\config.nsh
+
+!define SRCPATH "dist\client\"
+
 # This is the size (in kB) of all the files copied into "Program Files"
-!define INSTALLSIZE 350000
+!define INSTALLSIZE 700000
 
 RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on)
 
