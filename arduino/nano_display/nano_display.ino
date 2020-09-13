@@ -295,36 +295,36 @@ void highlight_changeable_parameter(uint8_t nparm){
   (lets see how performance is first)
   */
   tft.setTextSize(2);
-  if (nparm == 1) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 1) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tRR_x, r2_label_y);
   tft.print("R.R.");
-  if (nparm == 2) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 2) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tIT_x, r2_label_y);
   tft.print("InspT");
-  if (nparm == 3) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 3) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tVMax_x, r2_label_y);
   tft.print("VMax");
-  if (nparm == 4) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 4) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE); 
   tft.setCursor(tMode_x, r2_label_y);
   tft.print("Mode");
   //
-  if (nparm == 5) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 5) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tTH_x, r3_label_y);
   tft.print("InspP");
-  if (nparm == 6) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 6) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tPMin_x, r3_label_y);
   tft.print("PMin");
-  if (nparm == 7) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 7) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tPMax_x, r3_label_y);
   tft.print("PMax");
-  if (nparm == 8) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 8) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tRun_x, r3_label_y);
   tft.print("Run");
@@ -338,75 +338,75 @@ void select_changeable_parameter(uint8_t nparm){
   */
   tft.setTextSize(2);
   //
-  if (nparm == 1) tft.setTextColor(ILI9341_ORANGE);
+  if (nparm == 1) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tRR_x, r2_label_y);
   tft.print("R.R.");
-  if (nparm == 1) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 1) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tRR_x, r2_value_y);
   tft.print(String(vRR,1));
   //
-  if (nparm == 2) tft.setTextColor(ILI9341_ORANGE);
+  if (nparm == 2) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tIT_x, r2_label_y);
   tft.print("InspT");
-  if (nparm == 2) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 2) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tIT_x, r2_value_y);
   tft.print(String(vIT, 1));
   //
-  if (nparm == 3) tft.setTextColor(ILI9341_ORANGE);
+  if (nparm == 3) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tVMax_x, r2_label_y);
   tft.print("VMax");
-  if (nparm == 3) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 3) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tVMax_x, r2_value_y);
   tft.print(String(vVMax, 1));
   //
-  if (nparm == 4) tft.setTextColor(ILI9341_ORANGE);
+  if (nparm == 4) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE); 
   tft.setCursor(tMode_x, r2_label_y);
   tft.print("Mode");
-  if (nparm == 4) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 4) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE); 
   tft.setCursor(tMode_x, r2_value_y);
   if (vMode) tft.print("Vol");
   else tft.print("Pres");
   //
-  if (nparm == 5) tft.setTextColor(ILI9341_ORANGE);
+  if (nparm == 5) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tTH_x, r3_label_y);
   tft.print("InspP");
-  if (nparm == 5) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 5) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tTH_x, r3_value_y);
   tft.print(String(vTH, 1));
   //
-  if (nparm == 6) tft.setTextColor(ILI9341_ORANGE);
+  if (nparm == 6) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tPMin_x, r3_label_y);
   tft.print("PMin");
-  if (nparm == 6) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 6) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tPMin_x, r3_value_y);
   tft.print(String(vPMin, 1));  
   //
-  if (nparm == 7) tft.setTextColor(ILI9341_ORANGE);
+  if (nparm == 7) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tPMax_x, r3_label_y);
   tft.print("PMax");
-  if (nparm == 7) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 7) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tPMax_x, r3_value_y);
   tft.print(String(vPMax, 1));
   //
-  if (nparm == 8) tft.setTextColor(ILI9341_ORANGE);
+  if (nparm == 8) tft.setTextColor(ILI9341_GREENYELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tRun_x, r3_label_y);
   tft.print("Run");
-  if (nparm == 8) tft.setTextColor(ILI9341_GREENYELLOW);
+  if (nparm == 8) tft.setTextColor(ILI9341_ORANGE);
   else tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(tRun_x, r3_value_y);
   if (vRun) tft.print("ON");
@@ -419,7 +419,7 @@ void change_parameter_value(uint8_t nparm, int8_t delta){
   If the value is changed by the encoder that means it must be
   selected and therefore should be greenyellow
   */
-  tft.setTextColor(ILI9341_GREENYELLOW);
+  tft.setTextColor(ILI9341_ORANGE);
   tft.setTextSize(2);
   switch (nparm){
     case 1: //RR
