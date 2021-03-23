@@ -1,6 +1,6 @@
 # Overview
 
-This repository contains all hardware descriptions and software to build and control the
+This repository contains all hardware descriptions and software to build and control the SLAC
 Acute Shortage Ventilator (ASV) developed to battle against the Covid crisis on a global scale.
 
 All information on the project can be found at:
@@ -11,10 +11,9 @@ All information on the project can be found at:
 - [DOECode](https://www.osti.gov/doecode/biblio/52411)
 - [ASV Website](https://www.slac-asv.net/)
 
-Documentation can also be found in the XXX directory of this repository
+Documentation can also be found in the ABCDEF directory of this repository
 
-All content in this repository is licensed under a BSD 3-clause License. See LICENSE.txt for detail
-
+The content in this repository is licensed under a BSD 3-clause License. See LICENSE.txt for detail.
 
 # Installation
 ### Getting the Code and dependencies
