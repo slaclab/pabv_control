@@ -1,3 +1,21 @@
+# Overview
+
+This repository contains all hardware descriptions and software to build and control the
+Acute Shortage Ventilator (ASV) developed to battle against the Covid crisis on a global scale.
+
+All information on the project can be found at:
+
+- [Media Announcement](https://www6.slac.stanford.edu/news/2020-08-13-slac-scientists-invent-low-cost-emergency-ventilator-and-share-design-free.aspx)
+- [Official Paper](https://www.medrxiv.org/content/10.1101/2020.07.20.20158147v1)
+- [Technology](http://techfinder.stanford.edu/technologies/S20-256_acute-shortage-ventilator)
+- [DOECode](https://www.osti.gov/doecode/biblio/52411)
+- [ASV Website](https://www.slac-asv.net/)
+
+Documentation can also be found in the XXX directory of this repository
+
+All content in this repository is licensed under a BSD 3-clause License. See LICENSE.txt for detail
+
+
 # Installation
 ### Getting the Code and dependencies
 1. Install Anaconda3 (64-bit) for Windows 10 from here:
