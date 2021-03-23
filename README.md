@@ -67,8 +67,3 @@ Example output:
 - In Anaconda Prompt  
   - `cd pabv_control/python_client`  
   - `python client.py`  
-
-# Arduino Wireing
-test
-
-# Useage
