@@ -11,7 +11,7 @@ All information on the project can be found at:
 - [DOECode](https://www.osti.gov/doecode/biblio/52411)
 - [ASV Website](https://www.slac-asv.net/)
 
-Documentation can also be found in the ABCDEF directory of this repository
+Documentation can also be found in the ASV IP folder directory of this repository
 
 The content in this repository is licensed under a BSD 3-clause License. See LICENSE.txt for detail.
 
